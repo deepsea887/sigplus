@@ -1,0 +1,27 @@
+#summary Instructions on how to set up various sigplus package components.
+
+= Setup and installation =
+
+== Content plug-in ==
+
+The sigplus content plug-in generates image galleries in place of activation tags embedded in the text of articles.
+
+In the administration back-end, click _Extensions_, then _Plug-in Manager_, and select type _content_ from the drop-down list in the top right corner of the page, and finally enable _Content - Image gallery - sigplus_.
+
+== Search plug-in ==
+
+The sigplus search plug-in integrates a new search criterion _Images_ into standard Joomla site search.
+
+In the administration back-end, click _Extensions_, then _Plug-in Manager_, and select type _search_ from the drop-down list in the top right corner of the page, and finally enable _Search - Image gallery - sigplus_.
+
+In order to test the search plug-in, add a search module to the site front-end if you do not already have one, and type a phrase into the search box, and see how image results are included in the search results. Image search looks in image filename, title and
+description.
+
+== Editor button plug-in ==
+
+In the administration back-end, click _Extensions_, then _Plug-in Manager_, and select type _editor-xtd_ (editor extender) from the drop-down list in the top right corner of the page, and finally enable _Button - sigplus_.
+
+Open any article in _Article Manager_ and the sigplus editor button
+(with label _sigplus_) should appear below the editor text area.
+
+The sigplus editor button requires the sigplus content plug-in to be enabled.
