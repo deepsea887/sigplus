@@ -79,3 +79,16 @@ Formatted caption for each file:
   * Two pears (2 of 4)
   * Unidentified fruit (3 of 4)
   * A strawberry (4 of 4)
+
+= BBCode =
+
+Default image title, default image summary, image title template and image summary template support BBCode (bulletin board code). [http://en.wikipedia.org/wiki/BBCode BBCode] is a lightweight markup language used to format posts in many message boards. With BBCode markers in captions and caption templates, you can apply a subset of HTML formatting styles to title and summary text, getting around Joomla security measures that prohibit the direct use of HTML in many places, including back-end configuration settings. The following BBCode markers are supported:
+  * {{{[b]bold[/b]}}}, which maps to *bold* (HTML {{{<b>bold</b>}}});
+  * {{{[i]italic[/i]}}}, which maps to _italic_ (HTML {{{<i>italic</i>}}});
+  * {{{[u]underline[/u]}}} (HTML {{{<u>underline</u>}}});
+  * {{{[s]strikeout[/s]}}}, which maps to ~~strikeout~~ (HTML {{{<s>strikeout</s>}}});
+  * {{{[sup]superscript[/sup]}}}, which maps to ^super^script (HTML {{{<sup>superscript</sup>}}});
+  * {{{[sub]subscript[/sub]}}}, which maps to ,,sub,,script (HTML {{{<sub>subscript</sub>}}});
+  * {{{[url]http://hunyadi.info.hu/projects/sigplus/[/url]}}} and {{{[url=http://hunyadi.info.hu/projects/sigplus/]link[/url]}}}, which map to [http://hunyadi.info.hu/projects/sigplus/] and [http://hunyadi.info.hu/projects/sigplus/ link], respectively.
+
+In addition, linefeed characters are automatically converted into line breaks (HTML {{{<br/>}}}).
