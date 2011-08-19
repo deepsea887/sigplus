@@ -1,0 +1,321 @@
+/**
+* @file
+* @brief    slideplus image slider
+* @author   Levente Hunyadi
+* @version  $__VERSION__$
+* @remarks  Copyright (C) 2011 Levente Hunyadi
+* @see      http://hunyadi.info.hu/projects/slideplus
+*/
+
+/**
+* Custom styling.
+*/
+
+/* rotator styling
+.slideplus {
+border:1px solid black !important;
+}
+*/
+
+/* image styling
+.slideplus > ul > li img {
+margin:2px !important;
+border:1px solid gray !important;
+padding:2px !important;
+}
+*/
+
+div.slideplus > ul > li {
+text-align:center !important;
+}
+
+/* mouse-over animation */
+.slideplus-active {  /* style when mouse pointer is over image */
+/*opacity:1;*/
+}
+
+.slideplus-inactive {  /* style when mouse pointer is not over image */
+/*opacity:0.5;*/
+}
+
+/**
+* Standard styling.
+* Changing this section may negatively impact slider functionality.
+*/
+
+/* scripts disabled mode */
+
+.slideplus {
+display:block !important;
+width:100% !important;
+white-space:nowrap !important;
+overflow:auto !important;
+}
+
+.slideplus > ul,
+.slideplus > ul > li {
+display:block !important;
+margin:0 !important;
+border:0 none transparent !important;
+padding:0 !important;
+}
+
+.slideplus > ul {
+position:relative !important;
+list-style-type:none !important;
+list-style-image:none !important;
+}
+
+/* items on slider ribbon */
+.slideplus > ul > li {
+background:transparent none no-repeat scroll 0 0 !important;
+}
+
+/* scripts enabled mode */
+
+div.slideplus {
+position:relative !important;
+display:inline-block !important;
+width:auto !important;
+overflow:hidden !important;
+}
+
+/* list items */
+div.slideplus > ul > li {
+position:absolute !important;
+}
+
+/* horizontal and vertical item alignment */
+.slideplus-align {
+display:-moz-box !important;
+display:-webkit-box !important;
+display:box !important;
+-moz-box-orient:horizontal !important;
+-webkit-box-orient:horizontal !important;
+box-orient:horizontal !important;
+width:100% !important;
+height:100% !important;
+}
+
+.slideplus-align > * {
+display:block !important;
+margin:auto !important;
+}
+
+.slideplus-horizontal-center {
+-moz-box-pack:center !important;
+-webkit-box-pack:center !important;
+box-pack:center !important;
+}
+
+.slideplus-horizontal-start {
+-moz-box-pack:start !important;
+-webkit-box-pack:start !important;
+box-pack:start !important;
+}
+
+.slideplus-horizontal-end {
+-moz-box-pack:end !important;
+-webkit-box-pack:end !important;
+box-pack:end !important;
+}
+
+.slideplus-vertical-center {
+-moz-box-align:center !important;
+-webkit-box-align:center !important;
+box-align:center !important;
+}
+
+.slideplus-vertical-start {
+-moz-box-align:start !important;
+-webkit-box-align:start !important;
+box-align:start !important;
+}
+
+.slideplus-vertical-end {
+-moz-box-align:end !important;
+-webkit-box-align:end !important;
+box-align:end !important;
+}
+
+/* overlay navigation */
+.slideplus-prev,
+.slideplus-next {
+position:absolute !important;
+cursor:pointer !important;
+background:transparent url(transparent.gif) no-repeat scroll center center !important;
+}
+
+/* top and bottom navigation controls */
+a.slideplus-prev,
+a.slideplus-next {
+border:2px solid transparent;
+background-color:rgba(0,0,0,0.5) !important;
+padding:2px 6px;
+color:white !important;
+text-decoration:none;
+}
+
+a.slideplus-prev:hover,
+a.slideplus-next:hover {
+background-color:rgba(0,0,0,0.75) !important;
+}
+
+a.slideplus-prev {
+left:0;
+text-align:left;
+}
+
+a.slideplus-next {
+right:0;
+text-align:right;
+}
+
+a.slideplus-top {
+top:0;
+padding-top:0;
+}
+
+a.slideplus-bottom {
+bottom:0;
+padding-bottom:0;
+}
+
+a.slideplus-prev.slideplus-top {
+border-bottom-right-radius:15px;
+}
+
+a.slideplus-next.slideplus-top {
+border-bottom-left-radius:15px;
+}
+
+a.slideplus-prev.slideplus-bottom {
+border-top-right-radius:15px;
+}
+
+a.slideplus-next.slideplus-bottom {
+border-top-left-radius:15px;
+}
+
+/* overlay navigation buttons */
+.slideplus-horizontal {
+top:0 !important;
+height:100% !important;
+}
+
+.slideplus-vertical {
+left:0 !important;
+width:100% !important;
+}
+
+.slideplus-prev.slideplus-horizontal {
+left:0 !important;
+background-position:left center !important;
+}
+
+.slideplus-prev.slideplus-horizontal.slideplus-large {
+width:57px !important;
+}
+
+.slideplus-prev.slideplus-horizontal.slideplus-large:hover {
+background-image:url(button-left-large.png) !important;
+}
+
+.slideplus-prev.slideplus-horizontal.slideplus-small {
+width:29px !important;
+}
+
+.slideplus-prev.slideplus-horizontal.slideplus-small:hover {
+background-image:url(button-left-small.png) !important;
+}
+
+.slideplus-next.slideplus-horizontal {
+right:0 !important;
+background-position:right center !important;
+}
+
+.slideplus-next.slideplus-horizontal.slideplus-large {
+width:57px !important;
+}
+
+.slideplus-next.slideplus-horizontal.slideplus-large:hover {
+background-image:url(button-right-large.png) !important;
+}
+
+.slideplus-next.slideplus-horizontal.slideplus-small {
+width:29px !important;
+}
+
+.slideplus-next.slideplus-horizontal.slideplus-small:hover {
+background-image:url(button-right-small.png) !important;
+}
+
+.slideplus-prev.slideplus-vertical {
+top:0 !important;
+background-position:center top !important;
+}
+
+.slideplus-prev.slideplus-vertical.slideplus-large {
+height:57px !important;
+}
+
+.slideplus-prev.slideplus-vertical.slideplus-large:hover {
+background-image:url(button-up-large.png) !important;
+}
+
+.slideplus-prev.slideplus-vertical.slideplus-small {
+height:29px !important;
+}
+
+.slideplus-prev.slideplus-vertical.slideplus-small:hover {
+background-image:url(button-up-small.png) !important;
+}
+
+.slideplus-next.slideplus-vertical {
+bottom:0 !important;
+background-position:center bottom !important;
+}
+
+.slideplus-next.slideplus-vertical.slideplus-large {
+height:57px !important;
+}
+
+.slideplus-next.slideplus-vertical.slideplus-large:hover {
+background-image:url(button-down-large.png) !important;
+}
+
+.slideplus-next.slideplus-vertical.slideplus-small {
+height:29px !important;
+}
+
+.slideplus-next.slideplus-vertical.slideplus-small:hover {
+background-image:url(button-down-small.png) !important;
+}
+
+/* paging */
+.slideplus-paging {
+text-align:center !important;
+overflow:auto !important;
+margin:0 !important;
+padding:4px 0 !important;
+}
+
+.slideplus-paging > span {
+margin:2px !important;
+border:0 solid transparent !important;
+border-radius:5px;
+padding:2px 8px !important;
+background-color:rgba(0,0,0,0.5) !important;
+color:white !important;
+cursor:pointer !important;
+}
+
+.slideplus-paging > span.slideplus-active,
+.slideplus-paging > span:hover {
+background-color:rgba(0,0,0,0.75) !important;
+}
+
+/* hidden */
+div.slideplus-hidden, a.slideplus-hidden {
+display:none !important;
+}

@@ -1,0 +1,14 @@
+/**
+* @file
+* @brief    captionplus mouse-over image caption engine stylesheet for Internet Explorer
+* @author   Levente Hunyadi
+* @version  $__VERSION__$
+* @remarks  Copyright (C) 2009-2011 Levente Hunyadi
+* @see      http://hunyadi.info.hu/projects/
+*/
+
+.captionplus-over {
+background-color:transparent !important;
+filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000,endColorstr=#99000000) !important; /*AARRGGBB*/
+zoom:1 !important;
+}

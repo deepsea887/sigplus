@@ -1,0 +1,106 @@
+/**
+* @file
+* @brief    captionplus mouse-over image caption engine stylesheet
+* @author   Levente Hunyadi
+* @version  $__VERSION__$
+* @remarks  Copyright (C) 2009-2011 Levente Hunyadi
+* @see      http://hunyadi.info.hu/projects/
+*/
+
+/* Custom styling */
+.captionplus-outside,
+.captionplus-overlay {
+padding:4px !important;
+text-align:center !important;
+}
+
+.captionplus-overlay {
+left:2px !important;
+right:2px !important;
+height:30% !important;
+}
+
+.captionplus-bottom {
+bottom:2px !important;
+}
+
+.captionplus-top {
+top:2px !important;
+}
+
+/* Generic styling */
+.captionplus {
+display:inline-block !important;
+position:relative !important;
+}
+
+.captionplus-outside,
+.captionplus-overlay {
+display:block !important;
+padding:0 !important;
+overflow:hidden !important;
+}
+
+/* caption that displays over image */
+.captionplus-overlay {
+position:absolute !important;
+background-color:black !important;  /* fall-back setting, overridden for IE */
+background-color:rgba(0,0,0,0.6) !important;  /* overridden for IE */
+color:white !important;
+}
+
+.captionplus > .captionplus-overlay.captionplus-mouseover {
+visibility:hidden !important;
+}
+
+.captionplus:hover > .captionplus-overlay.captionplus-mouseover {
+visibility:inherit !important;
+}
+
+/* horizontal and vertical caption alignment */
+.captionplus-align {
+display:-moz-box !important;
+display:-webkit-box !important;
+display:box !important;
+-moz-box-orient:horizontal !important;
+-webkit-box-orient:horizontal !important;
+box-orient:horizontal !important;
+width:100% !important;
+height:100% !important;
+}
+
+.captionplus-horizontal-center {
+-moz-box-pack:center !important;
+-webkit-box-pack:center !important;
+box-pack:center !important;
+}
+
+.captionplus-horizontal-start {
+-moz-box-pack:start !important;
+-webkit-box-pack:start !important;
+box-pack:start !important;
+}
+
+.captionplus-horizontal-end {
+-moz-box-pack:end !important;
+-webkit-box-pack:end !important;
+box-pack:end !important;
+}
+
+.captionplus-vertical-center {
+-moz-box-align:center !important;
+-webkit-box-align:center !important;
+box-align:center !important;
+}
+
+.captionplus-vertical-start {
+-moz-box-align:start !important;
+-webkit-box-align:start !important;
+box-align:start !important;
+}
+
+.captionplus-vertical-end {
+-moz-box-align:end !important;
+-webkit-box-align:end !important;
+box-align:end !important;
+}
