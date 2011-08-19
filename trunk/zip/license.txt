@@ -1,0 +1,57 @@
+
+sigplus: an image gallery distribution for Joomla
+
+Copyright 2009-2011 Levente Hunyadi
+http://hunyadi.info.hu/projects/sigplus
+
+
+LICENSE
+
+sigplus is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+sigplus is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with sigplus. If not, see <http://www.gnu.org/licenses/>.
+
+
+LICENSE FOR INCLUDED PRODUCTS
+
+sigplus ships with a number of other contributed products that have
+their separate licenses. These add-on products are located in the
+directory "engines" inside the sigplus installation directory. You must
+abide by the terms of these additional licenses if you wish to fully
+utilize the features of sigplus. If you decline to accept a particular
+license, you must delete the corresponding products from the "engines"
+folder. Since sigplus is modular, it will automatically recognize the
+absence of that particular feature but the rest of the distribution will
+operate normally.
+
+boxplus, hoverplus and slideplus are governed by separate licenses and
+are not subject to the license applicable to sigplus. They may be
+modified freely for use in a particular domain but any redistribution of
+products derived from them is not permitted. Redistribution in unaltered
+form as part of the sigplus distribution is allowed. For details,
+consult the respective licenses of these products.
+
+Once sigplus is installed, included products and their respective
+license files can be found in the folder "/media/engines" relative to
+the Joomla root directory.
+
+
+LICENSE FOR INCLUDED ARTWORK
+
+This software uses the "Silk icon set" by Mark James licensed under
+a Creative Commons Attribution 3.0 License.
+
+Silk icon set:
+http://www.famfamfam.com/lab/icons/silk/
+
+Creative Commons Attribution 3.0 License:
+http://creativecommons.org/licenses/by/3.0/

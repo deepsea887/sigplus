@@ -1,0 +1,49 @@
+/**
+* @file
+* @brief    sigplus editor button stylesheet
+* @author   Levente Hunyadi
+* @version  $__VERSION__$
+* @remarks  Copyright (C) 2011 Levente Hunyadi
+* @remarks  Licensed under GNU/GPLv3, see http://www.gnu.org/licenses/gpl-3.0.html
+* @see      http://hunyadi.info.hu/projects/sigplus
+*/
+
+body {
+margin:0; padding: 8px;
+}
+
+form {
+background:url(media.png) no-repeat scroll top right transparent;
+}
+
+label,input,select {
+font:12px/14px sans-serif;
+}
+
+ul {
+display:block;
+margin:0;
+padding:0;
+list-style:none outside none;
+}
+
+ul > li {
+margin:0; padding:0;
+}
+
+ul > li > label {
+display:inline-block;
+width:40%;
+}
+
+fieldset.radio {
+margin:0;
+border:none 0 transparent;
+padding:0;
+display:inline-block;
+width:50%;
+}
+
+fieldset.radio > label {
+margin-right:10px;
+}
