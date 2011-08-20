@@ -4,7 +4,7 @@
 
 This section summarizes possible global settings and local setting overrides for the sigplus plug-in, and module-specific settings for the sigplus module that can be set either in the administration back-end or (for the plug-in) with inline attributes.
 
-As with other Joomla plug-ins, global settings can be changed in the administration back-end; from the menu, choose _Extensions/Plugin manager_ and click _Content – Image gallery – sigplus_ in the list. Local settings can override those set in the back-end using name-value pairs in the attribute list of the activation start tag:
+As with other Joomla plug-ins, global settings can be changed in the administration back-end; from the menu, choose _Extensions/Plugin manager_ and click _Content â€“ Image gallery â€“ sigplus_ in the list. Local settings can override those set in the back-end using name-value pairs in the attribute list of the activation start tag:
 <pre>
 {gallery id=birds rows=2 cols=3
     preview-width=100 preview-height=100 preview-crop=1
@@ -23,7 +23,7 @@ Each of the entries is organized as follows:
 *Type/value*: Type determines the range of possible values the setting can take:
   * _string_ is a series of characters,
   * _text_ is unstructured text possibly with newlines,
-  * _html_ is unstructured text interspersed with inline HTML tags (e.g. {{{a}}}, {{{strong}}}, {{{em}}}, {{{span}}} or BBCode,
+  * _html_ is unstructured text interspersed with inline HTML tags (e.g. {{{a}}}, {{{strong}}}, {{{em}}}, {{{span}}}) or BBCode,
   * the bracket syntax {{{[one|two|three]}}} indicates that the configuration setting accepts any one of the listed values {{{one}}}, {{{two}}} or {{{three}}}.
 
 *Summary*: Summary is a short synopsis of what the parameter does, and lists the possible values it can take and what their effect is. This text is also shown as a tool-tip in the back-end when you move the mouse pointer over the label of a configuration setting.
