@@ -20,6 +20,8 @@ The following all act as sources for image captions (in decreasing order of prec
   # default caption for the folder (set via a {{{labels.txt}}} file with the special entry {{{*}}})
   # default caption specified in the back-end
 
+This implies that if you use no external labels file ({{{labels.txt}}}) to attach captions to images or the caption is missing, sigplus will use IPTC tags _Headline_ and _Caption-Abstract_ to label images. Metadata are extracted from the APP13 IPTC block. The implementation uses the PHP function [http://php.net/manual/en/function.iptcparse.php iptcparse]. This function is known to fail, thereby not returning any metadata whatsoever, if the image contains non-standard proprietary tags added by commercial applications (e.g. Photoshop). These software can usually be configured in such a way as to restrict the tags added to images to those in the standard set.
+
 = Labels file =
 
 A labels file (typically called {{{labels.txt}}}) is a plain text file in the image folder with a two-fold function:
