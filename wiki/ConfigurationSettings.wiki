@@ -18,13 +18,13 @@ Likewise, in order to change module-specific settings for a sigplus module, choo
 
 Each of the entries is organized as follows:
 
-*Name*: The name serves as an identifier when changing the value of the configuration setting, and should be used in the plug-in activation tag attribute list to assign a new value to a setting. For instance, preview image width set to 200 in the back-end can be overridden with the local name-value pair {{{preview-width=100}}}. Note that underscores (`_`) may be replaced with hyphens (`-`) in configuration setting names.
+*Name*: The name serves as an identifier when changing the value of the configuration setting, and should be used in the plug-in activation tag attribute list to assign a new value to a setting. For instance, preview image width set to 200 in the back-end can be overridden with the local name-value pair `preview-width=100`. Note that underscores (`_`) may be replaced with hyphens (`-`) in configuration setting names.
 
 *Type/value*: Type determines the range of possible values the setting can take:
   * _string_ is a series of characters,
   * _text_ is unstructured text possibly with newlines,
-  * _html_ is unstructured text interspersed with inline HTML tags (e.g. {{{a}}}, {{{strong}}}, {{{em}}}, {{{span}}}) or BBCode,
-  * the bracket syntax {{{[one|two|three]}}} indicates that the configuration setting accepts any one of the listed values {{{one}}}, {{{two}}} or {{{three}}}.
+  * _html_ is unstructured text interspersed with inline HTML tags (e.g. `a`, `strong`, `em`, `span`) or BBCode,
+  * the bracket syntax `[one|two|three]` indicates that the configuration setting accepts any one of the listed values `one`, `two` or `three`.
 
 *Summary*: Summary is a short synopsis of what the parameter does, and lists the possible values it can take and what their effect is. This text is also shown as a tool-tip in the back-end when you move the mouse pointer over the label of a configuration setting.
 

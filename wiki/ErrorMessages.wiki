@@ -6,7 +6,7 @@
 
 *Text files are assumed to be plain text with UTF-8 character encoding but _textfile_ uses a different format or encoding.*
 
-The {{{labels.txt}}} file used to attach captions to individual images contains international characters outside the [http://en.wikipedia.org/wiki/ASCII ASCII] character set. You should either remove these characters (typically accented characters or certain punctuation characters) or save your file in [http://en.wikipedia.org/wiki/UTF-8 UTF-8] encoding. In the open-source editor [http://notepad-plus-plus.org/ Notepad++] for Windows, for instance, this can be done by opening the menu _Encoding_ and selecting _Convert to UTF-8 without BOM_.
+The `labels.txt` file used to attach captions to individual images contains international characters outside the [http://en.wikipedia.org/wiki/ASCII ASCII] character set. You should either remove these characters (typically accented characters or certain punctuation characters) or save your file in [http://en.wikipedia.org/wiki/UTF-8 UTF-8] encoding. In the open-source editor [http://notepad-plus-plus.org/ Notepad++] for Windows, for instance, this can be done by opening the menu _Encoding_ and selecting _Convert to UTF-8 without BOM_.
 
 = Configuration exceptions =
 
@@ -14,7 +14,7 @@ The {{{labels.txt}}} file used to attach captions to individual images contains 
 
 *The image base folder specified in the administration back-end is expected to be a relative path w.r.t. the Joomla root or an absolute path but _value_ appears to be neither of them.*
 
-The image base folder is the folder you specify on the sigplus plug-in configuration page in the administration back-end. An example is {{{images}}}, which corresponds to the usual article image folder of a Joomla 1.6+ installation. Another important related term is the image source folder, which is the folder you specify with the activation tag syntax {{{{gallery}_folder_{/gallery}}}}. An example is {{{birds}}}, which is set with {{{{gallery}birds{/gallery}}}}. When looking for images to display, sigplus concatenates the base folder and the source to get the folder where the images are (and prefixes it with the Joomla root folder if necessary). This means that the image base folder should be a valid, existing folder on its own.
+The image base folder is the folder you specify on the sigplus plug-in configuration page in the administration back-end. An example is `images`, which corresponds to the usual article image folder of a Joomla 1.6+ installation. Another important related term is the image source folder, which is the folder you specify with the activation tag syntax `{gallery}_folder_{/gallery}`. An example is `birds`, which is set with `{gallery}birds{/gallery}`. When looking for images to display, sigplus concatenates the base folder and the source to get the folder where the images are (and prefixes it with the Joomla root folder if necessary). This means that the image base folder should be a valid, existing folder on its own.
 
 ==== SIGPLUS_EXCEPTION_SOURCE ====
 
@@ -38,13 +38,13 @@ The folders for thumbnails, medium-sized image previews, high-resolution image v
 
 *The current combination of configuration settings requires the _engine_ _enginetype_ engine, which is not available.*
 
-The current configuration expects a lightbox, rotator or caption engine that is not available in the system. Please check if you have accidentally mistyped the engine name or have removed the engine files from the folder {{{/plugins/content/sigplus/engines}}}.
+The current configuration expects a lightbox, rotator or caption engine that is not available in the system. Please check if you have accidentally mistyped the engine name or have removed the engine files from the folder `/plugins/content/sigplus/engines`.
 
 ==== SIGPLUS_EXCEPTION_LIBRARY ====
 
 *This operation expects the PHP extension _library_ to be enabled in the PHP configuration, please consult your server administrator.*
 
-There are several PHP extensions sigplus relies on to make certain services available. For instance, Picasa web album support requires HTTP URL wrappers. Should this extension be missing or disabled in the PHP configuration ({{{php.ini}}}), sigplus cannot download Picasa web album feeds and cannot build a gallery of images stored in Picasa albums. Other services that do not require HTTP URL wrappers, however, will operate normally.
+There are several PHP extensions sigplus relies on to make certain services available. For instance, Picasa web album support requires HTTP URL wrappers. Should this extension be missing or disabled in the PHP configuration (`php.ini`), sigplus cannot download Picasa web album feeds and cannot build a gallery of images stored in Picasa albums. Other services that do not require HTTP URL wrappers, however, will operate normally.
 
 [http://www.php.net/manual/en/book.image.php Graphics Draw] (gd) and [http://www.php.net/manual/en/book.imagick.php ImageMagick] (imagick) are two notable PHP extensions for image processing sigplus uses to generate preview images and thumbnails. If none of these are available, you will not be able to have thumbnail, preview and watermarked image automatically generated. Given that these are essential to seamless operation, contact your server administrator on how to have one of these libraries enabled.
 

@@ -1,0 +1,35 @@
+#summary Key concepts in sigplus terminology.
+
+= Key concepts =
+
+== Base URL ==
+
+When you specify a relative path for the setting _base folder_ on the plug-in configuration page in the administration back-end, sigplus prefixes relative image paths with the Joomla root folder and the Joomla site URL when building absolute paths or URLs. Consider the following example:
+
+|| Site root folder || `/home/username/www/` ||
+|| Site URL || `http://example.com/` ||
+|| sigplus base folder || `images/stories` ||
+|| Activation tag in article || `{gallery}birds{/gallery}` ||
+|| Folder to look for images || `/home/username/www/images/stories/birds/` ||
+|| URL to look for images || `http://example.com/images/stories/birds/` ||
+
+As seen in the example, the image source `birds` given with activation tag `{gallery}birds{/gallery}` expands into `images/stories/birds/`, which is then prefixed with the base folder `/home/username/www/` to arrive at an absolute path. Likewise, `images/stories/birds/` is prefixed with the site URL `http://example.com/` to arrive at `http://example.com/images/stories/birds/`.
+
+When an absolute path (or a relative path including parent folder components `..`) is specified for _base folder_ in the administration back-end, however, the URL to prefix image paths with is no longer obvious. For instance, the following situation would produce an invalid URL:
+
+|| Site root folder || `/home/username/www/` ||
+|| Site URL || `http://example.com/` ||
+|| sigplus base folder || `/home/username/images/` ||
+|| Activation tag in article || `{gallery}birds{/gallery}` ||
+|| Folder to look for images || `/home/username/images/birds/` ||
+|| URL to look for images || ~~`http://example.com/../images/birds/`~~ ||
+
+As apparent from the example, `/home/username/images/` is not inside the Joomla site folder `/home/username/www/` and hence neither a descendant of the umbrella URL `http://example.com/`. In this case, the configuration setting _base URL_ cannot be left empty to have sigplus automatically determine _base URL_ and therefore the URL to look for images. You must explicitly specify the URL associated with the folder `/home/username/images/`, which is typically a different domain or subdomain. For example,
+
+|| Site root folder || `/home/username/www/` ||
+|| Site URL || `http://example.com/` ||
+|| sigplus base folder || `/home/username/images/` ||
+|| sigplus base URL || `http://images.example.com/` ||
+|| Activation tag in article || `{gallery}birds{/gallery}` ||
+|| Folder to look for images || `/home/username/images/birds/` ||
+|| URL to look for images || `http://images.example.com/birds/` ||
