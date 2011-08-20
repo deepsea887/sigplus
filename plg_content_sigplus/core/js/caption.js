@@ -17,7 +17,7 @@
 	anchors.each(function (anchor, index) {
 		var replacement = {  // template replacement rules
 			filename: anchor.pathname,
-			current: index,
+			current: index + 1,  // index is zero-based but user interface needs one-based counter
 			total: anchors.length
 		};
 

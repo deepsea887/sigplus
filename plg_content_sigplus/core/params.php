@@ -494,7 +494,7 @@ class SIGPlusConfigurationBase {
 			return 0;
 		}
 	}
-	
+
 	/**
 	* Converts bulletin board code into HTML markup code.
 	*/
@@ -521,7 +521,10 @@ class SIGPlusConfigurationBase {
 class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 	/** Whether to support multilingual labeling. */
 	public $multilingual = false;
-	/** Base directory for images. */
+	/**
+	* Base directory for images.
+	* @type {string}
+	*/
 	public $base_folder = 'images';
 	/** Base URL the directory for images corresponds to. */
 	public $base_url = false;
@@ -663,7 +666,11 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 *     attribute values, and typically set using a parameter string of name-value pairs.
 */
 class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
-	/** The JavaScript lightbox engine to use, or false to disable the lightbox engine. */
+	/**
+	* The JavaScript lightbox engine to use, or false to disable the lightbox engine.
+	* @type {string}
+	* @example <kbd>{gallery lightbox=boxplus/darksquare}myfolder{/gallery}</kbd> uses the boxplus pop-up window dark theme to display images when a preview image is clicked.
+	*/
 	public $lightbox = 'boxplus';
 	/** The JavaScript image rotator engine to use, or false to disable the rotator engine. */
 	public $rotator = 'slideplus';
@@ -674,19 +681,42 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	/** Image gallery source. */
 	public $source = null;
 
-	/** The way the gallery is rendered in HTML. */
+	/**
+	* The way the gallery is rendered in HTML.
+	* @type {'fixed'|'flow'|'hidden'}
+	*/
 	public $layout = 'fixed';
-	/** Number of rows per rotator page. */
+	/**
+	* Number of rows per rotator page.
+	* @type {integer?}
+	* @example <kbd>{gallery layout=fixed rows=2 cols=3}myfolder{/gallery}</kbd> shows a gallery in a 2-by-3 grid arrangement.
+	*/
 	public $rows = false;
-	/** Number of columns per rotator page. */
+	/**
+	* Number of columns per rotator page.
+	* @type {integer?}
+	*/
 	public $cols = false;
-	/** Maximum number of preview images to show in the gallery. */
+	/**
+	* Maximum number of preview images to show in the gallery.
+	* @type {integer}
+	* @example <kbd>{gallery rows=2 cols=3 maxcount=5}myfolder{/gallery}</kbd> shows at most 5 preview images arranged in a 2-by-3 grid.
+	*/
 	public $maxcount = 0;
-	/** Width of preview images [px]. */
+	/**
+	* Width of preview images [px].
+	* @type {integer}
+	*/
 	public $preview_width = 100;
-	/** Height of preview images [px]. */
+	/**
+	* Height of preview images [px].
+	* @type {integer}
+	*/
 	public $preview_height = 100;
-	/** Whether to allow cropping images for more aesthetic preview images. */
+	/**
+	* Whether to allow cropping images for more aesthetic preview images.
+	* @type {boolean}
+	*/
 	public $preview_crop = true;
 	/** Width of thumbnail images [px]. */
 	public $thumb_width = 100;
@@ -696,7 +726,11 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $thumb_crop = true;
 	/** JPEG quality. */
 	public $quality = 85;
-	/** Alignment of image gallery. */
+	/**
+	* Alignment of image gallery.
+	* @type {'left'|'center'|'right'|'before'|'after'|'left-float'|'right-float'|'before-float'|'after-float'|'left-clear'|'right-clear'|'before-clear'|'after-clear'}
+	* @example <kbd>{gallery alignment=before-float}fruit{/gallery}</kbd> left-aligns the gallery on an English site, allowing text to wrap around.
+	*/
 	public $alignment = 'before';
 	/** Whether the lightbox engine automatically centers the image in the browser window. */
 	public $lightbox_autocenter = true;
@@ -704,7 +738,11 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $lightbox_autofit = true;
 	/** Position to show small thumbnails for faster navigation inside the lightbox. */
 	public $lightbox_thumbs = false;
-	/** Time an image is shown before navigating to the next in a slideshow. */
+	/**
+	* Time an image is shown before navigating to the next in a slideshow.
+	* @type {integer}
+	* @example <kbd>{gallery lightbox-slideshow=4000}fruit{/gallery}</kbd> makes a slideshow control button appear in the pop-up window; pressing the button will trigger a slideshow, automatically showing the next image after 4 seconds of delay.
+	*/
 	public $lightbox_slideshow = 0;
 	/** Whether to automatically activate slideshow mode when the lightbox opens. */
 	public $lightbox_autostart = false;
@@ -720,9 +758,15 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $rotator_links = true;
 	/** User action to advance the rotator. */
 	public $rotator_trigger = 'click';
-	/** Unit the rotator advances upon a single mouse click. */
+	/**
+	* Unit the rotator advances upon a single mouse click.
+	* @example <kbd>{gallery rows=2 cols=3 rotator-orientation=horizontal rotator-step=single}mygallery{/gallery}</kbd> causes the rotator to advance by a single column when using navigation controls <em>Previous</em> and <em>Next</em>.
+	*/
 	public $rotator_step = 'single';
-	/** Time taken for the rotator to move from one page to another [ms]. */
+	/**
+	* Time taken for the rotator to move from one page to another [ms].
+	* @example <kbd>{gallery rotator-duration=800}fruit{/gallery}</kbd> makes the slide animation between pages take 0.8 seconds.
+	*/
 	public $rotator_duration = 800;
 	/** Animation delay. */
 	public $rotator_delay = 0;
@@ -750,23 +794,38 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $download = false;
 	/** Show icon to display metadata information. */
 	public $metadata = false;
-	/** Margin [px] (with or without unit), or false for default (inherit from sigplus.css). */
+	/**
+	* Margin [px] (with or without unit), or false for default (inherit from sigplus.css).
+	* @example <kbd>{gallery preview-margin=4}myfolder{/gallery}</kbd> adds a margin of 4&nbsp;pixels around the border of each image in the gallery.</td>
+	*/
 	public $preview_margin = false;
 	/** Border width [px] (with or without unit), or false for default (inherit from sigplus.css). */
 	public $preview_border_width = false;
 	/** Border style, or false for default (inherit from sigplus.css). */
 	public $preview_border_style = false;
-	/** Border color as a hexadecimal value in between 000000 or ffffff inclusive, or false for default. */
+	/**
+	* Border color as a hexadecimal value in between 000000 or ffffff inclusive, or false for default.
+	* @example <kbd>{gallery preview-border-width=1 preview-border-style=dotted preview-border-color=000000}myfolder{/gallery}</kbd> adds a black dotted border of a single pixel width around each image in the gallery.
+	*/
 	public $preview_border_color = false;
 	/** Padding [px] (with or without unit), or false for default (inherit from sigplus.css). */
 	public $preview_padding = false;
-	/** Sort criterion. */
+	/**
+	* Sort criterion.
+	* @example <kbd>{gallery sort-criterion=filename sort-order=asc}myfolder{/gallery}</kbd> sorts images in the gallery by filename in ascending order (A to Z).
+	*/
 	public $sort_criterion = SIGPLUS_SORT_LABELS_OR_FILENAME;
-	/** Sort order, ascending or descending. */
+	/**
+	* Sort order, ascending or descending.
+	* @example <kbd>{gallery sort-criterion=mtime sort-order=desc}mygallery{/gallery}</kbd> sorts images in the gallery by last modification time in descending order (image last uploaded first).
+	*/
 	public $sort_order = SORT_ASC;
 	/** Depth limit for scanning directory hierarchies recursively. Use -1 to set no recursion limit. */
 	public $depth = 0;
-	/** The position of the watermark within the image [n|ne|e|se|s|sw|w|nw|c], or false for no watermark. */
+	/**
+	* The position of the watermark within the image [n|ne|e|se|s|sw|w|nw|c], or false for no watermark.
+	* @example <kbd>{gallery watermark-position=se watermark-x=15 watermark-y=10}buildings{/gallery}</kbd> applies a watermark to each image in the folder <kbd>buildings</kbd>. The watermark is placed in the bottom right (southeast) corner, 15 pixels from the right edge and 10 pixels from the bottom edge.
+	*/
 	public $watermark_position = false;
 	/** The distance to keep from the left or right edge, as appropriate. */
 	public $watermark_x = 0;
@@ -788,6 +847,8 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* Enforces that parameters are of the valid type and value.
 	*/
 	public function validate() {
+		$this->id = !empty($this->id) ? (string) $this->id : null;
+
 		// get engines to use
 		if ($this->lightbox !== false) {
 			switch ($this->lightbox) {

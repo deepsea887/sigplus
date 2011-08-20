@@ -227,6 +227,8 @@
 				<field type="spacer" hr="true" />
 				<field name="caption_source" type="text" default="labels.txt" label="SIGPLUS_CAPTION_SOURCE" description="SIGPLUS_CAPTION_SOURCE_DESCRIPTION" />
 				<field name="quality" type="text" default="85" label="SIGPLUS_IMAGE_QUALITY" description="SIGPLUS_IMAGE_QUALITY_DESCRIPTION" />
+				<field type="spacer" hr="true" />
+				<field name="id" type="text" label="SIGPLUS_IDENTIFIER" description="SIGPLUS_IDENTIFIER_DESCRIPTION" />
 			</fieldset>
 		</fields>
 	</config>
