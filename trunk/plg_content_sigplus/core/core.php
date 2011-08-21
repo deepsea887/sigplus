@@ -335,20 +335,10 @@ class SIGPlusDatabase {
 class SIGPlusLabels {
 	private $multilingual = false;
 	private $caption_source = 'labels.txt';
-	private $deftitle = null;
-	private $defsummary = null;
 
 	public function __construct(SIGPlusConfigurationParameters $config) {
 		$this->multilingual = $config->service->multilingual;
 		$this->caption_source = $config->gallery->caption_source;
-	}
-
-	public function getDefaultTitle() {
-		return $this->deftitle;
-	}
-
-	public function getDefaultSummary() {
-		return $this->defsummary;
 	}
 
 	/**
@@ -379,7 +369,7 @@ class SIGPlusLabels {
 	/**
 	* Extract short captions and descriptions attached to images from a "labels.txt" file.
 	*/
-	private function parseLabels($imagefolder) {
+	private function parseLabels($imagefolder, &$entries = array(), &$patterns = array()) {
 		$labelspath = $this->getLabelsFilePath($imagefolder);
 		if ($labelspath === false) {
 			return false;
@@ -409,16 +399,18 @@ class SIGPlusLabels {
 		}
 
 		// parse individual entries
-		$entries = array();
+		$priority = 0;
 		$index = 0;  // counter for entry order
 		foreach ($matches as $match) {
 			$imagefile = $match[1];
 			$title = count($match) > 2 ? $match[2] : null;
 			$summary = count($match) > 3 ? $match[3] : null;
 
-			if ($imagefile == '*') {  // set default label
-				$this->deftitle = $title;
-				$this->defsummary = $summary;
+			if (strpos($imagefile, '*') !== false) {  // contains wildcard character
+				// replace "*" and "?" with LIKE expression equivalents "%" and "_"
+				$pattern = str_replace(array('%','_'), array('\\%','\\_'), $imagefile);
+				$pattern = str_replace(array('*','?'), array('%','_'), $pattern);
+				$patterns[] = array($pattern, ++$priority, $title, $summary);
 			} else {
 				if (is_url_http($imagefile)) {  // a URL to a remote image
 					$imagefile = safeurlencode($imagefile);
@@ -440,26 +432,32 @@ class SIGPlusLabels {
 	}
 
 	public function populate($imagefolder, $folderid) {
-		$entries = $this->parseLabels($imagefolder);
+		$this->parseLabels($imagefolder, $entries, $patterns);
 
 		// update and insert data
 		$db = JFactory::getDbo();
 		$queries = array();
 
-		// update default title and description
+		// update title and description patterns
 		$queries[] =
-			'UPDATE '.$db->nameQuote('#__sigplus_folder').PHP_EOL.
-			'SET'.PHP_EOL.
-				$db->nameQuote('title').' = '.SIGPlusDatabase::quoteValue($this->deftitle).','.PHP_EOL.
-				$db->nameQuote('summary').' = '.SIGPlusDatabase::quoteValue($this->defsummary).PHP_EOL.
+			'DELETE FROM '.$db->nameQuote('#__sigplus_foldercaption').PHP_EOL.
 			'WHERE'.PHP_EOL.
 				$db->nameQuote('folderid').' = '.$folderid;
+		if (!empty($patterns)) {
+			$queries[] = SIGPlusDatabase::getInsertBatchStatement(
+				'#__sigplus_foldercaption',
+				array('pattern','priority','title','summary'),
+				$patterns,
+				null,
+				array('folderid' => $folderid)
+			);
+		}
 
 		// invalidate custom order
 		$folderid = (int) $folderid;  // force type to prevent SQL injection
 		$queries[] = 'UPDATE '.$db->nameQuote('#__sigplus_image').' SET '.$db->nameQuote('ordnum').' = NULL WHERE '.$db->nameQuote('folderid').' = '.$folderid;
 
-		if ($entries !== false) {
+		if (!empty($entries)) {
 			// add and update entries
 			$queries[] = SIGPlusDatabase::getInsertBatchStatement(
 				'#__sigplus_image',
@@ -1943,8 +1941,26 @@ class SIGPlusCore {
 				'IFNULL('.$db->nameQuote('watermark_fileurl').', '.$db->nameQuote('fileurl').') AS '.$db->nameQuote('url').','.PHP_EOL.
 				$db->nameQuote('width').','.PHP_EOL.
 				$db->nameQuote('height').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('title').', f.'.$db->nameQuote('title').') AS '.$db->nameQuote('title').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('summary').', f.'.$db->nameQuote('summary').') AS '.$db->nameQuote('summary').','.PHP_EOL.
+				'IFNULL(i.'.$db->nameQuote('title').','.PHP_EOL.
+					'('.PHP_EOL.
+						'SELECT c.'.$db->nameQuote('title').PHP_EOL.
+						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'WHERE'.PHP_EOL.
+							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
+						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+					')'.PHP_EOL.
+				') AS '.$db->nameQuote('title').','.PHP_EOL.
+				'IFNULL(i.'.$db->nameQuote('summary').','.PHP_EOL.
+					'('.PHP_EOL.
+						'SELECT c.'.$db->nameQuote('summary').PHP_EOL.
+						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'WHERE'.PHP_EOL.
+							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
+						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+					')'.PHP_EOL.
+				') AS '.$db->nameQuote('summary').','.PHP_EOL.
 				$db->nameQuote('preview_fileurl').','.PHP_EOL.
 				$db->nameQuote('preview_width').','.PHP_EOL.
 				$db->nameQuote('preview_height').','.PHP_EOL.

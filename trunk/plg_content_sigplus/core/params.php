@@ -672,13 +672,25 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* @example <kbd>{gallery lightbox=boxplus/darksquare}myfolder{/gallery}</kbd> uses the boxplus pop-up window dark theme to display images when a preview image is clicked.
 	*/
 	public $lightbox = 'boxplus';
-	/** The JavaScript image rotator engine to use, or false to disable the rotator engine. */
+	/**
+	* The JavaScript image rotator engine to use, or false to disable the rotator engine.
+	* @type {string}
+	*/
 	public $rotator = 'slideplus';
-	/** The JavaScript image caption engine to use, or false to disable the caption engine. */
+	/**
+	* The JavaScript image caption engine to use, or false to disable the caption engine.
+	* @type {string}
+	*/
 	public $caption = 'captionplus';
-	/** Unique identifier to use for gallery. */
+	/**
+	* Unique identifier to use for gallery.
+	* @type {string}
+	*/
 	public $id = null;
-	/** Image gallery source. */
+	/**
+	* Image gallery source.
+	* @type {string}
+	*/
 	public $source = null;
 
 	/**
@@ -688,13 +700,13 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $layout = 'fixed';
 	/**
 	* Number of rows per rotator page.
-	* @type {integer?}
+	* @type {positive_integer}
 	* @example <kbd>{gallery layout=fixed rows=2 cols=3}myfolder{/gallery}</kbd> shows a gallery in a 2-by-3 grid arrangement.
 	*/
 	public $rows = false;
 	/**
 	* Number of columns per rotator page.
-	* @type {integer?}
+	* @type {positive_integer}
 	*/
 	public $cols = false;
 	/**
@@ -705,12 +717,12 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $maxcount = 0;
 	/**
 	* Width of preview images [px].
-	* @type {integer}
+	* @type {positive_integer}
 	*/
 	public $preview_width = 100;
 	/**
 	* Height of preview images [px].
-	* @type {integer}
+	* @type {positive_integer}
 	*/
 	public $preview_height = 100;
 	/**
@@ -718,13 +730,25 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* @type {boolean}
 	*/
 	public $preview_crop = true;
-	/** Width of thumbnail images [px]. */
+	/**
+	* Width of thumbnail images [px].
+	* @type {positive_integer}
+	*/
 	public $thumb_width = 100;
-	/** Height of thumbnail images [px]. */
+	/**
+	* Height of thumbnail images [px].
+	* @type {positive_integer}
+	*/
 	public $thumb_height = 100;
-	/** Whether to allow cropping images for more aesthetic thumbnails. */
+	/**
+	* Whether to allow cropping images for more aesthetic thumbnails.
+	* @type {boolean}
+	*/
 	public $thumb_crop = true;
-	/** JPEG quality. */
+	/**
+	* JPEG quality.
+	* @type {percentage}
+	*/
 	public $quality = 85;
 	/**
 	* Alignment of image gallery.
@@ -732,67 +756,136 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* @example <kbd>{gallery alignment=before-float}fruit{/gallery}</kbd> left-aligns the gallery on an English site, allowing text to wrap around.
 	*/
 	public $alignment = 'before';
-	/** Whether the lightbox engine automatically centers the image in the browser window. */
+	/**
+	* Whether the lightbox engine automatically centers the image in the browser window.
+	* @type {boolean}
+	*/
 	public $lightbox_autocenter = true;
-	/** Whether the lightbox engine automatically reduces oversized images. */
+	/**
+	* Whether the lightbox engine automatically reduces oversized images.
+	* @type {boolean}
+	*/
 	public $lightbox_autofit = true;
-	/** Position to show small thumbnails for faster navigation inside the lightbox. */
+	/**
+	* Position to show small thumbnails for faster navigation inside the lightbox.
+	* @type {'none'|'inside'|'outside'}
+	*/
 	public $lightbox_thumbs = false;
 	/**
 	* Time an image is shown before navigating to the next in a slideshow.
-	* @type {integer}
+	* @type {nonnegative_integer}
 	* @example <kbd>{gallery lightbox-slideshow=4000}fruit{/gallery}</kbd> makes a slideshow control button appear in the pop-up window; pressing the button will trigger a slideshow, automatically showing the next image after 4 seconds of delay.
 	*/
 	public $lightbox_slideshow = 0;
-	/** Whether to automatically activate slideshow mode when the lightbox opens. */
+	/**
+	* Whether to automatically activate slideshow mode when the lightbox opens.
+	* @type {boolean}
+	*/
 	public $lightbox_autostart = false;
-	/** Lightbox transition effect easing equation. */
+	/**
+	* Lightbox transition effect easing equation.
+	* @type {string}
+	*/
 	public $lightbox_transition = 'linear';
-	/** Orientation of image gallery viewport. */
+	/**
+	* Orientation of image gallery viewport.
+	* @type {'horizontal'|'vertical'}
+	*/
 	public $rotator_orientation = 'horizontal';
-	/** Position of navigation and paging controls. */
+	/**
+	* Position of navigation and paging controls.
+	* @type {'bottom'|'top'|'none'|'both'}
+	*/
 	public $rotator_navigation = 'overlay';
-	/** Show control buttons in navigation bar. */
+	/**
+	* Show control buttons in navigation bar.
+	* @type {boolean}
+	*/
 	public $rotator_buttons = true;
-	/** Show page links in navigation bar. */
+	/**
+	* Show page links in navigation bar.
+	* @type {boolean}
+	*/
 	public $rotator_links = true;
-	/** User action to advance the rotator. */
+	/**
+	* User action to advance the rotator.
+	* @type {'click'|'mouseover'}
+	*/
 	public $rotator_trigger = 'click';
 	/**
 	* Unit the rotator advances upon a single mouse click.
+	* @type {'single'|'page'}
 	* @example <kbd>{gallery rows=2 cols=3 rotator-orientation=horizontal rotator-step=single}mygallery{/gallery}</kbd> causes the rotator to advance by a single column when using navigation controls <em>Previous</em> and <em>Next</em>.
 	*/
 	public $rotator_step = 'single';
 	/**
 	* Time taken for the rotator to move from one page to another [ms].
+	* @type {nonnegative_integer}
 	* @example <kbd>{gallery rotator-duration=800}fruit{/gallery}</kbd> makes the slide animation between pages take 0.8 seconds.
 	*/
 	public $rotator_duration = 800;
-	/** Animation delay. */
+	/**
+	* Animation delay.
+	* @type {nonnegative_integer}
+	*/
 	public $rotator_delay = 0;
-	/** Alignment of rotator items within their container. */
+	/**
+	* Alignment of rotator items within their container.
+	* @type {'c'|'n'|'ne'|'e'|'se'|'s'|'sw'|'w'|'nw'}
+	*/
 	public $rotator_alignment = 'c';
-	/** Rotator transition effect easing equation. */
+	/**
+	* Rotator transition effect easing equation.
+	* @type {string}
+	*/
 	public $rotator_transition = 'linear';
-	/** Whether the rotator (and the lightbox) engine wraps around. */
+	/**
+	* Whether the rotator (and the lightbox) engine wraps around.
+	* @type {boolean}
+	*/
 	public $loop = true;
-	/** Caption visibility. */
+	/**
+	* Caption visibility.
+	* @type {'none'|'mouseover'|'always'}
+	*/
 	public $caption_visibility = 'mouseover';
-	/** Position of image captions. */
+	/**
+	* Position of image captions.
+	* @type {'overlay-bottom'|'overlay-top'|'below'|'above'}
+	*/
 	public $caption_position = 'overlay-bottom';
-	/** Labels file name. */
+	/**
+	* Labels file name.
+	* @type {string}
+	*/
 	public $caption_source = 'labels.txt';
-	/** Default title to assign to images. */
+	/**
+	* Default title to assign to images.
+	* @type {string}
+	*/
 	public $caption_title = null;
-	/** Default description to assign to images. */
+	/**
+	* Default description to assign to images.
+	* @type {string}
+	*/
 	public $caption_summary = null;
-	/** Title template used to build the image title. */
+	/**
+	* Title template used to build the image title.
+	* @type {string}
+	*/
 	public $caption_title_template = null;
-	/** Description template used to build the image description. */
+	/**
+	* Description template used to build the image description.
+	* @type {string}
+	*/
 	public $caption_summary_template = null;
-	/** Show icon to download original image. */
+	/**
+	* Access level required to download original image.
+	*/
 	public $download = false;
-	/** Show icon to display metadata information. */
+	/**
+	* Access level required to display metadata information.
+	*/
 	public $metadata = false;
 	/**
 	* Margin [px] (with or without unit), or false for default (inherit from sigplus.css).
@@ -820,20 +913,36 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* @example <kbd>{gallery sort-criterion=mtime sort-order=desc}mygallery{/gallery}</kbd> sorts images in the gallery by last modification time in descending order (image last uploaded first).
 	*/
 	public $sort_order = SORT_ASC;
-	/** Depth limit for scanning directory hierarchies recursively. Use -1 to set no recursion limit. */
+	/**
+	* Depth limit for scanning directory hierarchies recursively. Use -1 to set no recursion limit.
+	* @type {nonnegative_integer}
+	*/
 	public $depth = 0;
 	/**
 	* The position of the watermark within the image [n|ne|e|se|s|sw|w|nw|c], or false for no watermark.
+	* @type {''|'n'|'ne'|'e'|'se'|'s'|'sw'|'w'|'nw'|'c'}
 	* @example <kbd>{gallery watermark-position=se watermark-x=15 watermark-y=10}buildings{/gallery}</kbd> applies a watermark to each image in the folder <kbd>buildings</kbd>. The watermark is placed in the bottom right (southeast) corner, 15 pixels from the right edge and 10 pixels from the bottom edge.
 	*/
 	public $watermark_position = false;
-	/** The distance to keep from the left or right edge, as appropriate. */
+	/**
+	* The distance to keep from the left or right edge, as appropriate.
+	* @type {nonnegative_integer}
+	*/
 	public $watermark_x = 0;
-	/** The distance to keep from the top or bottom edge, as appropriate. */
+	/**
+	* The distance to keep from the top or bottom edge, as appropriate.
+	* @type {nonnegative_integer}
+	*/
 	public $watermark_y = 0;
-	/** Image file to use for watermarking. */
+	/**
+	* Image file to use for watermarking.
+	* @type {string}
+	*/
 	public $watermark_source = 'watermark.png';
-	/** One-based index of representative image in the gallery. */
+	/**
+	* One-based index of representative image in the gallery.
+	* @type {positive_integer}
+	*/
 	public $index = 1;
 
 	/** Additional parameters to pass to the lightbox engine. */
