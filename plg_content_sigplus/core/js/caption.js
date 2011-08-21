@@ -11,9 +11,9 @@
 // apply the caption template to captions
 (function () {
 	var regexp = /\\?\{\$([^{}]+)\}/g;
-	var imagetemplate = "{$caption_title_template}" || "{$text}";
-	var anchortemplate = "{$caption_summary_template}" || "{$text}";
-	var anchors = document.getElements("#{$id} a.sigplus-image");
+	var imagetemplate = $__caption_title_template__$ || "{$text}";
+	var anchortemplate = $__caption_summary_template__$ || "{$text}";
+	var anchors = document.getElements("#{$__id__$} a.sigplus-image");
 	anchors.each(function (anchor, index) {
 		var replacement = {  // template replacement rules
 			filename: anchor.pathname,

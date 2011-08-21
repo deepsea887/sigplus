@@ -272,11 +272,12 @@ class SIGPlusEngineServices {
 	public function addOnReadyScriptFile($path, array $map = array()) {
 		$path = str_replace('/', DS, $this->getResourceRelativePath($path));
 		if ($contents = file_get_contents(JPATH_BASE.DS.$path)) {
-			$search = array_keys($map);
-			foreach ($search as &$variable) {
-				$variable = '{$'.$variable.'}';
+			$searchmap = array();
+			foreach ($map as $key => $value) {
+				$searchmap['{$__'.$key.'__$}'] = addslashes($value);
+				$searchmap['$__'.$key.'__$'] = '"'.addslashes($value).'"';  // wrap into string
 			}
-			$this->addOnReadyScript(str_replace($search, array_values($map), $contents));
+			$this->addOnReadyScript(str_replace(array_keys($searchmap), array_values($searchmap), $contents));
 		}
 	}
 

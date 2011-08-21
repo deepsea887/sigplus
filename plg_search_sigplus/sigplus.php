@@ -159,8 +159,26 @@ class plgSearchSIGPlus extends JPlugin {
 				$db->nameQuote('filetime').','.PHP_EOL.
 				$db->nameQuote('width').','.PHP_EOL.
 				$db->nameQuote('height').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('title').', f.'.$db->nameQuote('title').') AS '.$db->nameQuote('title').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('summary').', f.'.$db->nameQuote('summary').') AS '.$db->nameQuote('summary').PHP_EOL.
+				'IFNULL(i.'.$db->nameQuote('title').','.PHP_EOL.
+					'('.PHP_EOL.
+						'SELECT c.'.$db->nameQuote('title').PHP_EOL.
+						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'WHERE'.PHP_EOL.
+							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
+						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+					')'.PHP_EOL.
+				') AS '.$db->nameQuote('title').','.PHP_EOL.
+				'IFNULL(i.'.$db->nameQuote('summary').','.PHP_EOL.
+					'('.PHP_EOL.
+						'SELECT c.'.$db->nameQuote('summary').PHP_EOL.
+						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'WHERE'.PHP_EOL.
+							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
+						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+					')'.PHP_EOL.
+				') AS '.$db->nameQuote('summary').PHP_EOL.
 			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
 				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.

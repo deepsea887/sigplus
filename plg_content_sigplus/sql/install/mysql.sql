@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS `#__sigplus_imageview`;
 DROP TABLE IF EXISTS `#__sigplus_image`;
 DROP TABLE IF EXISTS `#__sigplus_view`;
 DROP TABLE IF EXISTS `#__sigplus_hierarchy`;
+DROP TABLE IF EXISTS `#__sigplus_foldercaption`;
 DROP TABLE IF EXISTS `#__sigplus_folder`;
 DROP TABLE IF EXISTS `#__sigplus_property`;
 
@@ -27,12 +28,25 @@ CREATE TABLE `#__sigplus_folder` (
 	`foldertime` DATETIME,
 	-- HTTP ETag
 	`entitytag` VARCHAR(255) CHARACTER SET ascii,
-	-- default title for images in folder
-	`title` VARCHAR(64000),
-	-- default summary text for images in folder
-	`summary` VARCHAR(64000),
 	PRIMARY KEY (`folderid`),
 	UNIQUE (`folderurl`)
+) DEFAULT CHARSET=utf8, ENGINE=InnoDB;
+
+--
+-- Folder caption filters
+--
+CREATE TABLE `#__sigplus_foldercaption` (
+	`folderid` INT UNSIGNED NOT NULL,
+	-- pattern to match labels against
+	`pattern` VARCHAR(128) NOT NULL,
+	-- pattern priority
+	`priority` SMALLINT UNSIGNED NOT NULL,
+	-- title for images that match pattern in folder
+	`title` VARCHAR(64000),
+	-- summary text for images that match pattern in folder
+	`summary` VARCHAR(64000),
+	PRIMARY KEY (`folderid`,`pattern`),
+	FOREIGN KEY (`folderid`) REFERENCES `#__sigplus_folder`(`folderid`) ON DELETE CASCADE
 ) DEFAULT CHARSET=utf8, ENGINE=InnoDB;
 
 --
