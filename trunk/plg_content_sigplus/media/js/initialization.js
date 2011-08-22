@@ -16,13 +16,28 @@ window.addEvent('domready', function () {
 		}).replaces(item);
 		item.destroy();
 	});
+	$$('.sigplus-gallery').removeClass('sigplus-noscript');
 
 	// bind thumbnail images to anchors
 	$$('.sigplus-gallery a').each(function (anchor) {
-		var thumb = anchor.getElement('.sigplus-thumb');
-		if (thumb) {
-			anchor.store('thumb', thumb);
-			thumb.dispose();
+		var elem;
+
+		// assign thumbnail image
+		if (elem = anchor.getElement('.sigplus-thumb')) {
+			anchor.store('thumb', elem);  // copy to MooTools element storage
+			elem.dispose();
+		}
+
+		// assign summary text (with HTML support)
+		if (elem = anchor.getNext('.sigplus-summary')) {
+			anchor.store('summary', elem.get('html')).setProperty('title', elem.get('text'));
+			elem.destroy();
+		}
+
+		// assign download URL
+		if (elem = anchor.getNext('.sigplus-download')) {
+			anchor.store('download', elem.get('href'));  // copy to MooTools element storage
+			elem.destroy();
 		}
 	});
 
@@ -33,3 +48,42 @@ window.addEvent('domready', function () {
 		});
 	});
 });
+
+// apply template to caption text
+function __sigplusCaption(id, titletemplate, summarytemplate) {
+	var titletemplate = titletemplate || '{$text}';
+	var summarytemplate = summarytemplate || '{$text}';
+	var anchors = document.getElements('#' + id + ' a.sigplus-image');
+	anchors.each(function (anchor, index) {
+		var replacement = {  // template replacement rules
+			filename: (anchor.pathname || '').match(/([^\/]*)$/)[1],  // keep only file name component from path
+			current: index + 1,  // index is zero-based but user interface needs one-based counter
+			total: anchors.length
+		};
+
+		function _subs(template, text) {
+			return template.substitute($merge({'text': text || ''}, replacement), /\\?\{\$([^{}]+)\}/g);
+		}
+		
+		function _subsattr(elem, attr, template) {
+			elem.set(attr, _subs(template, elem.get(attr)));
+		}
+		
+		function _subsstore(elem, key, template) {
+			elem.store(key, _subs(template, elem.retrieve(key)));
+		}
+
+		// apply template to element store data
+		_subsstore(anchor, 'title', titletemplate);
+		_subsstore(anchor, 'summary', summarytemplate);
+
+		// apply template to "alt" attribute of image element wrapped in anchor
+		var image = anchor.getElement('img');
+		if (image) {
+			_subsattr(image, 'alt', titletemplate);
+		}
+
+		// apply template to "title" attribute of anchor element
+		_subsattr(anchor, 'title', summarytemplate);
+	});
+}

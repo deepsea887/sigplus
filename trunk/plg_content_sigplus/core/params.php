@@ -503,11 +503,11 @@ class SIGPlusConfigurationBase {
 		$value = preg_replace('#\[url\](.+?)\[/url\]#S', '<a href="$1">$1</a>', $value);
 		$value = preg_replace('#\[url=(.+?)\](.+?)\[/url\]#S', '<a href="$1">$2</a>', $value);
 		$value = str_replace(
-			array("\r\n","\n","\r",'[b]','[/b]','[i]','[/i]','[u]','[/u]','[s]','[/s]','[sub]','[/sub]','[sup]','[/sup]'),
-			array('<br/>','<br/>','<br/>','<b>','</b>','<i>','</i>','<u>','</u>','<strike>','</strike>','<sub>','</sub>','<sup>','</sup>'),
+			array('[b]','[/b]','[i]','[/i]','[u]','[/u]','[s]','[/s]','[sub]','[/sub]','[sup]','[/sup]'),
+			array('<b>','</b>','<i>','</i>','<u>','</u>','<strike>','</strike>','<sub>','</sub>','<sup>','</sup>'),
 			$value
 		);
-		return $value;
+		return nl2br($value);
 	}
 
 	public function validate() {

@@ -17,33 +17,60 @@ In contrast, the summary text, which is usually a sentence long, will appear bel
 The following all act as sources for image captions (in decreasing order of precedence):
   # an explicit entry in a `labels.txt` file
   # image metadata (IPTC and EXIF)
-  # default caption for the folder (set via a `labels.txt` file with the special entry `*`)
+  # default caption set via a `labels.txt` file with a wildcard pattern containing `?` and `*`
   # default caption specified in the back-end
 
 This implies that if you use no external labels file (`labels.txt`) to attach captions to images or the caption is missing, sigplus will use IPTC tags _Headline_ and _Caption-Abstract_ to label images. Metadata are extracted from the APP13 IPTC block. The implementation uses the PHP function [http://php.net/manual/en/function.iptcparse.php iptcparse]. This function is known to fail, thereby not returning any metadata whatsoever, if the image contains non-standard proprietary tags added by commercial applications (e.g. Photoshop). These software can usually be configured in such a way as to restrict the tags added to images to those in the standard set.
 
 = Labels file =
 
-A labels file (typically called `labels.txt`) is a plain text file in the image folder with a two-fold function:
-  # binds a short title and summary text to images, and
-  # defines a relative order of images in the gallery.
+A labels file (typically called `labels.txt`) is a plain text file in the image folder with a three-fold function:
+  # binds a short title and summary text to images,
+  # defines a relative order of images in the gallery, and
+  # associates default captions with wildcard patterns.
 
 Image file name, title and summary in `labels.txt` are separated by a `|` (vertical bar).
 
 A sample `labels.txt` is shown below:
-
 <pre>
 example.png|An image title|A longer, more verbose description.
 example.jpg||A description that may contain <em>html formatting</em>.
 apple.jpg|A ripe apple|This apple not only looks great but tastes just as good.
 bunny.jpg|A cute bunny|This terra-cotta bunny has been laser-scanned at Budapest University of Technology.
 example.jpg
-`*`|Default title|Default summary text for <a href="http://hunyadi.info.hu/projects/sigplus/">sigplus</a>
-</pre>
+`*`|Default title|Default summary text for <a href="http://hunyadi.info.hu/projects/sigplus/">sigplus</a></pre>
 
-As shown in the example, both title and summary are optional. You may supply a default title and summary with the special entry `*`. Whenever an item has no title or summary, the default will be assigned. Note that only a single `*` is understood (it may put anywhere within the `labels.txt` file), sigplus cannot interpret wildcard expressions like `*.jpg`.
+As shown in the example, both title and summary are optional. Similarly to the back-end where you can specify a default title and summary  associated with images that do not have an explicitly assigned title and summary or image metadata, a `labels.txt` file has the special entry `*`. Whenever an item has no title or summary, the default will be assigned.
+
+== Wildcard patterns ==
+
+sigplus can interpret more complex wildcard expressions like `*.jpg`, which act as fall-back patterns. Two special wildcard characters are understood, inspired by operating system pattern matching:
+  # `*` matches zero or more characters, and
+  # `?` matches a single character.
+
+Whenever an image lacks a title or summary, sigplus tries to match the file name against wildcard expressions from top to bottom: the first pattern that matches assigns the associated title or summary to the image. This implies that it makes sense to put the most general pattern (typically a single `*` entry) last.
+
+In order to illustrate how the wildcard matching mechanism works, consider the following example:
+
+<pre>
+`*`.jpg|A photo|A photograph taken with a digital camera.
+car`*`|A car|A Porsche model.
+`*`|Default title|Default summary text.
+`*`.png|A graphic image</pre>
+
+sigplus will make the following assignments to image titles based on the above `labels.txt` file:
+  # The file `car.jpg` matches `*.jpg` and will be assigned the title _A photo_. Even though `car.jpg` would also match `car*`, that pattern has lower priority.
+  # `car.png` does not match `*.jpg` but matches `car*` and thus will have the title _A car_.
+  # `cat.png` matches neither of the first two patterns, it will get the default title.
+  # No file will match the pattern `*.png` because the pattern `*` has higher precedence.
+
+Entries without wildcard characters always take precedence over entries with wildcards, regardless of their position in `labels.txt`.
+
+== Multilingual support ==
 
 Labeling supports multilingual sites. If multilingual support is enabled in the administration panel and a file `labels.xx-XX.txt` exists in a folder, where `xx-XX` is the placeholder for the ISO language code, e.g. `en-GB` for English (United Kingdom) or `hu-HU` for Hungarian, the language-specific labels file is used, with fallback to the default `labels.txt`.
+
+== Encoding ==
 
 All label files are assumed to be UTF-8 encoded. (If you use English characters only, your text automatically qualifies as UTF-8.) For Windows, the editor [http://notepad-plus.sourceforge.net/ Notepad++] has the option _Convert to UTF-8 without BOM_ in the _Format_ menu. sigplus can also recognize and remove the redundant byte-order mark (BOM) inserted by the default Windows text editor Notepad at the beginning of a UTF-8 encoded file.
 
@@ -65,16 +92,14 @@ Back-end settings:
 <pre>
 cherry.jpg|Three cherries|Some cherries in my fruit collection.
 pears.jpg|Two pears|A few pears in my fruit collection.
-strawberry.jpg|A strawberry|A strawberry in my fruit collection.
-</pre>
+strawberry.jpg|A strawberry|A strawberry in my fruit collection.</pre>
 
 Folder directory listing:
 <pre>
 cherry.jpg
 pears.jpg
 peas.jpg
-strawberry.jpg
-</pre>
+strawberry.jpg</pre>
 
 Formatted caption for each file:
   * Three cherries (1 of 4)

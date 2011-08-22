@@ -1274,7 +1274,7 @@
 		*/
 		_getTitle: function (anchor) {
 			var image = anchor.getElement('img');
-			return image ? image.getProperty('alt') : '';
+			return anchor.retrieve('title') || (image ? image.getProperty('alt') : '');
 		},
 		/**
 		* Description text that belongs to an anchor.
@@ -1282,14 +1282,16 @@
 		* @return {string} Raw HTML data as a string.
 		*/
 		_getText: function (anchor) {
-			return anchor.getProperty('title');
+			return anchor.retrieve('summary') || anchor.getProperty('title');
 		},
 		/**
 		* Download URL associated with an anchor.
 		* @param {Element} anchor A mootools Element object representing the anchor.
 		* @return {string} A URL.
 		*/
-		_getDownloadUrl: function (anchor) { },
+		_getDownloadUrl: function (anchor) {
+			return anchor.retrieve('download');
+		},
 		/**
 		* Metadata associated with an anchor.
 		* @param {Element} anchor A mootools Element object representing the anchor.
