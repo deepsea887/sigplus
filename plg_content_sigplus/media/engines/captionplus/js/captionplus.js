@@ -43,9 +43,13 @@
 			options = self.options;
 
 			var image = elem.getElement('img');
+			var anchor = elem.getElement('a');
 			if (image) {
-				var caption = image.get('alt');
-				if (caption) {
+				var caption = anchor && anchor.retrieve('title') || image.get('alt');
+				var downloadurl = anchor && anchor.retrieve('download');
+				if (caption || downloadurl) {
+					var captionarea;
+					
 					elem.adopt(
 						new Element('div', {
 							'class': 'captionplus'
@@ -56,19 +60,28 @@
 									options['position'],
 									options['visibility']
 								])
-							}).adopt(
-								new Element('div', {
+							}).grab(
+								captionarea = new Element('div', {
 									'class': _class([
 										'align',
 										'horizontal-' + options['horzalign'],
 										'vertical-' + options['vertalign']
 									]),
-									'html': caption
+									'html': caption ? caption : ''  // text content
 								})
 							),
 							options['position']
 						)
 					);
+					
+					if (downloadurl) {  // download button
+						captionarea.adopt(
+							new Element('a', {
+								'class': _class(['button','download']),
+								'href': downloadurl
+							})
+						);
+					}
 				}
 			}
 		}

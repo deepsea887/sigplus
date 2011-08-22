@@ -38,6 +38,7 @@ require_once dirname(__FILE__).DS.'engines.php';
 
 define('SIGPLUS_TEST', 0);
 define('SIGPLUS_CREATE', 1);
+define('SIGPLUS_CAPTION_CLIENT', true);  // apply template to caption text on client side
 
 /**
 * Interface for logging services.
@@ -408,7 +409,7 @@ class SIGPlusLabels {
 
 			if (strpos($imagefile, '*') !== false) {  // contains wildcard character
 				// replace "*" and "?" with LIKE expression equivalents "%" and "_"
-				$pattern = str_replace(array('%','_'), array('\\%','\\_'), $imagefile);
+				$pattern = str_replace(array('\\','%','_'), array('\\\\','\\%','\\_'), $imagefile);
 				$pattern = str_replace(array('*','?'), array('%','_'), $pattern);
 				$patterns[] = array($pattern, ++$priority, $title, $summary);
 			} else {
@@ -1629,9 +1630,9 @@ class SIGPlusCore {
 	}
 
 	/**
-	* Get an image label with placeholder and default substitutions.
+	* Get an image label with placeholder and default value substitutions.
 	*/
-	private function getLabel($text, $default, $template, $filename, $index, $total) {
+	private function getSubstitutedLabel($text, $default, $template, $filename, $index, $total) {
 		// use default text if no text is explicitly given
 		if (!isset($text) && isset($default)) {
 			$text = $default;
@@ -1648,8 +1649,8 @@ class SIGPlusCore {
 	/**
 	* Get an image label with placeholder and default substitutions as plain text with double quote escapes.
 	*/
-	private function getSafeLabel($text, $default, $template, $url, $index, $total) {
-		return str_replace('"', '&quot;', $this->getLabel($text, $default, $template, basename($url), $index, $total));
+	private function getLabel($text, $default, $template, $url, $index, $total) {
+		return $this->getSubstitutedLabel($text, $default, $template, basename($url), $index, $total);
 	}
 
 	/**
@@ -1680,6 +1681,9 @@ class SIGPlusCore {
 		$curparams = $this->paramstack->top();
 
 		$style = 'sigplus-gallery';
+		if ($curparams->layout == 'fixed') {  // imitate fixed layout in <noscript> mode
+			$style .= ' sigplus-noscript';  // "sigplus-noscript" is automatically removed when javascript is detected
+		}
 		switch ($curparams->alignment) {
 			case 'left': case 'left-clear': case 'left-float': $style .= ' sigplus-left'; break;
 			case 'center': $style .= ' sigplus-center'; break;
@@ -1743,7 +1747,12 @@ class SIGPlusCore {
 		return $uri->toString();
 	}
 
-	public function downloadImage($imagesource, $imageid) {
+	public function downloadImage($imagesource) {
+		$imageid = (int) JRequest::getInt('sigplus', 0);
+		if ($imageid <= 0) {
+			return false;
+		}
+
 		// get active set of parameters from the top of the stack
 		$curparams = $this->paramstack->top();
 
@@ -2029,20 +2038,21 @@ class SIGPlusCore {
 		$thumb_url = $this->makeURL($thumb_url);
 		$download_url = $this->getImageDownloadUrl($imageid);
 
-		if (true) {  // client-side template replacement
-			$title = htmlspecialchars($title ? $title : $curparams->caption_title);
-			$summary = htmlspecialchars($summary ? $summary : $curparams->caption_summary);
+		if (SIGPLUS_CAPTION_CLIENT) {  // client-side template replacement
+			$title = $title ? $title : $curparams->caption_title;
+			$summary = $summary ? $summary : $curparams->caption_summary;
 		} else {  // server-side template replacement
-			$title = $this->getSafeLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $total);
-			$summary = $this->getSafeLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $total);
+			$title = $this->getSubstitutedLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $total);
+			$summary = $this->getSubstitutedLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $total);
 		}
 
-		print '<a class="sigplus-image"'.$style.' href="'.$url.'" title="'.$summary.'">';
-		print '<img src="'.htmlspecialchars($preview_url).'" width="'.$preview_width.'" height="'.$preview_height.'" alt="'.$title.'" />';
+		print '<a class="sigplus-image"'.$style.' href="'.$url.'">';
+		print '<img src="'.htmlspecialchars($preview_url).'" width="'.$preview_width.'" height="'.$preview_height.'" alt="'.htmlspecialchars($title).'" />';
 		print '<img class="sigplus-thumb" src="'.htmlspecialchars($thumb_url).'" width="'.$thumb_width.'" height="'.$thumb_height.'" alt="" />';
 		print '</a>';
+		print '<div class="sigplus-summary">'.$summary.'</div>';
 		if ($download_url) {
-			print '<a'.$style.' href="'.htmlspecialchars($download_url).'"></a>';
+			print '<a class="sigplus-download"'.$style.' href="'.htmlspecialchars($download_url).'"></a>';
 		}
 	}
 
@@ -2092,12 +2102,8 @@ class SIGPlusCore {
 			$instance = SIGPlusEngineServices::instance();
 			$instance->addScript('/media/sigplus/js/initialization.js');  // unwrap all galleries from protective <noscript> container
 
-			if (true) {  // client-side template replacement
-				$instance->addOnReadyScriptFile('/plugins/content/sigplus/core/js/caption.js', array(
-					'id' => $id,
-					'caption_title_template' => addslashes($curparams->caption_title_template),
-					'caption_summary_template' => addslashes($curparams->caption_summary_template)
-				));
+			if (SIGPLUS_CAPTION_CLIENT) {  // client-side template replacement
+				$instance->addOnReadyScript('__sigplusCaption('.json_encode($id).', '.json_encode($curparams->caption_title_template).', '.json_encode($curparams->caption_summary_template).');');
 			}
 
 			if ($curparams->lightbox !== false) {

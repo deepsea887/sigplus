@@ -105,3 +105,9 @@ padding:0 !important;
 background:transparent none no-repeat scroll 0 0 !important;
 text-align:center !important;
 }
+
+/* horizontally scrollable gallery in <noscript> mode */
+.sigplus-gallery.sigplus-noscript > ul {
+overflow:auto !important;
+white-space:pre !important;
+}

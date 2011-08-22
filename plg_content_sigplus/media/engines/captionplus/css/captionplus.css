@@ -104,3 +104,21 @@ box-align:start !important;
 -webkit-box-align:end !important;
 box-align:end !important;
 }
+
+/* buttons inside image caption */
+.captionplus-button {
+background:transparent none no-repeat center center !important;
+display:inline-block !important;
+height:16px !important;
+width:16px !important;
+margin:2px !important;
+cursor:pointer !important;
+}
+
+.captionplus-button.captionplus-metadata {
+background-image:url(camera.png) !important;
+}
+
+.captionplus-button.captionplus-download {
+background-image:url(disk.png) !important;
+}

@@ -201,8 +201,7 @@ class plgContentSIGPlus extends JPlugin {
 			}
 
 			// download image
-			$imageid = JRequest::getInt('sigplus', 0);
-			if ($imageid > 0 && $this->core->downloadImage($imagereference, $imageid)) {  // an image has been requested for download
+			if ($this->core->downloadImage($imagereference)) {  // an image has been requested for download
 				jexit();  // do not produce a page
 			}
 
