@@ -22,6 +22,10 @@ window.addEvent('domready', function () {
 	$$('.sigplus-gallery a').each(function (anchor) {
 		var elem;
 
+		if (elem = anchor.getElement('img')) {
+			anchor.store('title', elem.get('alt'));
+		}
+		
 		// assign thumbnail image
 		if (elem = anchor.getElement('.sigplus-thumb')) {
 			anchor.store('thumb', elem);  // copy to MooTools element storage
@@ -51,9 +55,9 @@ window.addEvent('domready', function () {
 
 // apply template to caption text
 function __sigplusCaption(id, titletemplate, summarytemplate) {
-	var titletemplate = titletemplate || '{$text}';
-	var summarytemplate = summarytemplate || '{$text}';
 	var anchors = document.getElements('#' + id + ' a.sigplus-image');
+	titletemplate = titletemplate || '{$text}';
+	summarytemplate = summarytemplate || '{$text}';
 	anchors.each(function (anchor, index) {
 		var replacement = {  // template replacement rules
 			filename: (anchor.pathname || '').match(/([^\/]*)$/)[1],  // keep only file name component from path

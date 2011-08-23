@@ -1742,7 +1742,7 @@ class SIGPlusCore {
 			return false;
 		}
 
-		$uri = clone JURI::getInstance(null);  // URL of current page
+		$uri = clone JFactory::getURI();  // URL of current page
 		$uri->setVar('sigplus', $imageid);  // add query parameter "sigplus"
 		return $uri->toString();
 	}
