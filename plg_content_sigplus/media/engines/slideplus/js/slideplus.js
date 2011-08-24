@@ -5,7 +5,12 @@
  * @see     http://hunyadi.info.hu/projects/slideplus
  **/
 
+;
 (function ($) {
+	$extend(Element['NativeEvents'], {
+		'dragstart': 2  // listen to browser-native drag-and-drop events
+	});
+
 	Elements.implement({
 		/**
 		* Circular indexing.
@@ -97,7 +102,7 @@
 			* Whether the context menu appears when right-clicking an image [true|false].
 			* @type {boolean}
 			*/
-			'contextmenu': true,
+			'protection': false,
 			/**
 			* Duration for slide animation [ms], or one of ['slow'|'fast']
 			* @type {(number|string)}
@@ -131,6 +136,7 @@
 		_list: null,       // DOM Element that represents the sliding viewpane
 		_listitems: null,  // list of DOM Elements the sliding viewpane can be populated with
 		_paging: null,
+		_quickaccess: null,
 		_maxwidth: 0,      // maximum width of images
 		_maxheight: 0,     // maximum height of images
 		_scrollspeed: 0,
@@ -196,27 +202,78 @@
 				);
 			});
 
-			// add paging controls
-			if (options['links']) {
-				var quickaccess = self._paging = new Element('div', {
-					'class': _class(['paging'])
-				});
-				var pagecount = options['step'] == 'page' ? (listitems.length - 1) / (rows*cols) : listitems.length;
-				pagecount > 1 && pagecount.times(function (index) {  // do not create paging controls for a single page
-					quickaccess.adopt(
+			// setup navigation and paging container
+			var navigation = options['navigation'];  // e.g. ['over','bottom']
+			var barnavigation = navigation.clone().erase('over');  // e.g. ['bottom']
+			barnavigation.each(function (pos) {
+				new Element('div', {
+					'class': _class(['navbar'])
+				}).setStyle('width', viewer.getStyle('width')).inject(elem, pos);
+			});
+			var quickaccess = self._quickaccess = elem.getElements(_dotclass(['navbar']));
+
+			// setup overlay navigation controls
+			if (navigation.contains('over')) {
+				var isvertical = options['orientation'] == 'vertical';
+				var listsize = list.getSize();
+				var clsOrientation = isvertical ? 'vertical' : 'horizontal';
+				var clsSize = (isvertical ? listsize.x : listsize.y) < 120 ? 'small' : 'large';
+				viewer.adopt(
+					new Element('div', {
+						'class': _class(['prev',clsOrientation,clsSize])
+					}),
+					new Element('div', {
+						'class': _class(['next',clsOrientation,clsSize])
+					})
+				);
+			}
+
+			/**
+			* Adds buttons "Previous" and "Next" to navigation bar.
+			*/
+			function _addNavigation(dir,text) {
+				quickaccess.each(function (bar) {
+					bar.adopt(
 						new Element('span', {
-							'html': index + 1,
-							'events': {
-								'click': function () {
-									self._index = index * (options['step'] == 'page' ? rows*cols : 1);
-									self._layout();
-								}
-							}
+							'class': _class(['navbutton',dir]),
+							'html': text
 						})
 					);
 				});
-				quickaccess.setStyle('width', viewer.getStyle('width'));
-				elem.adopt(quickaccess);
+			}
+
+			// setup navigation bar controls
+			if (barnavigation.length) {
+				_addNavigation('prev', '&lt;');  // '\u21E6' or 'Previous'
+				_addNavigation('next', '&gt;');  // '\u21E8' or 'Next'
+				_addNavigation('first', '|&lt;');
+				_addNavigation('last', '&gt;|');
+			}
+
+			// add navigation bar paging controls
+			if (options['links']) {
+				quickaccess.each(function (bar) {
+					var paging = new Element('div', {
+						'class': _class(['paging'])
+					});
+
+					var pagecount = options['step'] == 'page' ? ((listitems.length - 1) / (rows*cols)).floor() + 1 : listitems.length;
+					pagecount > 1 && pagecount.times(function (index) {  // do not create paging controls for a single page
+						paging.adopt(
+							new Element('span', {
+								'html': index + 1,
+								'events': {
+									'click': function () {
+										self._index = index * (options['step'] == 'page' ? rows*cols : 1);
+										self._layout();
+									}
+								}
+							})
+						);
+					});
+					bar.adopt(paging);
+				});
+				self._paging = elem.getElements(_dotclass(['paging']));
 			}
 
 			// postpone loading images
@@ -228,45 +285,13 @@
 
 			self._layout();
 
-			// setup overlay navigation controls
-			var navigation = options['navigation'];
-			if (navigation) {
-				if (navigation.contains('over')) {
-					var isvertical = options['orientation'] == 'vertical';
-					var listsize = list.getSize();
-					var clsOrientation = isvertical ? 'vertical' : 'horizontal';
-					var clsSize = (isvertical ? listsize.x : listsize.y) < 120 ? 'small' : 'large';
-					viewer.adopt(
-						new Element('div', {
-							'class': _class(['prev',clsOrientation,clsSize])
-						}),
-						new Element('div', {
-							'class': _class(['next',clsOrientation,clsSize])
-						})
-					);
-				}
-				function _addNavigation(dir,pos,text) {
-					viewer.adopt(
-						new Element('a', {
-							'class': _class([dir,pos]),
-							'href': 'javascript:void("'+text+'");',
-							'html': text
-						})
-					);
-				}
-				if (navigation.contains('top')) {
-					_addNavigation('prev','top','&lt;');  // '\u21E6' or 'Previous'
-					_addNavigation('next','top','&gt;');  // '\u21E8' or 'Next'
-				}
-				if (navigation.contains('bottom')) {
-					_addNavigation('prev','bottom','&lt;');
-					_addNavigation('next','bottom','&gt;');
-				}
+			// scroll actions
+			function _bindClickAction(elem, fun) {
+				elem.addEvent('click', fun.bind(self));
 			}
 
-			// scroll actions
-			var prevbuttons = self._prevbuttons();
-			var nextbuttons = self._nextbuttons();
+			var prevbuttons = self._buttons('prev');
+			var nextbuttons = self._buttons('next');
 			if (options['trigger'] == 'mouseover') {
 				self._stopScroll();  // reset scroll speed
 				prevbuttons.addEvents({
@@ -294,18 +319,24 @@
 					}
 				});
 			} else {
-				prevbuttons.addEvent('click', function () {
-					self._slide(-1);
-				});
-				nextbuttons.addEvent('click', function () {
-					self._slide(1);
-				});
+				_bindClickAction(prevbuttons, self['prev']);
+				_bindClickAction(nextbuttons, self['next']);
 			}
+			_bindClickAction(self._buttons('first'), self['first']);
+			_bindClickAction(self._buttons('last'), self['last']);
 
-			// suppress context menu
-			if (!options['contextmenu']) {
-				document.addEvent('contextmenu', function (event) {  // subscribe to right-click event
-					return !list.contains(event.target);  // prevent right-click on image
+			// suppress context menu and drag-and-drop
+			if (options['protection']) {
+				/**
+				* Conditionally suppresses an event.
+				*/
+				function _uiProhibitedAction(event) {
+					return !list.contains(event.target);
+				}
+
+				document.addEvents({  // subscribe to protected events
+					'contextmenu': _uiProhibitedAction,  // prevent right-click on image
+					'dragstart': _uiProhibitedAction     // prevent drag-and-drop of image
 				});
 			}
 
@@ -360,12 +391,32 @@
 			}
 		},
 
-		_prevbuttons: function () {
-			return this._gallery.getElements(_dotclass('prev'));
+		'prev': function () {
+			this._slide(-1);
 		},
 
-		_nextbuttons: function () {
-			return this._gallery.getElements(_dotclass('next'));
+		'next': function () {
+			this._slide(1);
+		},
+
+		'first': function () {
+			var self = this;
+			self._index = 0;
+			self._layout();
+		},
+
+		'last': function () {
+			var self = this;
+			var options = self['options'];
+			var rows = options['size']['rows'];
+			var cols = options['size']['cols'];
+			var len = self._listitems.length;
+			self._index = options['step'] == 'page' ? ((len - 1) / (rows*cols)).floor() * (rows*cols) : len - 1;
+			self._layout();
+		},
+
+		_buttons: function (cls) {
+			return this._gallery.getElements(_dotclass(cls));
 		},
 
 		/**
@@ -467,12 +518,11 @@
 			});
 
 			// show or hide navigation buttons previous and next (for non-looping mode)
-			self._prevbuttons().toggleClass(_class(['hidden']), !options['loop'] && self._index <= 0);
-			self._nextbuttons().toggleClass(_class(['hidden']), !options['loop'] && self._index >= length - (options['step'] == 'page' ? 1 : rows*cols));
+			self._buttons('prev').toggleClass(_class(['hidden']), !options['loop'] && self._index <= 0);
+			self._buttons('next').toggleClass(_class(['hidden']), !options['loop'] && self._index >= length - (options['step'] == 'page' ? 1 : rows*cols));
 
 			// update current page
-			var paging = self._paging;
-			if (paging) {
+			self._paging.each(function (paging) {
 				// remove and set active page marker (if paging controls are present)
 				var activeitem = paging.getChildren().removeClass(_class(['active']))['at'](self._index / (options['step'] == 'page' ? rows*cols : 1)).addClass(_class(['active']));
 
@@ -481,7 +531,7 @@
 				if (position_x + activeitem.getSize().x > paging.getSize().x || position_x < 0) {
 					paging.scrollTo(paging.getScroll().x + position_x, 0);  // align left edge with container left edge
 				}
-			}
+			});
 		},
 
 		_advance: function (increment) {

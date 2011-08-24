@@ -1832,6 +1832,16 @@ class SIGPlusCore {
 			$imagesource = $this->config->base_folder;
 		}
 
+       // make placeholder replacement for {$username}
+	   if (strpos($imagesource, '{$username}') !== false) {
+			$user = JFactory::getUser();
+			if ($user->guest) {
+				throw new SIGPlusLoginRequiredException();
+			} else {
+				$imagesource = str_replace('{$username}', $user->username, $imagesource);
+			}
+		}
+
 		// set gallery identifier
 		$galleryid = $this->getUniqueGalleryId($curparams->id);
 

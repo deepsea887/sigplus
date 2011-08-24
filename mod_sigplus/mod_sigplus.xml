@@ -128,6 +128,10 @@
 			<fieldset name="advanced" label="SIGPLUS_FIELDSET_ADVANCED" addfieldpath="modules/mod_sigplus/fields/">
 				<field name="download" type="accesslevel" label="SIGPLUS_DOWNLOAD" description="SIGPLUS_DOWNLOAD_DESCRIPTION" />
 				<field name="metadata" type="accesslevel" label="SIGPLUS_METADATA" description="SIGPLUS_METADATA_DESCRIPTION" />
+				<field name="protection" type="radio" default="0" label="SIGPLUS_PROTECTION" description="SIGPLUS_PROTECTION_DESCRIPTION">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
 				<field type="spacer" hr="true" />
 				<field name="preview_margin" type="dimension" size="6" label="SIGPLUS_CSS_MARGIN" description="SIGPLUS_CSS_MARGIN_DESCRIPTION" />
 				<field name="preview_border_style" type="list" default="" label="SIGPLUS_CSS_BORDER_STYLE" description="SIGPLUS_CSS_BORDER_STYLE_DESCRIPTION">

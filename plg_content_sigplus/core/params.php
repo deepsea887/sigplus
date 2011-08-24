@@ -888,6 +888,11 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	*/
 	public $metadata = false;
 	/**
+	* Client-side protection for images.
+	* @type {boolean}
+	*/
+	public $protection = false;
+	/**
 	* Margin [px] (with or without unit), or false for default (inherit from sigplus.css).
 	* @example <kbd>{gallery preview-margin=4}myfolder{/gallery}</kbd> adds a margin of 4&nbsp;pixels around the border of each image in the gallery.</td>
 	*/
@@ -1081,6 +1086,9 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 		// download and metadata
 		// ...
 
+		// client-side protection measures
+		$this->protection = self::as_boolean($this->protection);
+		
 		// image styling
 		$this->preview_margin = self::as_css_measure($this->preview_margin);
 		$this->preview_border_width = self::as_css_measure($this->preview_border_width);
