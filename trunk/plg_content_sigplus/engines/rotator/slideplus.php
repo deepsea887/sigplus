@@ -74,6 +74,7 @@ class SIGPlusSlidePlusRotatorEngine extends SIGPlusRotatorEngine {
 		}
 		$jsparams['transition'] = $params->rotator_transition;
 		$jsparams['loop'] = $params->loop;
+		$jsparams['protection'] = $params->protection;
 
 		if (preg_match('/^boxplus\b/', $params->lightbox)) {
 			$script = 'new slideplus(document.getElement("'.$selector.'"), '.json_encode($jsparams).', lightbox);';

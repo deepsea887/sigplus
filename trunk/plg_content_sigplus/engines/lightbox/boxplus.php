@@ -73,6 +73,7 @@ class SIGPlusBoxPlusLightboxEngine extends SIGPlusLightboxEngine {
 		$jsparams['autostart'] = $params->lightbox_autostart;
 		$jsparams['transition'] = $params->lightbox_transition;
 		$jsparams['loop'] = $params->loop;
+		$jsparams['protection'] = $params->protection;
 
 		// add document loaded event script with parameters
 		$script = 'new boxplus(document.getElements("'.$selector.'"), '.json_encode($jsparams).');';

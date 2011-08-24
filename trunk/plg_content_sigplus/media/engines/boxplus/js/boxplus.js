@@ -36,6 +36,10 @@
 
 ;
 (function ($) {
+	$extend(Element['NativeEvents'], {
+		'dragstart': 2  // listen to browser-native drag-and-drop events
+	});
+
 	/**
 	* Converts a query string into an object.
 	* @param {string} querystring
@@ -374,7 +378,7 @@
 			* @param {Event} event An event object.
 			*/
 			self._onProhibitedUIAction = function (event) {
-				return self.options['protection'] || !self.viewer.getElements('*').contains(event.target);
+				return !self.options['protection'] || !self.viewer.getElements('*').contains(event.target);
 			};
 
 			/**
@@ -1452,7 +1456,7 @@
 			if (allowSlideshow && self['options']['autostart']) {
 				self.start();
 			}
-			
+
 			// fire onShow event
 			self._fireEvent('open');
 		},

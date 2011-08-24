@@ -50,8 +50,15 @@ try {
 		$core->setParameterObject($params);  // get parameters from the module's configuration
 
 		try {
+			$imagesource = $params->get('source');
+		
+			// download image
+			if ($core->downloadImage($imagesource)) {  // an image has been requested for download
+				jexit();  // do not produce a page
+			}
+
 			// generate image gallery
-			$galleryHTML = $core->getGalleryHTML($params->get('source'), $id);
+			$galleryHTML = $core->getGalleryHTML($imagesource, $id);
 			$core->addStyles($id);
 			$core->addScripts($id);
 

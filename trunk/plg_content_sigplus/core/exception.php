@@ -58,7 +58,7 @@ class SIGPlusException extends Exception {
 
 class SIGPlusInvalidValueException extends SIGPlusException {
 	protected $value;
-	
+
 	public function __construct($key, $value) {
 		$this->value = $value;
 		parent::__construct($key);
@@ -162,7 +162,7 @@ class SIGPlusBaseFolderException extends SIGPlusInvalidValueException {
 class SIGPlusInvalidFolderException extends SIGPlusException {
 	protected $value;
 	protected $type;
-	
+
 	public function __construct($value, $type) {
 		$this->value = $value;
 		$this->type = $type;
@@ -185,7 +185,7 @@ class SIGPlusFolderConflictException extends SIGPlusInvalidValueException {
 class SIGPlusEngineUnavailableException extends SIGPlusException {
 	protected $engine;
 	protected $enginetype;
-	
+
 	public function __construct($engine, $enginetype) {
 		$this->engine = $engine;
 		if ($enginetype) {
@@ -224,5 +224,14 @@ class SIGPlusOutOfMemoryException extends SIGPlusFileSystemException {
 class SIGPlusNotSupportedException extends SIGPlusException {
 	public function __construct() {
 		parent::__construct('SIGPLUS_EXCEPTION_NOTSUPPORTED');
+	}
+}
+
+/**
+* Triggered when a guest visitor tries to access content that is available to logged in users only.
+*/
+class SIGPlusLoginRequiredException extends SIGPlusException {
+	public function __construct() {
+		parent::__construct(JERROR_LOGIN_DENIED);
 	}
 }
