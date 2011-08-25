@@ -305,6 +305,36 @@ class SIGPlusEngineServices {
 			$this->scripts = array();  // clear scripts added to document
 		}
 	}
+	
+	/**
+	* Saves the JavaScript variable "lightbox" in the current scope to the elements storage.
+	* @see self::activateLightbox
+	*/
+	public function storeLightbox($selector) {
+		$this->addMooTools();
+		$script = 'document.id(document.body).store("'.$selector.'", lightbox);';  // assign to variable and persist in elements storage
+		$instance = SIGPlusEngineServices::instance();
+		$instance->addOnReadyScript($script);
+	}
+	
+	/**
+	* Adds JavaScript code subscribed to an anchor click event to programmatically activate a gallery.
+	* @param {int} $index The index of the image within the gallery to show.
+	* @see self::storeLightbox
+	*/
+	public function activateLightbox($linkid, $selector, $index = 0) {
+		$this->addMooTools();
+		$script =
+			'document.id("'.$linkid.'").addEvent("click", function () {'.PHP_EOL.
+			'	var lightbox;'.PHP_EOL.
+			'	if (lightbox = document.id(document.body).retrieve("'.$selector.'")) {'.PHP_EOL.
+			'		lightbox.show && lightbox.show(document.getElement("'.$selector.':nth('.$index.')"));'.PHP_EOL.
+			'	}'.PHP_EOL.
+			'});';
+		$instance = SIGPlusEngineServices::instance();
+		$instance->addOnReadyScript($script);
+		return false;
+	}
 }
 SIGPlusEngineServices::initialize();
 
@@ -400,17 +430,6 @@ abstract class SIGPlusLightboxEngine extends SIGPlusEngine {
 	* @deprecated
 	*/
 	public function isQuickNavigationSupported() {
-		return false;
-	}
-
-	/**
-	* JavaScript code subscribed to an anchor click event to programmatically activate a gallery.
-	* The code must not contain double quotes (").
-	* @param string $id The identifier of the gallery to activate.
-	* @param int $index The index of the image within the gallery to show.
-	* @deprecated
-	*/
-	public function getLinkScript($id, $index = 0) {
 		return false;
 	}
 

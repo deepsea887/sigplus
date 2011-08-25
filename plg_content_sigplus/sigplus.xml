@@ -275,7 +275,8 @@
 					<option value="0">JNO</option>
 				</field>
 				<field type="spacer" hr="true" />
-				<field name="activationtag" type="text" default="gallery" label="SIGPLUS_ACTIVATIONTAG" description="SIGPLUS_ACTIVATIONTAG_DESCRIPTION" />
+				<field name="tag_gallery" type="text" default="gallery" label="SIGPLUS_TAG_GALLERY" description="SIGPLUS_TAG_GALLERY_DESCRIPTION" />
+				<field name="tag_lightbox" type="text" default="lightbox" label="SIGPLUS_TAG_LIGHTBOX" description="SIGPLUS_TAG_LIGHTBOX_DESCRIPTION" />
 			</fieldset>
 			<fieldset name="expert" label="SIGPLUS_FIELDSET_EXPERT">
 				<field name="base_url" type="text" default="" label="SIGPLUS_BASE_URL" description="SIGPLUS_BASE_URL_DESCRIPTION" />

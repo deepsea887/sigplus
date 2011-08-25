@@ -58,8 +58,10 @@ require_once dirname(__FILE__).DS.'core'.DS.'core.php';
 * sigplus Image Gallery Plus plug-in.
 */
 class plgContentSIGPlus extends JPlugin {
-	/** Activation tag used to invoke the plug-in. */
-	private $activationtag = 'gallery';
+	/** Activation tag used to produce galleries with the plug-in. */
+	private $tag_gallery = 'gallery';
+	/** Activation tag used to produce a lightbox-powered link with the plug-in. */
+	private $tag_lightbox = 'lightbox';
 	/** Core service object. */
 	private $core;
 
@@ -67,9 +69,9 @@ class plgContentSIGPlus extends JPlugin {
 		parent::__construct($subject, $params);
 
 		// set activation tag if well-formed
-		$activationtag = $this->params->get('activationtag', $this->activationtag);
-		if (is_string($activationtag) && ctype_alnum($activationtag)) {
-			$this->activationtag = $activationtag;
+		$tag_gallery = $this->params->get('tag_gallery', $this->tag_gallery);
+		if (is_string($tag_gallery) && ctype_alnum($tag_gallery)) {
+			$this->tag_gallery = $tag_gallery;
 		}
 	}
 
@@ -111,7 +113,7 @@ class plgContentSIGPlus extends JPlugin {
 	}
 
 	private function parseContent(&$article) {
-		if (strpos($article->text, '{'.$this->activationtag) === false) {
+		if (strpos($article->text, '{'.$this->tag_gallery) === false) {
 			return false;  // short-circuit plugin activation, no replacements made
 		}
 
@@ -147,28 +149,17 @@ class plgContentSIGPlus extends JPlugin {
 				SIGPlusLogging::appendStatus(JText::_('SIGPLUS_STATUS_LOGGING'));
 			}
 
-			// find gallery tags and emit code
-			$activationtag = preg_quote($this->activationtag, '#');
-			$count = 0;
-			$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}\s*((?:[^{]+|\{(?!/'.$activationtag.'))+)\s*\{/'.$activationtag.'\}#msSu';
-			//$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}(.+?)\{/'.$activationtag.'\}#msSu';
+			// find "gallery" tags and emit code
+			$activationtag = preg_quote($this->tag_gallery, '#');
+			//$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}\s*((?:[^{]+|\{(?!/'.$activationtag.'))+)\s*\{/'.$activationtag.'\}#msSu';
+			$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}(.+?)\{/'.$activationtag.'\}#msSu';
+			//$article->text = preg_replace_callback($pattern, array($this, 'getGalleryReplacement'), $article->text, 1, $gallerycount);
+			$gallerycount = $this->getGalleryReplacementAll($article->text, $pattern);
 
-			//$article->text = preg_replace_callback($pattern, array($this, 'getGalleryPlaceholderReplacement'), $article->text, 1, $count);
-			$offset = 0;
-			while (preg_match($pattern, $article->text, $match, PREG_OFFSET_CAPTURE, $offset)) {
-				$start = $match[0][1];
-				$end = $start + strlen($match[0][0]);
-
-				try {
-					$body = $this->getGalleryReplacement($match[2][0], $match[1][0]);
-					$article->text = substr($article->text, 0, $start).$body.substr($article->text, $end);
-					$offset = $start + strlen($body);
-				} catch (Exception $e) {
-					$app = JFactory::getApplication();
-					$app->enqueueMessage($e->getMessage(), 'error');
-					$offset = $end;
-				}
-			}
+			// find "lightbox" tags and emit code
+			$activationtag = preg_quote($this->tag_lightbox, '#');
+			$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}(.+?)\{/'.$activationtag.'\}#msSu';
+			$article->text = preg_replace_callback($pattern, array($this, 'getLightboxReplacement'), $article->text, -1, $lightboxcount);
 
 			// employ safety measure for excessively large galleries
 			if (strlen($article->text) > 80000) {  // there is a risk of exhausting the backtrack limit and producing the "white screen of death"
@@ -181,12 +172,39 @@ class plgContentSIGPlus extends JPlugin {
 				$article->text = $log.$article->text;
 			}
 
-			return $count > 0;
+			return $gallerycount + $lightboxcount > 0;
 		}
 		return false;
 	}
 
-	private function getGalleryReplacement($source, $params) {
+	/**
+	* Replaces all occurrences of a gallery activation tag.
+	*/
+	private function getGalleryReplacementAll(&$text, $pattern) {
+		$count = 0;
+		$offset = 0;
+		while (preg_match($pattern, $text, $match, PREG_OFFSET_CAPTURE, $offset)) {
+			$count++;
+			$start = $match[0][1];
+			$end = $start + strlen($match[0][0]);
+
+			try {
+				$body = $this->getGalleryReplacementSingle($match[2][0], $match[1][0]);
+				$text = substr($text, 0, $start).$body.substr($text, $end);
+				$offset = $start + strlen($body);
+			} catch (Exception $e) {
+				$app = JFactory::getApplication();
+				$app->enqueueMessage($e->getMessage(), 'error');
+				$offset = $end;
+			}
+		}
+		return $count;
+	}
+
+	/**
+	* Replaces a single occurrence of a gallery activation tag.
+	*/
+	private function getGalleryReplacementSingle($source, $params) {
 		$imagereference = html_entity_decode($source, ENT_QUOTES, 'utf-8');
 		if (is_url_http($imagereference)) {
 			$imagereference = safeurlencode($imagereference);
@@ -224,14 +242,58 @@ class plgContentSIGPlus extends JPlugin {
 	* Any error messages are printed to screen.
 	* @param $match A regular expression match.
 	*/
-	private function getGalleryPlaceholderReplacement($match) {
+	private function getGalleryReplacement($match) {
 		try {
-			$body = $this->getGalleryReplacement($match[2], $match[1]);
+			$body = $this->getGalleryReplacementSingle($match[2], $match[1]);
 		} catch (Exception $e) {
 			$body = $match[0];  // no replacements
 			$app = JFactory::getApplication();
 			$app->enqueueMessage($e->getMessage(), 'error');
 		}
 		return $body;
+	}
+
+	/**
+	* Replaces a single occurrence of a lightbox activation tag.
+	*/
+	private function getLightboxReplacement($match) {
+		// extract parameter string
+		$paramstring = html_entity_decode($match[1], ENT_QUOTES, 'utf-8');
+		$params = SIGPlusConfigurationBase::string_to_array($paramstring);
+
+		// extract or create identifier
+		if (!isset($params['id'])) {
+			$params['id'] = $this->core->getUniqueGalleryId();
+		}
+
+		if (isset($params['href']) || isset($params['link'])) {
+			$this->core->setParameterArray($params);
+			
+			// build anchor components
+			if (isset($params['link'])) {  // create link to gallery on the same page
+				$this->core->addLightboxLinkScript($params['id'], $params['link']);
+				unset($params['link']);
+				$params['href'] = 'javascript:void(0);';  // artificial link target
+			} elseif (isset($params['href']) && is_url_http($params['href'])) {  // create link to (external) image
+				$params['href'] = safeurlencode($params['href']);
+
+				// add lightbox scripts to page header
+				$this->core->addLightboxScripts($params['id']);
+			}
+
+			$this->core->resetParameters();
+			
+			// generate anchor HTML
+			$anchor = '<a';
+			foreach (array('id','href','rel','class','style','title') as $attr) {
+				if (isset($params[$attr])) {
+					$anchor .= ' '.$attr.'="'.$params[$attr].'"';
+				}
+			}
+			$anchor .= '>'.$match[2].'</a>';
+			return $anchor;
+		} else {
+			return $match[2];  // do not change text for unsupported combination of parameters
+		}
 	}
 }

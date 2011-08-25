@@ -273,8 +273,8 @@
 					});
 					bar.adopt(paging);
 				});
-				self._paging = elem.getElements(_dotclass(['paging']));
 			}
+			self._paging = elem.getElements(_dotclass(['paging']));
 
 			// postpone loading images
 			listitems.dispose().each(function (listitem) {
