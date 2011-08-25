@@ -1662,7 +1662,7 @@ class SIGPlusCore {
 	* not to function properly.
 	* @param {string} $galleryid A preferred identifier, or null to have a new identifier generated.
 	*/
-	private function getUniqueGalleryId($galleryid = false) {
+	public function getUniqueGalleryId($galleryid = false) {
 		static $counter = 1000;
 		static $galleryids = array();
 
@@ -2138,13 +2138,30 @@ class SIGPlusCore {
 		}
 	}
 
-	public function addLightboxScripts($selector) {
+	/**
+	* Subscribes to the "click" event of an anchor to pop up the associated lightbox window.
+	* @param {string} $linkid The HTML identifier of the anchor whose "click" event to subscribe to.
+	* @param {string} $galleryid The identifier of the gallery to open in the lightbox window.
+	*/
+	public function addLightboxLinkScript($linkid, $galleryid) {
+		$curparams = $this->paramstack->top();  // current gallery parameters
+		$instance = SIGPlusEngineServices::instance();
+		$instance->activateLightbox($linkid, '#'.$galleryid.' a.sigplus-image', $curparams->index);  // selector should be same as above
+	}
+
+	/**
+	* Adds lightbox styleheet and script references to the page header.
+	* This method is typically invoked to bind a lightbox to an external URL not part of a gallery.
+	* @param {string} $id The identifier of the anchor that links to a resource.
+	*/
+	public function addLightboxScripts($id) {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
 		if ($curparams->lightbox !== false) {
 			$instance = SIGPlusEngineServices::instance();
 
 			$lightbox = $instance->getLightboxEngine($curparams->lightbox);
+			$selector = '#'.$id;
 			$lightbox->addStyles($selector, $curparams);
 			$lightbox->addScripts($selector, $curparams);
 
