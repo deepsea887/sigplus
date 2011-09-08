@@ -60,7 +60,7 @@ class SIGPlusMilkboxLightboxEngine extends SIGPlusLightboxEngine {
 			'		};'.PHP_EOL.
 			'	})'.PHP_EOL.
 			'}]);'.PHP_EOL.
-			'document.getElements("'.$selector.'").each(function (anchor,index) {'.PHP_EOL.
+			'document.getElements('.json_encode($selector).').each(function (anchor,index) {'.PHP_EOL.
 			'	anchor.addEvent("click", function (event) {'.PHP_EOL.
 			'		event.preventDefault();'.PHP_EOL.
 			'		milkbox.refreshDisplay('.json_encode($jsparams).');'.PHP_EOL.

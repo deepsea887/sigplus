@@ -1,4 +1,4 @@
-#summary Customizing gallery appearance with CSS
+#summary Customizing gallery appearance with CSS.
 
 = Custom preview image styling =
 

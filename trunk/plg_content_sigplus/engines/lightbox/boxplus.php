@@ -76,7 +76,7 @@ class SIGPlusBoxPlusLightboxEngine extends SIGPlusLightboxEngine {
 		$jsparams['protection'] = $params->protection;
 
 		// add document loaded event script with parameters
-		$script = 'var lightbox = new boxplus(document.getElements("'.$selector.'"), '.json_encode($jsparams).');';
+		$script = 'var lightbox = new boxplus(document.getElements('.json_encode($selector).'), '.json_encode($jsparams).');';
 		$instance->addOnReadyScript($script);
 
 		// persist lightbox instance in elements store

@@ -247,9 +247,9 @@ class fsx_unix implements fsx_functions {
 
 	/**
 	* Get all files in a directory that have the specified extension.
-	* @param dir Absolute path to a directory.
-	* @param ext Extension to check file names against.
-	* @param rev True if file names are to be sorted in reverse order.
+	* @param {string} $dir Absolute path to a directory.
+	* @param {string} $ext Extension to check file names against.
+	* @param {boolean} $rev True if file names are to be sorted in reverse order.
 	*/
 	public function get_files_with_extension($dir, array $ext, $rev = false) {
 		$results = array();
@@ -325,6 +325,28 @@ class fsx {
 			$ext = array($ext);
 		}
 		return self::$instance->get_files_with_extension($dir, $ext, $rev);
+	}
+
+	/**
+	* Get all files in a directory that have the specified extension sorted by last modified time.
+	* @param {string} $dir Absolute path to a directory.
+	* @param {string} $ext Extension to check file names against.
+	* @param {boolean} $rev True if file names are to be sorted in reverse order.
+	*/
+	public static function get_files_with_extension_time($dir, $ext, $rev = false) {
+		$files = self::$instance->get_files_with_extension($dir, $ext, $rev);
+
+		// fetch last modified date for each file
+		$times = array();
+		foreach ($files as $file) {
+			$times[] = self::filemtime($dir.DIRECTORY_SEPARATOR.$file);
+		}
+
+		// sort file array based on timestamp values
+		$sortorder = $rev ? SORT_DESC : SORT_ASC;
+		array_multisort($times, $sortorder, SORT_NUMERIC, $files, $sortorder, SORT_STRING);
+
+		return $files;
 	}
 
 	public static function file_exists($path) {

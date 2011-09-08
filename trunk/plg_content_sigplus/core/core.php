@@ -2152,16 +2152,14 @@ class SIGPlusCore {
 	/**
 	* Adds lightbox styleheet and script references to the page header.
 	* This method is typically invoked to bind a lightbox to an external URL not part of a gallery.
-	* @param {string} $id The identifier of the anchor that links to a resource.
 	*/
-	public function addLightboxScripts($id) {
+	public function addLightboxScripts($selector) {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
 		if ($curparams->lightbox !== false) {
 			$instance = SIGPlusEngineServices::instance();
 
 			$lightbox = $instance->getLightboxEngine($curparams->lightbox);
-			$selector = '#'.$id;
 			$lightbox->addStyles($selector, $curparams);
 			$lightbox->addScripts($selector, $curparams);
 
