@@ -7,6 +7,25 @@
 
 ;
 (function ($) {
+	/**
+	* Effective background color.
+	* Skips transparent backgrounds until it encounters an element with background color set.
+	*/
+	function effectiveBackgroundColor(elem) {
+		var rgba;
+		do {
+			rgba = [0,0,0,0];  // fully transparent
+			var match;
+			if (match = window.getComputedStyle(elem,null).getPropertyValue('background-color').match(/^rgba?\((.*)\)$/)) {  // get background color in format "rgb(0,0,0)" or "rgba(0,0,0,1)"
+				rgba = match[1].split(',').map(parseFloat);
+				rgba.push(1);  // add transparency component if missing
+				rgba = rgba.slice(0,4);  // ignore transparency component appended if already present
+			}
+			elem = elem.getParent();
+		} while (elem && rgba[3] == 0);  // loop while background color is transparent
+		return rgba;
+	}
+
 	$extend(Element['NativeEvents'], {
 		'dragstart': 2  // listen to browser-native drag-and-drop events
 	});
@@ -99,6 +118,11 @@
 			*/
 			'counter': true,
 			/**
+			* Edge effect ['none','fade'].
+			* @type {string}
+			*/
+			'edges': 'none',
+			/**
 			* Whether the context menu appears when right-clicking an image [true|false].
 			* @type {boolean}
 			*/
@@ -129,18 +153,22 @@
 			'scrollfactor': 5
 		},
 
-		_index: 0,         // zero-based index of the currently active list item
+		_index: 0,             // zero-based index of the currently active list item
 		/*
-		_stepsize: 0,      // number of items the slider advances when a navigation button is activated
-		_gallery: null,    // DOM Element that encapsules list items, navigation controls, etc.
-		_list: null,       // DOM Element that represents the sliding viewpane
-		_listitems: null,  // list of DOM Elements the sliding viewpane can be populated with
+		_stepsize: 0,          // number of items the slider advances when a navigation button is activated
+		_gallery: null,        // DOM Element that encapsules list items, navigation controls, etc.
+		_list: null,           // DOM Element that represents the sliding viewpane
+		_listitems: null,      // list of DOM Elements the sliding viewpane can be populated with
 		_paging: null,
 		_quickaccess: null,
-		_maxwidth: 0,      // maximum width of images
-		_maxheight: 0,     // maximum height of images
+		
+		_maxwidth: 0,          // maximum width of images
+		_maxheight: 0,         // maximum height of images
+		
 		_scrollspeed: 0,
 		_scrolltimer: null,
+		
+		_intervalID: null,     // shared interval timer
 		*/
 
 		/**
@@ -201,6 +229,57 @@
 					}).adopt(listitem.getChildren())
 				);
 			});
+
+			if (options['edges'] == 'fade') {
+				// fading edges
+				viewer.adopt(
+					new Element('div', {
+						'class': _class(['edge','edge-start',options['orientation']])
+					}),
+					new Element('div', {
+						'class': _class(['edge','edge-end',options['orientation']])
+					})
+				);
+
+				/**
+				* Converts an [r,g,b,a] color array to an "rgba(r,g,b,a)" CSS color definition.
+				* @param {Array.<number>} color A color with red, green, blue and transparency components.
+				* @return {string} A color expression with the rgba CSS function.
+				*/
+				function color2rgba(color) {
+					return 'rgba(' + color.join(',') + ')';
+				}
+
+				/**
+				* Converts an [r,g,b,a] color array to an "#AARRGGBB" hex string.
+				* @param {Array.<number>} color A color with red, green, blue and transparency components.
+				* @return {string} A hexadecimal color expression.
+				*/
+				function color2ahex(color) {
+					function hex(x) {
+						return ("0" + x.toString(16)).slice(-2);
+					}
+					return "#" + hex(Math.floor(255*color[3])) + hex(color[0]) + hex(color[1]) + hex(color[2]);
+				}
+
+				// set gradient color
+				var colorSolid = effectiveBackgroundColor(elem);
+				var colorTransparent = [colorSolid[0],colorSolid[1],colorSolid[2],0.0];  // set fully transparent near edges
+				viewer.getElements(_dotclass('edge')).each(function (edge) {
+					['filter','background-image'].each(function (property) {  // 'filter' for IE, 'background-image' for standard browsers
+						var style = edge.getStyle(property);
+						if (style) {
+							// in CSS file, #ff000000 denotes 'from' color (opaque), #00000000 denotes 'to' color (transparent) (IE)
+							style = style.replace(/#fffefefe/g,color2ahex(colorSolid)).replace(/#00fefefe/g,color2ahex(colorTransparent));
+
+							// in CSS file, rgba(0,0,0,0) stands for 'from' color, rgba(0,0,0,1) stands for 'to' color (standard browsers)
+							style = style.replace(/#fefefe|rgb\(254,\s*254,\s*254\)|black/g,color2rgba(colorSolid)).replace(/rgba\(254,\s*254,\s*254,\s*1\)|transparent/g,color2rgba(colorTransparent));
+
+							edge.setStyle(property, style);
+						}
+					});
+				});
+			}
 
 			// setup navigation and paging container
 			var navigation = options['navigation'];  // e.g. ['over','bottom']
@@ -341,36 +420,16 @@
 			}
 
 			// slider animation
-			var delay = options['delay'];
-			if (delay) {
-				/** Shared interval timer. */
-				var intervalID;
-				/** Whether to suppress animation when mouse is not over rotator. */
-				var stopAnimation = false;
-
-				/**
-				* Sets the animation delay.
-				*/
-				function _setInterval() {
-					intervalID = window.setInterval(function () {
-						self._slide(1);
-					}, delay);
-				}
-
-				/**
-				* Clears the animation delay.
-				*/
-				function _clearInterval() {
-					window.clearInterval(intervalID);
-				}
+			if (options['delay']) {
+				var stopAnimation = false;  // whether to suppress animation even if mouse is not over rotator
 
 				// stop animation when mouse mover over an image
 				viewer.addEvents({
 					'mouseover': function () {
-						stopAnimation || _clearInterval();  // do not keep animating if lightbox pop-up window is open
+						stopAnimation || self._clearTimeout();  // do not keep animating if lightbox pop-up window is open
 					},
 					'mouseout': function () {
-						stopAnimation || _setInterval();
+						stopAnimation || self._setTimeout();
 					}
 				});
 
@@ -378,16 +437,14 @@
 					lightbox.addEvents({
 						'open': function () {
 							stopAnimation = true;
-							_clearInterval();
+							self._clearTimeout();
 						},
 						'close': function () {
 							stopAnimation = false;
-							_setInterval();
+							self._setTimeout();
 						}
 					});
 				}
-
-				_setInterval();
 			}
 		},
 
@@ -415,6 +472,31 @@
 			self._layout();
 		},
 
+		/**
+		* Sets the animation delay.
+		*/
+		_setTimeout: function () {
+			var self = this;
+			var delay = self['options']['delay'];
+			if (delay) {  // start timer
+				self._intervalID = window.setTimeout(function () {
+					self._intervalID = false;
+					self._slide(1);
+				}, delay);
+			}
+		},
+
+		/**
+		* Clears the animation delay.
+		*/
+		_clearTimeout: function () {
+			var self = this;
+			if (self._intervalID) {  // if there is a running timer
+				window.clearTimeout(self._intervalID);
+				self._intervalID = false;
+			}
+		},
+
 		_buttons: function (cls) {
 			return this._gallery.getElements(_dotclass(cls));
 		},
@@ -431,6 +513,9 @@
 			var maxheight = self._maxheight;
 			var length = self._listitems.length;
 
+			// stop timer
+			self._clearTimeout();
+			
 			// extract part of array with loop semantics
 			var listitems = $$([]);
 			var lowest = self._index - rows*cols;     // start index
@@ -532,6 +617,9 @@
 					paging.scrollTo(paging.getScroll().x + position_x, 0);  // align left edge with container left edge
 				}
 			});
+
+			// start timer
+			self._setTimeout();
 		},
 
 		_advance: function (increment) {
@@ -563,6 +651,9 @@
 			var cols = options['size']['cols'];
 			var increment = self._increment(dir);
 
+			// stop timer
+			self._clearTimeout();
+			
 			// disallow circular repeat when looping is disabled; option "move by page" allows empty slots at the end
 			if (!options['loop'] && (self._index + increment >= self._listitems.length - (options['step'] == 'page' ? 0 : rows*cols-1) || self._index + increment < 0)) {
 				return;
@@ -576,6 +667,7 @@
 
 			// launch animation
 			var effect = new Fx.Morph(self._list, {
+				'duration': options['duration'],
 				'transition': options['transition'],
 				'onComplete': function () {
 					self._advance(increment);
@@ -678,14 +770,14 @@
 	* </ul>
 	* </noscript>
 	*/
-	slideplus['autodiscover'] = function () {
+	slideplus['autodiscover'] = function (options) {
 		window.addEvent('domready', function () {
 			$$('noscript.slideplus').each(function (item) {
 				// extracts the contents of a <noscript> element, and build a rotating gallery
 				new slideplus(new Element('div', {
 					'class': 'slideplus',
 					'html': item.get('text')  // <noscript> elements are not parsed when javascript is enabled
-				}).inject(item, 'after'));
+				}).inject(item, 'after'), options);
 				item.destroy();
 			});
 		});

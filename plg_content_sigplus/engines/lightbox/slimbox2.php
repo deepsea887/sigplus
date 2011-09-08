@@ -42,7 +42,7 @@ class SIGPlusSlimbox2LightboxEngine extends SIGPlusLightboxEngine {
 		$script =
 			'(function ($) {'.PHP_EOL.
 			'	if (!/android|iphone|ipod|series60|symbian|windows ce|blackberry/i.test(navigator.userAgent)) {'.PHP_EOL.
-			'		var items = $("'.$selector.'");'.PHP_EOL.
+			'		var items = $('.json_encode($selector).');'.PHP_EOL.
 			'		items.slimbox('.json_encode($jsparams).', null, function(el) {'.PHP_EOL.
 			'			return (this == el) || $.inArray(this, items);'.PHP_EOL.
 			'		});'.PHP_EOL.

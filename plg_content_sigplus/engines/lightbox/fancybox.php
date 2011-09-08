@@ -41,7 +41,7 @@ class SIGPlusFancyboxLightboxEngine extends SIGPlusLightboxEngine {
 		$jsparams['centerOnScroll'] = $params->lightbox_autocenter;
 
 		// add document loaded event script with parameters
-		$script = 'jQuery("'.$selector.'").fancybox('.json_encode($jsparams).');';
+		$script = 'jQuery('.json_encode($selector).').fancybox('.json_encode($jsparams).');';
 		$instance = SIGPlusEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}

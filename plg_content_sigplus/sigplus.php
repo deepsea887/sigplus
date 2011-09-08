@@ -149,17 +149,21 @@ class plgContentSIGPlus extends JPlugin {
 				SIGPlusLogging::appendStatus(JText::_('SIGPLUS_STATUS_LOGGING'));
 			}
 
-			// find "gallery" tags and emit code
-			$activationtag = preg_quote($this->tag_gallery, '#');
-			//$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}\s*((?:[^{]+|\{(?!/'.$activationtag.'))+)\s*\{/'.$activationtag.'\}#msSu';
-			$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}(.+?)\{/'.$activationtag.'\}#msSu';
+			// find {gallery}...{/gallery} tags and emit code
+			$tag_gallery = preg_quote($this->tag_gallery, '#');
+			//$pattern = '#\{'.$tag_gallery.'([^{}]*)(?<!/)\}\s*((?:[^{]+|\{(?!/'.$tag_gallery.'))+)\s*\{/'.$tag_gallery.'\}#msSu';
+			$pattern = '#\{'.$tag_gallery.'([^{}]*)(?<!/)\}(.+?)\{/'.$tag_gallery.'\}#msSu';
 			//$article->text = preg_replace_callback($pattern, array($this, 'getGalleryReplacement'), $article->text, 1, $gallerycount);
 			$gallerycount = $this->getGalleryReplacementAll($article->text, $pattern);
 
-			// find "lightbox" tags and emit code
-			$activationtag = preg_quote($this->tag_lightbox, '#');
-			$pattern = '#\{'.$activationtag.'([^{}]*)(?<!/)\}(.+?)\{/'.$activationtag.'\}#msSu';
+			// find {lightbox}...{/lightbox} tags wrapping HTML and emit code
+			$tag_lightbox = preg_quote($this->tag_lightbox, '#');
+			$pattern = '#\{'.$tag_lightbox.'([^{}]*)(?<!/)\}(.+?)\{/'.$tag_lightbox.'\}#msSu';
 			$article->text = preg_replace_callback($pattern, array($this, 'getLightboxReplacement'), $article->text, -1, $lightboxcount);
+
+			// find compact {lightbox/} tags and emit code
+			$pattern = '#\{'.$tag_lightbox.'([^{}]*)/\}#msSu';
+			$article->text = preg_replace_callback($pattern, array($this, 'getSelectorReplacement'), $article->text);
 
 			// employ safety measure for excessively large galleries
 			if (strlen($article->text) > 80000) {  // there is a risk of exhausting the backtrack limit and producing the "white screen of death"
@@ -268,7 +272,7 @@ class plgContentSIGPlus extends JPlugin {
 
 		if (isset($params['href']) || isset($params['link'])) {
 			$this->core->setParameterArray($params);
-			
+
 			// build anchor components
 			if (isset($params['link'])) {  // create link to gallery on the same page
 				$this->core->addLightboxLinkScript($params['id'], $params['link']);
@@ -278,11 +282,12 @@ class plgContentSIGPlus extends JPlugin {
 				$params['href'] = safeurlencode($params['href']);
 
 				// add lightbox scripts to page header
-				$this->core->addLightboxScripts($params['id']);
+				$selector = '#'.$params['id'];  // build selector from the identifier of the anchor that links to a resource
+				$this->core->addLightboxScripts($selector);
 			}
 
 			$this->core->resetParameters();
-			
+
 			// generate anchor HTML
 			$anchor = '<a';
 			foreach (array('id','href','rel','class','style','title') as $attr) {
@@ -295,5 +300,29 @@ class plgContentSIGPlus extends JPlugin {
 		} else {
 			return $match[2];  // do not change text for unsupported combination of parameters
 		}
+	}
+
+	private function getSelectorReplacement($match) {
+		$replacement = $match[0];  // no replacements
+
+		// extract parameter string
+		$paramstring = html_entity_decode($match[1], ENT_QUOTES, 'utf-8');
+		$params = SIGPlusConfigurationBase::string_to_array($paramstring);
+
+		// apply lightbox to all items that satisfy the CSS selector
+		if (isset($params['selector'])) {
+			// add lightbox scripts to page header
+			$this->core->setParameterArray($params);
+			try {
+				$this->core->addLightboxScripts($params['selector']);
+				$this->core->resetParameters();
+			} catch (Exception $e) {
+				$this->core->resetParameters();
+				throw $e;
+			}
+			$replacement = '';
+		}
+
+		return $replacement;
 	}
 }

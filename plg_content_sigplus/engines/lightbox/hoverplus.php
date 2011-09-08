@@ -60,7 +60,7 @@ class SIGPlusHoverPlusLightboxEngine extends SIGPlusLightboxEngine {
 		$jsparams['autocenter'] = $params->lightbox_autocenter;
 
 		// add document loaded event script with parameters
-		$script = 'hoverplus.bind(document.getElements("'.$selector.'"), '.json_encode($jsparams).');';
+		$script = 'hoverplus.bind(document.getElements('.json_encode($selector).'), '.json_encode($jsparams).');';
 		$instance = SIGPlusEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}

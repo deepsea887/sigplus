@@ -43,7 +43,7 @@ text-align:center !important;
 * Changing this section may negatively impact slider functionality.
 */
 
-/* scripts disabled mode */
+/* Scripts disabled mode */
 
 .slideplus {
 display:block !important;
@@ -71,7 +71,7 @@ list-style-image:none !important;
 background:transparent none no-repeat scroll 0 0 !important;
 }
 
-/* scripts enabled mode */
+/* Scripts enabled mode */
 
 div.slideplus {
 position:relative !important;
@@ -242,15 +242,13 @@ background-image:url(button-down-small.png) !important;
 
 /* navigation bar */
 .slideplus-navbar {
-margin:0 !important;
 padding:0 !important;
 }
 
 span.slideplus-navbutton,
 .slideplus-paging > span {
-border:0 solid transparent !important;
-background-color:rgba(0,0,0,0.5) !important;
-color:white !important;
+border:1px solid gray !important;
+background-color:transparent !important;
 cursor:pointer !important;
 text-decoration:none !important;
 }
@@ -258,14 +256,14 @@ text-decoration:none !important;
 span.slideplus-navbutton:hover,
 .slideplus-paging > span.slideplus-active,
 .slideplus-paging > span:hover {
-background-color:rgba(0,0,0,0.75) !important;
+background-color:rgba(0,0,0,0.25) !important;
 }
 
 /* top and bottom navigation controls */
 span.slideplus-navbutton {
 display:block !important;
-margin:0 1px !important;
-padding:6px !important;
+margin:7px 1px !important;
+padding:2px 6px !important;
 }
 
 span.slideplus-first,
@@ -305,4 +303,58 @@ padding:4px 10px !important;
 /* hidden */
 div.slideplus-hidden, a.slideplus-hidden {
 display:none !important;
+}
+
+/* fading edges */
+.slideplus-edge {
+position:absolute;
+background:transparent none no-repeat scroll 0 0;
+}
+
+.slideplus-edge.slideplus-horizontal {
+width:57px;
+}
+
+.slideplus-edge.slideplus-vertical {
+height:57px;
+}
+
+.slideplus-edge-start.slideplus-horizontal {
+left:-1px !important;  /* IE fix */
+
+/* color values updated in script, do not change */
+filter:DXImageTransform.Microsoft.gradient(gradientType=1,startColorstr=#fffefefe,endColorstr=#00fefefe);
+-ms-filter:"progid:DXImageTransform.Microsoft.gradient(gradientType=1,startColorstr=#fffefefe,endColorstr=#00fefefe)";
+background-image:-moz-linear-gradient(left,#fefefe,transparent);
+background-image:-webkit-gradient(linear,left top,right top,from(#fefefe),to(transparent));
+}
+
+.slideplus-edge-end.slideplus-horizontal {
+right:-1px !important;  /* IE fix */
+
+/* color values updated in script, do not change */
+filter:DXImageTransform.Microsoft.gradient(gradientType=1,startColorstr=#00fefefe,endColorstr=#fffefefe);
+-ms-filter:"progid:DXImageTransform.Microsoft.gradient(gradientType=1,startColorstr=#00fefefe,endColorstr=#fffefefe)";
+background-image:-moz-linear-gradient(left,transparent,#fefefe);
+background-image:-webkit-gradient(linear,left top,right top,from(transparent),to(#fefefe));
+}
+
+.slideplus-edge-start.slideplus-vertical {
+top:-1px !important;  /* IE fix */
+
+/* color values updated in script, do not change */
+filter:DXImageTransform.Microsoft.gradient(startColorstr=#fffefefe,endColorstr=#00fefefe);
+-ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr=#fffefefe,endColorstr=#00fefefe)";
+background-image:-moz-linear-gradient(top,#fefefe,transparent);
+background-image:-webkit-gradient(linear,left top,left bottom,from(#fefefe),to(transparent));
+}
+
+.slideplus-edge-end.slideplus-vertical {
+bottom:-1px !important;  /* IE fix */
+
+/* color values updated in script, do not change */
+filter:DXImageTransform.Microsoft.gradient(startColorstr=#00fefefe,endColorstr=#fffefefe);
+-ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr=#00fefefe,endColorstr=#fffefefe)";
+background-image:-moz-linear-gradient(top,transparent,#fefefe);
+background-image:-webkit-gradient(linear,left top,left bottom,from(transparent),to(#fefefe));
 }

@@ -357,7 +357,7 @@ class SIGPlusConfigurationBase {
 	* @param {string} $quotechars Quote characters for values that contain special characters.
 	* @return array An associative array that maps keys to values.
 	*/
-	public static function string_to_array($string, $separator = '=', $quotechars = '\'\"') {
+	public static function string_to_array($string, $separator = '=', $quotechars = '\'\"|') {
 		$separator = preg_quote($separator, '#');
 
 		$valuepatterns = array();
