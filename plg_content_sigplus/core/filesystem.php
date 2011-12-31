@@ -609,7 +609,18 @@ function http_get_modified($url, &$lastmod = null, &$etag = null, $method = 'GET
 				$etag = $matches[1];  // extract and update ETag value
 				break;
 			} elseif (preg_match('#^Last-Modified:\s+(.+)$#iS', $header, $matches)) {
-				$date = DateTime::createFromFormat('D, d M Y H:i:s T', $matches[1]);  // parse HTTP date format
+				$timestring = $matches[1];
+				if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
+					$date = DateTime::createFromFormat('D, d M Y H:i:s T', $timestring);  // parse HTTP date format (RFC 822, updated by RFC 1123)
+				} else {
+					$unixtime = strtotime($timestring);
+					if ($unixtime !== false && $unixtime !== -1) {
+						$date = new DateTime('@'.$unixtime);
+					} else {
+						$date = false;
+					}
+				}
+
 				if ($date !== false) {
 					$lastmod = $date->format('Y-m-d H:i:s');  // generate database date format
 				} else {

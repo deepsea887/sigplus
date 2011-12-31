@@ -1,0 +1,57 @@
+/**
+* @file
+* @brief    scrollplus manual image slider
+* @author   Levente Hunyadi
+* @version  $__VERSION__$
+* @remarks  Copyright (C) 2011 Levente Hunyadi
+* @see      http://hunyadi.info.hu/projects/sigplus
+*/
+
+/* scrollable area */
+ol.scrollplus,
+ul.scrollplus {
+display:block !important;
+position:relative !important;
+margin:0 !important;
+padding:0 !important;
+list-style-type:none !important;
+list-style-image:none !important;
+overflow:hidden !important;
+white-space:nowrap !important;
+}
+
+ol.scrollplus > li,
+ul.scrollplus > li {
+display:inline-block !important;
+margin:0 !important;
+border:0 none transparent !important;
+padding:0 !important;
+background:transparent none no-repeat scroll 0 0 !important;
+text-align:center !important;
+}
+
+/* scrollbar container */
+.scrollplus-slider {
+position:relative !important;
+height:18px !important;
+width:90% !important;
+margin:0 auto !important;
+}
+
+/* scrollbar horizontal line */
+.scrollplus-bar {
+position:absolute !important;
+bottom:50% !important;
+width:100% !important;
+height:2px !important;
+background:gray !important;
+}
+
+/* scrollbar knob */
+.scrollplus-knob {
+border:1px solid black !important;
+border-radius:8px !important;
+height:14px !important;
+width:14px !important;
+background:gray !important;
+}

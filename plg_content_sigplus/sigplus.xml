@@ -53,6 +53,7 @@
 				<field name="layout" type="list" default="fixed" label="SIGPLUS_LAYOUT" description="SIGPLUS_LAYOUT_DESCRIPTION">
 					<option value="fixed">SIGPLUS_LAYOUT_FIXED</option>
 					<option value="flow">SIGPLUS_LAYOUT_FLOW</option>
+					<option value="packed">SIGPLUS_LAYOUT_PACKED</option>
 					<option value="hidden">SIGPLUS_LAYOUT_HIDDEN</option>
 				</field>
 				<field name="rows" type="text" default="1" label="SIGPLUS_ROWS" description="SIGPLUS_ROWS_DESCRIPTION" />
