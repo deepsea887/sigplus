@@ -1564,9 +1564,8 @@
 				_show();
 			}
 
-			function _showContent(anchor) {
+			function _showContent(elem) {
 				dialog.setContent(elem);
-				_showCaption(anchor);
 				_show();
 			}
 
@@ -1591,7 +1590,7 @@
 						default:
 							_showContent(elem);
 					}
-				} else if (/\.(txt|html?)$/i.test(path)) {
+				} else if (/\.(txt|html?)$/i.test(path) && anchor['host'] == window['location']['host']) {  // use AJAX only for requests to the same domain
 					new Request.HTML({
 						'url': url,
 						'onSuccess': function (html) {

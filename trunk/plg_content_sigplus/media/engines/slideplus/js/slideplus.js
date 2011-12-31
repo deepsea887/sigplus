@@ -478,7 +478,7 @@
 		_setTimeout: function () {
 			var self = this;
 			var delay = self['options']['delay'];
-			if (delay) {  // start timer
+			if (delay && !self._intervalID) {  // start timer
 				self._intervalID = window.setTimeout(function () {
 					self._intervalID = false;
 					self._slide(1);

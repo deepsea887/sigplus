@@ -779,6 +779,37 @@ abstract class SIGPlusGalleryBase {
 			}
 		}
 	}
+
+	/**
+	* Remove image views that have been persisted in the cache but removed manually.
+	*/
+	protected function purgeCache() {
+		if (!$this->config->service->cache_image) {
+			return;  // images are not set to be generated in cache folder
+		}
+
+		$thumb_folder = JPATH_CACHE.DS.str_replace('/', DS, $this->config->service->folder_thumb);
+		$preview_folder = JPATH_CACHE.DS.str_replace('/', DS, $this->config->service->folder_preview);
+		if (file_exists($thumb_folder) && file_exists($preview_folder)) {
+			return;  // thumb and preview folder not removed
+		}
+
+		SIGPlusLogging::appendStatus('Manual removal of cache folders detected.');
+		$db = JFactory::getDbo();
+
+		// escape special characters, append any character qualifier at end, quote string
+		$thumb_pattern = $db->quote(str_replace(array('\\','%','_'), array('\\\\','\\%','\\_'), $thumb_folder).'%');
+		$preview_pattern = $db->quote(str_replace(array('\\','%','_'), array('\\\\','\\%','\\_'), $preview_folder).'%');
+
+		// remove views from database with deleted image files
+		$db->setQuery(
+			'DELETE FROM '.$db->nameQuote('#__sigplus_imageview').PHP_EOL.
+			'WHERE'.PHP_EOL.
+				$db->nameQuote('thumb_fileurl').' LIKE '.$thumb_pattern.' OR '.
+				$db->nameQuote('preview_fileurl').' LIKE '.$preview_pattern
+		);
+		$db->query();
+	}
 }
 
 abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
@@ -1129,6 +1160,9 @@ class SIGPlusLocalImage extends SIGPlusLocalBase {
 	* Generate output from a single image in the local file system.
 	*/
 	public function populate($imagefile, $folderparams) {
+		// check whether cache folder has been removed manually by user
+		$this->purgeCache();
+
 		// get last modified time of file, also inspecting a related labels file
 		$lastmod = $this->getLabelsLastModified(dirname($imagefile), fsx::filemtime($imagefile));
 
@@ -1214,6 +1248,9 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 	* Generate an image gallery whose images come from the local file system.
 	*/
 	public function populate($imagefolder, $folderparams) {
+		// check whether cache folder has been removed manually by user
+		$this->purgeCache();
+
 		// get last modified time of folder
 		$lastmod = $this->getLabelsLastModified($imagefolder, get_folder_last_modified($imagefolder, $this->config->gallery->depth));
 

@@ -488,7 +488,7 @@ class SIGPlusConfigurationBase {
 			return false;
 		} elseif (is_numeric($value)) {
 			return $value.'px';
-		} elseif (preg_match('#^[1-9][0-9]*(?:[.][0-9]+)?(?:%|in|cm|mm|e[mx]|p[tcx])$#', $value)) {
+		} elseif (preg_match('#^(?:[1-9][0-9]*(?:[.][0-9]+)?(?:%|in|cm|mm|e[mx]|p[tcx])\\b\\s*){1,4}$#', $value)) {  // "1px" or "1px 2em" or "1px 2em 3pt" or "1px 2em 3pt 4cm"
 			return $value;
 		} else {
 			return 0;
@@ -695,7 +695,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 
 	/**
 	* The way the gallery is rendered in HTML.
-	* @type {'fixed'|'flow'|'hidden'}
+	* @type {'fixed'|'flow'|'packed'|'hidden'}
 	*/
 	public $layout = 'fixed';
 	/**
@@ -992,6 +992,11 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 				// fall through
 			case 'flow':
 				$this->rotator = false;
+				$this->rows = false;
+				$this->cols = false;
+				break;
+			case 'packed':
+				$this->rotator = 'scrollplus';  // manual scrolling
 				$this->rows = false;
 				$this->cols = false;
 				break;
