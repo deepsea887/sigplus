@@ -43,6 +43,84 @@
 	});
 
 	/**
+	* Loads one or more images inside a container element.
+	*
+	* Usage:
+	*   // enable user-friendly progress indicator for images in this element
+	*   var preloader = new Preloader(item);
+	*
+	*   // start fetching images
+	*   preloader.load();
+	*
+	* While the image is being loaded, the following HTML is injected into the container element:
+	* <div class="loadplus">
+	*   <div class="loadplus-bar0"></div>
+	*   <div class="loadplus-bar1"></div>
+	*   <div class="loadplus-bar2"></div>
+	*   <div class="loadplus-bar3"></div>
+	*   <div class="loadplus-bar4"></div>
+	*   <div class="loadplus-bar5"></div>
+	*   <div class="loadplus-bar6"></div>
+	*   <div class="loadplus-bar7"></div>
+	* </div>
+	*/
+	var Preloader = new Class({
+		/*
+		_icon: null,
+		_images: $$([]),
+		*/
+	
+		/**
+		* Associates a user-friendly pre-loader service with a set of images inside a container.
+		* @param {Element} elem The container element in which to seek for descendant image elements to pre-load.
+		*/
+		'initialize': function (elem) {
+			var self = this;
+		
+			// inject animated loader icon
+			self._icon = new Element('div', {
+				'class': 'loadplus'
+			}).adopt(
+				[0,1,2,3,4,5,6,7].map(function (item) {
+					return new Element('div', {
+						'class': 'loadplus-bar' + item
+					});
+				})
+			).inject(elem);
+			
+			// remove "src" attribute from images to prevent browser from displaying a partial image as data is being transferred
+			self._images = elem.getElements('img').each(function (image) {
+				// the attribute "data-src" is understood by scripts as the image URL until the image is loaded
+				image.setProperty('data-src', image.getProperty('src')).removeProperty('src').setStyle('visibility','hidden');
+			});
+		},
+		
+		/**
+		* Starts retrieving images from the server.
+		*/
+		'load': function () {
+			var self = this;
+		
+			// associate preloader with container element
+			self._images.each(function (image) {
+				var src = image.getProperty('data-src');
+				if (src) {
+					$(new Image).addEvent('load', function () {  // triggered when the image has been preloaded
+						// add "src" attribute, the image will display immediately as data has already been transferred
+						image.removeProperty('data-src').setProperty('src', src).setStyle('visibility','visible');
+						
+						// check if there are further images in the container pending
+						if (!self._images.erase(image).pick()) {  // no more images to load
+							// remove animated loader icon
+							self._icon.destroy();
+						}
+					}).set('src', src);
+				}
+			});
+		}
+	});
+	
+	/**
 	* @param {Array.<string>} cls An array of class name suffixes.
 	* @return {string} A class annotation to be used as an Element "class" attribute value.
 	*/
@@ -150,7 +228,11 @@
 			* Acceleration factor, multiplier of scroll speed in fast scroll mode.
 			* @type {number}
 			*/
-			'scrollfactor': 5
+			'scrollfactor': 5,
+			/**
+			* Whether to enable user-friendly progress indicator icon with pre-loader service.
+			*/
+			'preloader': true
 		},
 
 		_index: 0,             // zero-based index of the currently active list item
@@ -158,7 +240,8 @@
 		_stepsize: 0,          // number of items the slider advances when a navigation button is activated
 		_gallery: null,        // DOM Element that encapsules list items, navigation controls, etc.
 		_list: null,           // DOM Element that represents the sliding viewpane
-		_listitems: null,      // list of DOM Elements the sliding viewpane can be populated with
+		_allitems: null,       // list of DOM Elements the sliding viewpane can be populated with
+		_curitems: null,       // list of (possibly cloned) DOM Elements the sliding viewpane is currently populated with
 		_paging: null,
 		_quickaccess: null,
 		
@@ -187,7 +270,7 @@
 			if (!list) {
 				return;
 			}
-			var listitems = self._listitems = list.getChildren('li');
+			var listitems = self._allitems = list.getChildren('li');
 			// create a nesting <div><div class="slideplus"><ul>...</ul></div></div>
 			var viewer = new Element('div', {
 				'class': 'slideplus'
@@ -218,6 +301,15 @@
 			}
 
 			listitems.each(function (listitem) {
+				// add current item selection
+				listitem.addEvent('click', function () {
+					// unselect elements no longer active
+					$$([listitems, self._curitems].flatten()).removeClass(_class(['active']));  // iterate over both original and possibly cloned elements
+					
+					// select active element
+					$$(listitem, this).addClass(_class(['active']));  // use "this" to support selection when element is cloned
+				});
+
 				// center items horizontally and vertically
 				listitem.adopt(
 					new Element('div', {
@@ -356,13 +448,14 @@
 			self._paging = elem.getElements(_dotclass(['paging']));
 
 			// postpone loading images
-			listitems.dispose().each(function (listitem) {
-				listitem.getElements('img').each(function (image) {
-					image.setProperty('data-src', image.getProperty('src')).removeProperty('src');
+			listitems.dispose();
+			if (options['preloader']) {  // enable user-friendly preloader icon
+				listitems.each(function (listitem) {
+					listitem.store('preloader', new Preloader(listitem));
 				});
-			});
+			}
 
-			self._layout();
+			self._advance(0);  // reset layout and sliding bar left and top coordinates (to minimize external template interference)
 
 			// scroll actions
 			function _bindClickAction(elem, fun) {
@@ -467,7 +560,7 @@
 			var options = self['options'];
 			var rows = options['size']['rows'];
 			var cols = options['size']['cols'];
-			var len = self._listitems.length;
+			var len = self._allitems.length;
 			self._index = options['step'] == 'page' ? ((len - 1) / (rows*cols)).floor() * (rows*cols) : len - 1;
 			self._layout();
 		},
@@ -511,13 +604,13 @@
 			var cols = options['size']['cols'];
 			var maxwidth = self._maxwidth;
 			var maxheight = self._maxheight;
-			var length = self._listitems.length;
+			var length = self._allitems.length;
 
 			// stop timer
 			self._clearTimeout();
 			
 			// extract part of array with loop semantics
-			var listitems = $$([]);
+			var listitems = self._curitems = $$([]);
 			var lowest = self._index - rows*cols;     // start index
 			var highest = self._index + 2*rows*cols;  // end index
 			if (!options['loop']) {
@@ -525,15 +618,13 @@
 			}
 
 			for (var k = lowest; k < highest; k++) {
-				var listitem = self._listitems['at'](k);  // call class extension "at" for Elements
+				var listitem = self._allitems['at'](k);  // call class extension "at" for Elements
 
 				// schedule images for loading
-				listitem.getElements('img').each(function (image) {
-					var src = image.getProperty('data-src');
-					if (src) {
-						image.removeProperty('data-src').setProperty('src', src);
-					}
-				});
+				var preloader = listitem.retrieve('preloader');
+				if (preloader) {
+					preloader.load();
+				}
 
 				// add item to the group of those shown or about to be shown
 				if (length > 3*rows*cols) {  // sufficient number of images available to fill each position
@@ -655,7 +746,7 @@
 			self._clearTimeout();
 			
 			// disallow circular repeat when looping is disabled; option "move by page" allows empty slots at the end
-			if (!options['loop'] && (self._index + increment >= self._listitems.length - (options['step'] == 'page' ? 0 : rows*cols-1) || self._index + increment < 0)) {
+			if (!options['loop'] && (self._index + increment >= self._allitems.length - (options['step'] == 'page' ? 0 : rows*cols-1) || self._index + increment < 0)) {
 				return;
 			}
 
