@@ -23,6 +23,11 @@ margin:2px !important;
 border:1px solid gray !important;
 padding:2px !important;
 }
+
+/* active image styling
+.slideplus > ul > li.slideplus-active img {
+border:1px solid red !important;
+}
 */
 
 div.slideplus > ul > li {
@@ -357,4 +362,111 @@ filter:DXImageTransform.Microsoft.gradient(startColorstr=#00fefefe,endColorstr=#
 -ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr=#00fefefe,endColorstr=#fffefefe)";
 background-image:-moz-linear-gradient(top,transparent,#fefefe);
 background-image:-webkit-gradient(linear,left top,left bottom,from(transparent),to(#fefefe));
+}
+
+/**
+* @file
+* @brief    loadplus image pre-loader icon
+* @author   Levente Hunyadi
+* @version  $__VERSION__$
+* @remarks  Copyright (C) 2011 Levente Hunyadi
+* @see      http://hunyadi.info.hu/projects/sigplus
+*/
+
+/* balls */
+.loadplus > * {
+width:10px;
+height:10px;
+background:#000;
+position:absolute;
+left:20px;
+top:20px;
+
+-moz-border-radius:20px;
+-webkit-border-radius:20px;
+border-radius:20px;
+}
+
+.loadplus-bar0 {
+-moz-transform:rotate(0deg) translate(0, -20px) scale(0.1);
+-webkit-transform:rotate(0deg) translate(0, -20px) scale(0.1);
+-ms-transform:rotate(0deg) translate(0, -20px) scale(0.1);
+opacity:0.12;
+}
+.loadplus-bar1 {
+-moz-transform:rotate(45deg) translate(0, -20px) scale(0.2);
+-webkit-transform:rotate(45deg) translate(0, -20px) scale(0.2);
+-ms-transform:rotate(45deg) translate(0, -20px) scale(0.2);
+opacity:0.25;
+}
+.loadplus-bar2 {
+-moz-transform:rotate(90deg) translate(0, -20px) scale(0.4);
+-webkit-transform:rotate(90deg) translate(0, -20px) scale(0.4);
+-ms-transform:rotate(90deg) translate(0, -20px) scale(0.4);
+opacity:0.37;
+}
+.loadplus-bar3 {
+-moz-transform:rotate(135deg) translate(0, -20px) scale(0.6);
+-webkit-transform:rotate(135deg) translate(0, -20px) scale(0.6);
+-ms-transform:rotate(135deg) translate(0, -20px) scale(0.6);
+opacity:0.50;
+}
+.loadplus-bar4 {
+-moz-transform:rotate(180deg) translate(0, -20px) scale(0.8);
+-webkit-transform:rotate(180deg) translate(0, -20px) scale(0.8);
+-ms-transform:rotate(180deg) translate(0, -20px) scale(0.8);
+opacity:0.62;
+}
+.loadplus-bar5 {
+-moz-transform:rotate(225deg) translate(0, -20px) /*scale(1)*/;
+-webkit-transform:rotate(225deg) translate(0, -20px) /*scale(1)*/;
+-ms-transform:rotate(225deg) translate(0, -20px) /*scale(1)*/;
+opacity:0.75;
+}
+.loadplus-bar6 {
+-moz-transform:rotate(270deg) translate(0, -20px) scale(1.2);
+-webkit-transform:rotate(270deg) translate(0, -20px) scale(1.2);
+-ms-transform:rotate(270deg) translate(0, -20px) scale(1.2);
+opacity:0.87;
+}
+.loadplus-bar7 {
+-moz-transform:rotate(315deg) translate(0, -20px) scale(1.4);
+-webkit-transform:rotate(315deg) translate(0, -20px) scale(1.4);
+-ms-transform:rotate(315deg) translate(0, -20px) scale(1.4);
+/*opacity:1;*/
+}
+
+/* rotator icon */
+.loadplus {
+position:absolute;
+width:50px;
+height:50px;
+top:50%;
+left:50%;
+margin:-25px;
+
+-webkit-border-radius:50px;
+-moz-border-radius:50px;
+border-radius:50px;
+
+-webkit-animation-name:loadplus-transform;
+-webkit-animation-duration:0.9s;
+-webkit-animation-iteration-count:infinite;
+-webkit-animation-timing-function:steps(8, start);
+
+-moz-animation-name:loadplus-transform;
+-moz-animation-duration:0.9s;
+-moz-animation-iteration-count:infinite;
+-moz-animation-timing-function:steps(8, start);
+}
+
+/* animation */
+@-webkit-keyframes loadplus-transform {
+from { -webkit-transform:rotate(0deg); }
+to { -webkit-transform:rotate(360deg); }
+}
+
+@-moz-keyframes loadplus-transform {
+from { -moz-transform:rotate(0deg); }
+to { -moz-transform:rotate(360deg); }
 }
