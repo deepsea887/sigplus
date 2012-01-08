@@ -538,17 +538,29 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 	public $folder_watermarked = 'watermarked';
 	/** Subdirectory for external script files. */
 	public $folder_script = 'script';
-	/** Whether to use Joomla cache folder for storing generated images. */
+	/**
+	* Whether to use Joomla cache folder for storing generated images.
+	* @type {bool}
+	*/
 	public $cache_image = false;
-	/** Whether to use Joomla cache folder for storing temporary generated content. */
+	/**
+	* Whether to use Joomla cache folder for storing temporary generated content.
+	* @type {bool}
+	*/
 	public $cache_content = true;
 	/** Image processing library to use. */
 	public $library_image = 'default';
 	/** JavaScript library to use. */
 	public $library_jsapi = 'default';
-	/** Whether to use uncompressed versions of lightbox and rotator engine scripts. */
+	/**
+	* Whether to use uncompressed versions of lightbox and rotator engine scripts.
+	* @type {bool}
+	*/
 	public $debug_client = false;
-	/** Whether to print verbose status messages of actions performed on the server. */
+	/**
+	* Whether to print verbose status messages of actions performed on the server.
+	* @type {bool}
+	*/
 	public $debug_server = false;
 
 	public function validate() {
@@ -796,7 +808,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* Position of navigation and paging controls.
 	* @type {'bottom'|'top'|'none'|'both'}
 	*/
-	public $rotator_navigation = 'overlay';
+	public $rotator_navigation = 'bottom';
 	/**
 	* Show control buttons in navigation bar.
 	* @type {boolean}
@@ -855,7 +867,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	*/
 	public $caption_position = 'overlay-bottom';
 	/**
-	* Labels file name.
+	* The name of the file from where text for captions is drawn.
 	* @type {string}
 	*/
 	public $caption_source = 'labels.txt';

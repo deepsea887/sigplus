@@ -274,7 +274,7 @@
 			// create a nesting <div><div class="slideplus"><ul>...</ul></div></div>
 			var viewer = new Element('div', {
 				'class': 'slideplus'
-			}).inject(elem).grab(list);
+			}).inject(elem).grab(list.removeClass('slideplus'));  // ensure there is no "slideplus" CSS class on <ul>
 
 			// set viewpane size
 			var rows = options['size']['rows'];
@@ -863,10 +863,15 @@
 	*/
 	slideplus['autodiscover'] = function (options) {
 		window.addEvent('domready', function () {
+			// lists not wrapped in <noscript>
+			$$('ul.slideplus').each(function (item) {
+				new slideplus(new Element('div').wraps(item), options);
+			});
+			
+			// lists wrapped in <noscript>
 			$$('noscript.slideplus').each(function (item) {
 				// extracts the contents of a <noscript> element, and build a rotating gallery
 				new slideplus(new Element('div', {
-					'class': 'slideplus',
 					'html': item.get('text')  // <noscript> elements are not parsed when javascript is enabled
 				}).inject(item, 'after'), options);
 				item.destroy();
