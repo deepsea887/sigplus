@@ -9,6 +9,8 @@
 */
 
 window.addEvent('domready', function () {
+	var $ = document.id;
+
 	// unwrap galleries from <noscript> elements
 	$$('noscript.sigplus-gallery').each(function (item) {
 		new Element('div', {
@@ -20,6 +22,7 @@ window.addEvent('domready', function () {
 
 	// bind thumbnail images to anchors
 	$$('.sigplus-gallery a').each(function (anchor) {
+		anchor = $(anchor);  // $(...) for compatibility with Internet Explorer 8 and earlier
 		var elem;
 		var link;
 
@@ -69,6 +72,7 @@ function __sigplusCaption(id, titletemplate, summarytemplate) {
 	titletemplate = titletemplate || '{$text}';
 	summarytemplate = summarytemplate || '{$text}';
 	anchors.each(function (anchor, index) {
+		anchor = $(anchor);  // $(...) for Internet Explorer 8 and earlier compatibility
 		var replacement = {  // template replacement rules
 			filename: (anchor.pathname || '').match(/([^\/]*)$/)[1],  // keep only file name component from path
 			current: index + 1,  // index is zero-based but user interface needs one-based counter
