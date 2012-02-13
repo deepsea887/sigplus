@@ -381,7 +381,7 @@
 					'class': _class(['navbar'])
 				}).setStyle('width', viewer.getStyle('width')).inject(elem, pos);
 			});
-			var quickaccess = self._quickaccess = elem.getElements(_dotclass(['navbar']));
+			var quickaccess = self._quickaccess = elem.getElements(_dotclass('navbar'));
 
 			// setup overlay navigation controls
 			if (navigation.contains('over')) {
@@ -445,7 +445,7 @@
 					bar.adopt(paging);
 				});
 			}
-			self._paging = elem.getElements(_dotclass(['paging']));
+			self._paging = elem.getElements(_dotclass('paging'));
 
 			// postpone loading images
 			listitems.dispose();
@@ -455,7 +455,20 @@
 				});
 			}
 
-			self._advance(0);  // reset layout and sliding bar left and top coordinates (to minimize external template interference)
+			// navigate to current image for galleries used as a menu
+			listitems.each(function (listitem, index) {
+				var anchor = listitem.getElement('a');  // each anchor takes the user to a different page
+				if (anchor && anchor['href'] == window['location']['href']) {  // compare anchor target URL to window URL
+					// set index to active element
+					self._index = self._index = options['step'] == 'page' ? (index / (rows*cols)).floor() * (rows*cols) : index;
+
+					// apply style to active element
+					listitem.addClass(_class(['active']));
+				}
+			});
+			
+			// reset layout and sliding bar left and top coordinates (to minimize external template interference)
+			self._advance(0);
 
 			// scroll actions
 			function _bindClickAction(elem, fun) {
@@ -679,7 +692,7 @@
 				var effect = new Fx.Morph(listitem, {
 					link: 'cancel'
 				});
-				effect.set('.slideplus-inactive');
+				effect.set(_dotclass('inactive'));
 				var events = {
 					'mouseenter': function () {
 						effect.start(_dotclass('active'));

@@ -244,7 +244,7 @@ class SIGPlusMetadataServices {
 			$charset = $metadata['Coded Character Set'];
 		}
 
-		if ($charset != 'utf-8') {
+		if ($charset != 'utf-8' && extension_loaded('iconv')) {
 			foreach ($metadata as $key => &$value) {
 				if (is_array($value)) {
 					foreach ($value as &$elementvalue) {
