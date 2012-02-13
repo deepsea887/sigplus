@@ -37,6 +37,10 @@ define('SIGPLUS_SORT_FILENAME', 1);            // sort based on file name ignori
 define('SIGPLUS_SORT_MTIME', 2);               // sort based on last modified time ignoring order in labels file
 define('SIGPLUS_SORT_RANDOM', 4);              // random order
 
+// sort order
+define('SIGPLUS_SORT_ASCENDING', 0);
+define('SIGPLUS_SORT_DESCENDING', 1);
+
 define('SIGPLUS_SORT_LABELS', 8);
 define('SIGPLUS_SORT_LABELS_OR_FILENAME', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_FILENAME);  // sort based on labels file with fallback to file name
 define('SIGPLUS_SORT_LABELS_OR_MTIME', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_MTIME);        // sort based on labels file with fallback to last modified time
@@ -929,7 +933,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* Sort order, ascending or descending.
 	* @example <kbd>{gallery sort-criterion=mtime sort-order=desc}mygallery{/gallery}</kbd> sorts images in the gallery by last modification time in descending order (image last uploaded first).
 	*/
-	public $sort_order = SORT_ASC;
+	public $sort_order = SIGPLUS_SORT_ASCENDING;
 	/**
 	* Depth limit for scanning directory hierarchies recursively. Use -1 to set no recursion limit.
 	* @type {nonnegative_integer}
@@ -1139,12 +1143,12 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 			}
 		}
 		if (is_numeric($this->sort_order)) {
-			$this->sort_order = self::as_one_of((int) $this->sort_order, array(SORT_ASC,SORT_DESC));
+			$this->sort_order = self::as_one_of((int) $this->sort_order, array(SIGPLUS_SORT_ASCENDING,SIGPLUS_SORT_DESCENDING));
 		} else {
 			switch ($this->sort_order) {
-				case 'asc':  case 'ascending':  $this->sort_order = SORT_ASC;  break;
-				case 'desc': case 'descending': $this->sort_order = SORT_DESC; break;
-				default: $this->sort_order = SORT_ASC;
+				case 'asc':  case 'ascending':  $this->sort_order = SIGPLUS_SORT_ASCENDING;  break;
+				case 'desc': case 'descending': $this->sort_order = SIGPLUS_SORT_DESCENDING; break;
+				default: $this->sort_order = SIGPLUS_SORT_ASCENDING;
 			}
 		}
 

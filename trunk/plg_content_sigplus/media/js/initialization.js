@@ -54,15 +54,15 @@ window.addEvent('domready', function () {
 
 	// apply click prevention to galleries without lightbox
 	$$('.sigplus-lightbox-none a.sigplus-image').each(function (anchor) {
-		anchor.addEvent('click', function (event) {
-			var link = anchor.retrieve('link');
-			if (link) {  // there is a preferred target for the image
-				anchor.href = link.href;
-				anchor.target = link.target;
-			} else {
+		var link = anchor.retrieve('link');
+		if (link) {  // there is a preferred target for the image
+			anchor.href = link.href;
+			anchor.target = link.target;
+		} else {
+			anchor.addEvent('click', function (event) {
 				event.preventDefault();
-			}
-		});
+			});
+		}
 	});
 });
 

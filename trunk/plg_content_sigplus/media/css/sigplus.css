@@ -48,7 +48,7 @@ padding:2px !important;
 
 .sigplus-gallery ul > li > div > a,
 .sigplus-gallery ul > li > div > .captionplus > a {
-display:inline-block;
+display:inline-block !important;
 }
 
 .sigplus-gallery .sigplus-thumb {

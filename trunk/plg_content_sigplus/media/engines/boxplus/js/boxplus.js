@@ -122,37 +122,59 @@
 	var boxplusDialog = new Class({
 		'Implements': [Events, Options],
 
+		// --- EDIT OPTIONS BELOW TO MODIFY DEFAULTS --- //
+		// ---  SEE FURTHER BELOW FOR OTHER OPTIONS  --- //
+		
 		/**
 		* boxplus dialog options.
 		* Normally, these would be configured via a boxplus gallery and not directly.
 		*/
 		'options': {
 			/**
+			* Pop-up window theme. If set, stylesheets that have a "title" attribute starting with
+			* "boxplus" but with a different ending than specified will be disabled. For instance,
+			* the value "darksquare" will enable the stylesheet "boxplus-darksquare" but disable
+			* "boxplus-darkrounded" and "boxplus-lightsquare".			
 			* @type {boolean|string}
 			*/
 			'theme': false,
 			/**
+			* Whether navigation controls are displayed.
 			* @type {boolean}
 			*/
 			'navigation': true,
 			/**
+			* Whether to center pop-up windows smaller than browser window size.
 			* @type {boolean}
 			*/
 			'autocenter': true,
 			/**
+			* Whether to reduce images that would otherwise exceed screen dimensions to fit
+			* the browser window when they are displayed.
 			* @type {boolean}
 			*/
 			'autofit': true,
 			/**
+			* Duration of animation sequences. Expects a value in milliseconds, or one of 'short' or 'long'.
 			* @type {string|number}
 			*/
 			'duration': 'long',
 			/**
+			* Easing equation to use for the transition effect.
+			* The easing equation determines the speed at which the animation progresses
+			* at different stages of an animation. Examples values include 'sine', 'linear' and
+			* 'bounce'. For a complete list of supported values see the MooTools framework object
+			* Fx.Transitions <http://mootools.net/docs/core/Fx/Fx.Transitions>.
 			* @type {string}
 			*/
 			'transition': 'sine',
 			/**
-			* Client-side image protection feature. Suppresses "contextmenu" and "dragstart" events.
+			* Client-side image protection feature.
+			* This feature suppresses the browser "contextmenu" and "dragstart" events so that
+			* a user cannot easily extract the image with conventional methods. Needless to say,
+			* such measures are completely ineffective against advanced users who can always
+			* extract the image from the browser cache or use developer page inspection tools
+			* like Firebug.
 			* @type {boolean}
 			*/
 			'protection': true,
@@ -178,6 +200,8 @@
 			'height': 600
 		},
 
+		// --- END OF DEFAULT OPTIONS --- //
+		
 		// Properties assigned on initialization:
 		//    container,
 		//    shadedbackground,
@@ -1304,6 +1328,7 @@
 		_getMetadata: function (anchor) { },
 
 		// --- EDIT OPTIONS BELOW TO MODIFY DEFAULTS --- //
+		// ---  SEE FURTHER ABOVE FOR OTHER OPTIONS  --- //
 
 		/**
 		* boxplus gallery options.
@@ -1313,19 +1338,35 @@
 			onChange: function () {},    // triggered when the current item shown is about to be changed
 			onClose: function () {},     // triggered when the pop-up window has been closed
 			*/
-			'theme': false,              // theme to select when pop-up window opens; if set, style sheets that have a title attribute starting with "boxplus" but with a different ending will be disabled
-			'navigation': true,          // whether navigation controls are displayed [true|false]
-			'autocenter': true,          // whether to center pop-up windows smaller than browser window size [true|false]
-			'autofit': true,             // whether to reduce oversized images to fit browser window when they are displayed [true|false]
-			'slideshow': 0,              // time spent viewing an image when slideshow mode is active, or 0 to disable slideshow mode
-			'autostart': false,          // whether to start a slideshow when the dialog opens [true|false]
-			'duration': 'short',         // duration of animation sequences in milliseconds, or one of ['short'|'long']
-			'transition': 'sine',        // easing equation to use for the transition effect, i.e. speed at which the animation progresses at different stages of an animation
-			'loop': false,               // whether the image/content sequence loops such that the first image/content follows the last [true|false]
-			'contextmenu': true,         // whether the context menu appears when right-clicking an image inside the pop-up window [true|false]
-			'captions': 'bottom',        // placement of captions; below or next to image ['bottom'|'sideways'|'none']
-			'thumbs': 'inside',          // placement of thumbnail navigation bar: over image or in caption area ['inside'|'outside'|'none']
-			'cloak': false               // whether to cloak URLs of anchors (cloaking URLs also prevents other javascript code from reading the anchor href) [false|true]
+			/**
+			* Time spent viewing an image when slideshow mode is active, or 0 to disable slideshow mode.
+			* @type {number}
+			*/
+			'slideshow': 0,
+			/**
+			* Whether to start a slideshow when the dialog opens.
+			* @type {boolean}
+			*/
+			'autostart': false,
+			/**
+			* Whether the image/content sequence loops such that the first image/content follows the last.
+			* @type {boolean}
+			*/
+			'loop': false,
+			/**
+			* Placement of captions. Takes the value 'bottom' (below the image), 'sideways' (next to the image) or 'none'.
+			*/
+			'captions': 'bottom',
+			/**
+			* Placement of thumbnail navigation bar. Takes the value 'inside' (over the image), 'outside' (in the caption area) or 'none'.
+			*/
+			'thumbs': 'inside',
+			/**
+			* Whether to cloak anchor URLs. Cloaked anchors will not reveal the target image URL
+			* when the user positions the mouse cursor over the image.
+			* Cloaking URLs also prevents other javascript code from reading the anchor "href" attribute.
+			*/
+			'cloak': false
 		},
 
 		// Other options include (see their default definition above):

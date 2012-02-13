@@ -1937,35 +1937,35 @@ class SIGPlusCore {
 		switch ($curparams->sort_criterion) {
 			case SIGPLUS_SORT_LABELS_OR_FILENAME:
 				switch ($curparams->sort_order) {
-					case SORT_ASC:
+					case SIGPLUS_SORT_ASCENDING:
 						// entries with smallest ordnum are shown first, entries without ordnum shown last
 						$sortorder = '-ordnum DESC, filename ASC'; break;  // unary minus inverts sort order, NULL values presented last when doing ORDER BY ... DESC
-					case SORT_DESC:
+					case SIGPLUS_SORT_DESCENDING:
 						// entries with largest ordnum are shown first, entries without ordnum shown last
 						$sortorder = 'ordnum DESC, filename DESC'; break;
 				}
 				break;
 			case SIGPLUS_SORT_LABELS_OR_MTIME:
 				switch ($curparams->sort_order) {
-					case SORT_ASC:
+					case SIGPLUS_SORT_ASCENDING:
 						$sortorder = '-ordnum DESC, filetime ASC'; break;
-					case SORT_DESC:
+					case SIGPLUS_SORT_DESCENDING:
 						$sortorder = 'ordnum DESC, filetime DESC'; break;
 				}
 				break;
 			case SIGPLUS_SORT_LABELS_OR_RANDOM:
 				switch ($curparams->sort_order) {
-					case SORT_ASC:
+					case SIGPLUS_SORT_ASCENDING:
 						$sortorder = '-ordnum DESC, RAND()'; break;
-					case SORT_DESC:
+					case SIGPLUS_SORT_DESCENDING:
 						$sortorder = 'ordnum DESC, RAND()'; break;
 				}
 				break;
 			case SIGPLUS_SORT_MTIME:
 				switch ($curparams->sort_order) {
-					case SORT_ASC:
+					case SIGPLUS_SORT_ASCENDING:
 						$sortorder = 'filetime ASC'; break;
-					case SORT_DESC:
+					case SIGPLUS_SORT_DESCENDING:
 						$sortorder = 'filetime DESC'; break;
 				}
 				break;
@@ -1974,9 +1974,9 @@ class SIGPlusCore {
 				break;
 			default:  // case SIGPLUS_SORT_FILENAME:
 				switch ($curparams->sort_order) {
-					case SORT_ASC:
+					case SIGPLUS_SORT_ASCENDING:
 						$sortorder = 'filename ASC'; break;
-					case SORT_DESC:
+					case SIGPLUS_SORT_DESCENDING:
 						$sortorder = 'filename DESC'; break;
 				}
 		}
