@@ -429,7 +429,7 @@ class SIGPlusLabels {
 				$entries[] = array($imagefile, $index, $title, $summary);
 			}
 		}
-		return $entries;
+		return true;
 	}
 
 	public function populate($imagefolder, $folderid) {

@@ -24,7 +24,6 @@ window.addEvent('domready', function () {
 	$$('.sigplus-gallery a').each(function (anchor) {
 		anchor = $(anchor);  // $(...) for compatibility with Internet Explorer 8 and earlier
 		var elem;
-		var link;
 
 		if (elem = anchor.getElement('img')) {
 			anchor.store('title', elem.get('alt'));
@@ -39,8 +38,11 @@ window.addEvent('domready', function () {
 		// assign summary text (with HTML support)
 		if (elem = anchor.getNext('.sigplus-summary')) {
 			anchor.store('summary', elem.get('html')).setProperty('title', elem.get('text'));
-			if (link = elem.getElement('a')) {  // summary contains an anchor, which should be set as a preferred target for the image
-				anchor.store('link', link);
+
+			var targetanchor;
+			if (targetanchor = elem.getElement('a')) {  // summary contains an anchor, which should be set as a preferred target for the image
+				anchor.store('link', targetanchor.href);
+				anchor.store('target', targetanchor.target);
 			}
 			elem.destroy();
 		}
@@ -56,8 +58,8 @@ window.addEvent('domready', function () {
 	$$('.sigplus-lightbox-none a.sigplus-image').each(function (anchor) {
 		var link = anchor.retrieve('link');
 		if (link) {  // there is a preferred target for the image
-			anchor.href = link.href;
-			anchor.target = link.target;
+			anchor.href = link;
+			anchor.target = anchor.retrieve('target');
 		} else {
 			anchor.addEvent('click', function (event) {
 				event.preventDefault();
