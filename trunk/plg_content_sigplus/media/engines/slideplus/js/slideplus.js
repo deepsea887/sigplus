@@ -69,14 +69,14 @@
 		_icon: null,
 		_images: $$([]),
 		*/
-	
+
 		/**
 		* Associates a user-friendly pre-loader service with a set of images inside a container.
 		* @param {Element} elem The container element in which to seek for descendant image elements to pre-load.
 		*/
 		'initialize': function (elem) {
 			var self = this;
-		
+
 			// inject animated loader icon
 			self._icon = new Element('div', {
 				'class': 'loadplus'
@@ -87,20 +87,20 @@
 					});
 				})
 			).inject(elem);
-			
+
 			// remove "src" attribute from images to prevent browser from displaying a partial image as data is being transferred
 			self._images = elem.getElements('img').each(function (image) {
 				// the attribute "data-src" is understood by scripts as the image URL until the image is loaded
 				image.setProperty('data-src', image.getProperty('src')).removeProperty('src').setStyle('visibility','hidden');
 			});
 		},
-		
+
 		/**
 		* Starts retrieving images from the server.
 		*/
 		'load': function () {
 			var self = this;
-		
+
 			// associate preloader with container element
 			self._images.each(function (image) {
 				var src = image.getProperty('data-src');
@@ -108,18 +108,21 @@
 					$(new Image).addEvent('load', function () {  // triggered when the image has been preloaded
 						// add "src" attribute, the image will display immediately as data has already been transferred
 						image.removeProperty('data-src').setProperty('src', src).setStyle('visibility','visible');
-						
+
 						// check if there are further images in the container pending
 						if (!self._images.erase(image).pick()) {  // no more images to load
 							// remove animated loader icon
 							self._icon.destroy();
 						}
 					}).set('src', src);
+					if (image.complete) {
+						image.fireEvent('load', image, 1);  // fire image loaded event explicitly if image already loaded
+					}
 				}
 			});
 		}
 	});
-	
+
 	/**
 	* @param {Array.<string>} cls An array of class name suffixes.
 	* @return {string} A class annotation to be used as an Element "class" attribute value.
@@ -244,13 +247,13 @@
 		_curitems: null,       // list of (possibly cloned) DOM Elements the sliding viewpane is currently populated with
 		_paging: null,
 		_quickaccess: null,
-		
+
 		_maxwidth: 0,          // maximum width of images
 		_maxheight: 0,         // maximum height of images
-		
+
 		_scrollspeed: 0,
 		_scrolltimer: null,
-		
+
 		_intervalID: null,     // shared interval timer
 		*/
 
@@ -305,7 +308,7 @@
 				listitem.addEvent('click', function () {
 					// unselect elements no longer active
 					$$([listitems, self._curitems].flatten()).removeClass(_class(['active']));  // iterate over both original and possibly cloned elements
-					
+
 					// select active element
 					$$(listitem, this).addClass(_class(['active']));  // use "this" to support selection when element is cloned
 				});
@@ -417,8 +420,12 @@
 			if (barnavigation.length) {
 				_addNavigation('prev', '&lt;');  // '\u21E6' or 'Previous'
 				_addNavigation('next', '&gt;');  // '\u21E8' or 'Next'
-				_addNavigation('first', '|&lt;');
-				_addNavigation('last', '&gt;|');
+
+				// enable first and last if there is a sufficient number of images
+				if (rows > 0 && cols > 0 && rows*cols > 2*listitems.length) {
+					_addNavigation('first', '|&lt;');
+					_addNavigation('last', '&gt;|');
+				}
 			}
 
 			// add navigation bar paging controls
@@ -449,7 +456,7 @@
 
 			// postpone loading images
 			listitems.dispose();
-			if (options['preloader']) {  // enable user-friendly preloader icon
+			if (options['preloader'] && rows*cols < 16) {  // enable user-friendly preloader icon unless there are many images
 				listitems.each(function (listitem) {
 					listitem.store('preloader', new Preloader(listitem));
 				});
@@ -466,7 +473,7 @@
 					listitem.addClass(_class(['active']));
 				}
 			});
-			
+
 			// reset layout and sliding bar left and top coordinates (to minimize external template interference)
 			self._advance(0);
 
@@ -621,7 +628,7 @@
 
 			// stop timer
 			self._clearTimeout();
-			
+
 			// extract part of array with loop semantics
 			var listitems = self._curitems = $$([]);
 			var lowest = self._index - rows*cols;     // start index
@@ -757,7 +764,7 @@
 
 			// stop timer
 			self._clearTimeout();
-			
+
 			// disallow circular repeat when looping is disabled; option "move by page" allows empty slots at the end
 			if (!options['loop'] && (self._index + increment >= self._allitems.length - (options['step'] == 'page' ? 0 : rows*cols-1) || self._index + increment < 0)) {
 				return;
@@ -880,7 +887,7 @@
 			$$('ul.slideplus').each(function (item) {
 				new slideplus(new Element('div').wraps(item), options);
 			});
-			
+
 			// lists wrapped in <noscript>
 			$$('noscript.slideplus').each(function (item) {
 				// extracts the contents of a <noscript> element, and build a rotating gallery

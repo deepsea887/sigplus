@@ -1718,6 +1718,12 @@ class SIGPlusCore {
 		$curparams = $this->paramstack->top();
 
 		$style = 'sigplus-gallery';
+
+		// add custom class annotation
+		if ($curparams->classname) {
+			$style .= ' '.$curparams->classname;
+		}
+
 		if ($curparams->layout == 'fixed') {  // imitate fixed layout in <noscript> mode
 			$style .= ' sigplus-noscript';  // "sigplus-noscript" is automatically removed when javascript is detected
 		}

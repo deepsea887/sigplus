@@ -46,6 +46,11 @@ padding:2px !important;
 * Rules in this section should normally be left as they are.
 */
 
+.sigplus-gallery {
+line-height:0 !important;
+}
+
+.sigplus-gallery ul > li > a,
 .sigplus-gallery ul > li > div > a,
 .sigplus-gallery ul > li > div > .captionplus > a {
 display:inline-block !important;
@@ -95,15 +100,17 @@ margin:0 !important;
 padding:0 !important;
 list-style-type:none !important;
 list-style-image:none !important;
+line-height:0 !important;
 }
 
 .sigplus-gallery > ul > li {
 display:inline-block !important;
-margin:0 !important;
+margin:1px !important;
 border:0 none transparent !important;
 padding:0 !important;
 background:transparent none no-repeat scroll 0 0 !important;
 text-align:center !important;
+line-height:0 !important;
 }
 
 /* horizontally scrollable gallery in <noscript> mode */
