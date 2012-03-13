@@ -248,6 +248,7 @@ background-image:url(button-down-small.png) !important;
 /* navigation bar */
 .slideplus-navbar {
 padding:0 !important;
+line-height:normal !important;
 }
 
 span.slideplus-navbutton,

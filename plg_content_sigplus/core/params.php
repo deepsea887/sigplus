@@ -965,6 +965,10 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* @type {positive_integer}
 	*/
 	public $index = 1;
+	/**
+	* Custom CSS class to annotate the generated gallery with.
+	*/
+	public $classname = false;
 
 	/** Additional parameters to pass to the lightbox engine. */
 	public $lightbox_params = array();

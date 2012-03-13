@@ -158,7 +158,7 @@
 			* Duration of animation sequences. Expects a value in milliseconds, or one of 'short' or 'long'.
 			* @type {string|number}
 			*/
-			'duration': 'long',
+			'duration': 'short',
 			/**
 			* Easing equation to use for the transition effect.
 			* The easing equation determines the speed at which the animation progresses
