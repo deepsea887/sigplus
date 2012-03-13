@@ -105,7 +105,7 @@
 			self._images.each(function (image) {
 				var src = image.getProperty('data-src');
 				if (src) {
-					$(new Image).addEvent('load', function () {  // triggered when the image has been preloaded
+					function _preloaded() {  // triggered when the image has been preloaded
 						// add "src" attribute, the image will display immediately as data has already been transferred
 						image.removeProperty('data-src').setProperty('src', src).setStyle('visibility','visible');
 
@@ -114,10 +114,9 @@
 							// remove animated loader icon
 							self._icon.destroy();
 						}
-					}).set('src', src);
-					if (image.complete) {
-						image.fireEvent('load', image, 1);  // fire image loaded event explicitly if image already loaded
 					}
+
+					$(new Image).addEvent('load', _preloaded).set('src', src);
 				}
 			});
 		}
@@ -456,7 +455,7 @@
 
 			// postpone loading images
 			listitems.dispose();
-			if (options['preloader'] && rows*cols < 16) {  // enable user-friendly preloader icon unless there are many images
+			if (options['preloader'] && self._populous() && rows*cols < 16) {  // enable user-friendly preloader icon if there are sufficient but not too many images
 				listitems.each(function (listitem) {
 					listitem.store('preloader', new Preloader(listitem));
 				});
@@ -613,6 +612,18 @@
 		_buttons: function (cls) {
 			return this._gallery.getElements(_dotclass(cls));
 		},
+		
+		/**
+		* Determines if sufficient number of images are available for display without cloning.
+		*/
+		_populous: function () {
+			var self = this;
+			var options = self['options'];
+			var rows = options['size']['rows'];
+			var cols = options['size']['cols'];
+			var length = self._allitems.length;
+			return length > 3*rows*cols;
+		},
 
 		/**
 		* Arrange items on sliding image strip.
@@ -647,7 +658,7 @@
 				}
 
 				// add item to the group of those shown or about to be shown
-				if (length > 3*rows*cols) {  // sufficient number of images available to fill each position
+				if (self._populous()) {  // sufficient number of images available to fill each position
 					listitems.push(listitem);
 				} else {  // not enough images to occupy each position, create duplicates (might be unsafe with other script libraries, e.g. jQuery)
 					/**
