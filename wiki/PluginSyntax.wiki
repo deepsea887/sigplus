@@ -29,6 +29,21 @@ The syntax for the activation tag attribute list is very flexible. The following
 
 Observe how the syntax permits exchanging hyphens (`-`) with underscores (`_`) as name component separators, and double or single quote characters (`'` and `"`) with the vertical bar character (`|`) as delimiters. Attribute values that comprise of more than one word must always be delimited to avoid ambiguity.
 
+= Wildcard patterns =
+
+sigplus can interpret more complex wildcard expressions like `*.jpg` in the path expression between the activation opening and closing tag. Two special wildcard characters are understood, inspired by operating system pattern matching:
+  # `*` matches zero or more characters, and
+  # `?` matches a single character.
+
+The following example demonstrates how wildcard pattern matching works. The example will match any file whose name contains the word `australia` at any location within the file name component.
+
+<pre>
+{gallery id=parks}sampledata/parks/landscape/*australia*{/gallery}</pre>
+
+Wildcard patterns are understood only in the file name component of the path. When sigplus encounters a path with a special wildcard character, the path is split into a directory component (e.g. `sampledata/parks/landscape`) and a pattern component (e.g. `*australia*`). The pattern will act as a filter on files in the directory.
+
+Wildcard expressions are supported for only those galleries that are backed by the same file system where Joomla is running (local file system).
+
 = Activating the lightbox =
 
 Occasionally, you do not need to have sigplus generate a possibly rotating gallery of images drawn from a particular folder but you would like to associate a pop-up window with a link targeted at an image or another resource. In order to cope with these situations, sigplus offers the possibility to directly invoke the pop-up window on a mouse click event associated with an anchor (HTML `<a>`).
