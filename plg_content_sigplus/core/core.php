@@ -151,6 +151,16 @@ SIGPlusLogging::setService(new SIGPlusNoLogging());  // disable logging
 */
 class SIGPlusDatabase {
 	/**
+	* Convert a wildcard pattern to an SQL LIKE pattern.
+	*/
+	public static function sqlpattern($pattern) {
+		// replace "*" and "?" with LIKE expression equivalents "%" and "_"
+		$pattern = str_replace(array('\\','%','_'), array('\\\\','\\%','\\_'), $pattern);
+		$pattern = str_replace(array('*','?'), array('%','_'), $pattern);
+		return $pattern;
+	}
+
+	/**
 	* Convert a timestamp to "yyyy-mm-dd hh:nn:ss" format.
 	*/
 	public static function sqldate($timestamp) {
@@ -409,9 +419,7 @@ class SIGPlusLabels {
 
 			if (strpos($imagefile, '*') !== false) {  // contains wildcard character
 				// replace "*" and "?" with LIKE expression equivalents "%" and "_"
-				$pattern = str_replace(array('\\','%','_'), array('\\\\','\\%','\\_'), $imagefile);
-				$pattern = str_replace(array('*','?'), array('%','_'), $pattern);
-				$patterns[] = array($pattern, ++$priority, $title, $summary);
+				$patterns[] = array(SIGPlusDatabase::sqlpattern($imagefile), ++$priority, $title, $summary);
 			} else {
 				if (is_url_http($imagefile)) {  // a URL to a remote image
 					$imagefile = safeurlencode($imagefile);
@@ -1910,6 +1918,17 @@ class SIGPlusCore {
 			} else {
 				$source = $this->getImageGalleryPath(trim($imagesource, '/\\'));  // remove leading and trailing slash and backslash
 			}
+			
+			// parse wildcard patterns in file name component
+			if (strpos($source, '*') !== false) {  // contains wildcard character
+				// replace "*" and "?" with LIKE expression equivalents "%" and "_" in file name component of path
+				$pattern = SIGPlusDatabase::sqlpattern(basename($source));
+				
+				// remove file name component of path
+				$source = dirname($source);
+			}
+			
+			// set up gallery populator
 			if (is_dir($source)) {
 				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from folder: <code>'.$source.'</code>');
 				$generator = new SIGPlusLocalGallery($config);
@@ -2038,6 +2057,7 @@ class SIGPlusCore {
 				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
 				$db->nameQuote('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
+				(isset($pattern) ? $db->nameQuote('fileurl').' LIKE '.$db->quote($pattern).' AND '.PHP_EOL : '').
 				$db->nameQuote('viewid').' = '.$viewid.$depthcond.PHP_EOL.
 			'ORDER BY '.$sortorder
 		);

@@ -157,7 +157,7 @@ class plgButtonSIGPlus extends JPlugin {
 
 			// add javascript declaration
 			$doc = JFactory::getDocument();
-			$activationtag = $params->get('activationtag', 'gallersy');
+			$activationtag = $params->get('activationtag', 'gallery');
 			$doc->addScriptDeclaration('function sigplusOnInsertTag(params) { SqueezeBox.close(); jInsertEditorText("{'.$activationtag.'" + params + "}myfolder{/'.$activationtag.'}", "'.$editorname.'"); }');
 
 			// add modal window

@@ -47,7 +47,7 @@ padding:2px !important;
 */
 
 .sigplus-gallery {
-line-height:0 !important;
+line-height:0;
 }
 
 .sigplus-gallery ul > li > a,
@@ -100,7 +100,7 @@ margin:0 !important;
 padding:0 !important;
 list-style-type:none !important;
 list-style-image:none !important;
-line-height:0 !important;
+line-height:0;
 }
 
 .sigplus-gallery > ul > li {
@@ -110,7 +110,7 @@ border:0 none transparent !important;
 padding:0 !important;
 background:transparent none no-repeat scroll 0 0 !important;
 text-align:center !important;
-line-height:0 !important;
+line-height:0;
 }
 
 /* horizontally scrollable gallery in <noscript> mode */

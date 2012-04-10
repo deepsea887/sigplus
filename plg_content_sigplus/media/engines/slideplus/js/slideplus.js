@@ -622,7 +622,7 @@
 			var rows = options['size']['rows'];
 			var cols = options['size']['cols'];
 			var length = self._allitems.length;
-			return length > 3*rows*cols;
+			return length > (options['step'] == 'page' ? 3 : 1) * rows*cols;
 		},
 
 		/**
@@ -636,14 +636,15 @@
 			var maxwidth = self._maxwidth;
 			var maxheight = self._maxheight;
 			var length = self._allitems.length;
+			var pagestep = options['step'] == 'page';  // whether to scroll in pages
 
 			// stop timer
 			self._clearTimeout();
 
 			// extract part of array with loop semantics
 			var listitems = self._curitems = $$([]);
-			var lowest = self._index - rows*cols;     // start index
-			var highest = self._index + 2*rows*cols;  // end index
+			var lowest = self._index - (pagestep ? rows*cols : 1);  // start index
+			var highest = self._index + rows*cols + (pagestep ? rows*cols : 1);  // end index
 			if (!options['loop']) {
 				highest = highest.min(length);
 			}
@@ -696,9 +697,9 @@
 				var left, top;
 				if (options['orientation'] == 'vertical') {
 					left = (index%cols) * maxwidth;
-					top = (index/cols).toInt() * maxheight - rows * maxheight;
+					top = (index/cols).toInt() * maxheight - (pagestep ? rows : 1) * maxheight;
 				} else {
-					left = (index/rows).toInt() * maxwidth - cols * maxwidth;
+					left = (index/rows).toInt() * maxwidth - (pagestep ? cols : 1) * maxwidth;
 					top = (index%rows) * maxheight;
 				}
 				self._list.adopt(listitem.setStyles({
@@ -726,12 +727,12 @@
 
 			// show or hide navigation buttons previous and next (for non-looping mode)
 			self._buttons('prev').toggleClass(_class(['hidden']), !options['loop'] && self._index <= 0);
-			self._buttons('next').toggleClass(_class(['hidden']), !options['loop'] && self._index >= length - (options['step'] == 'page' ? 1 : rows*cols));
+			self._buttons('next').toggleClass(_class(['hidden']), !options['loop'] && self._index >= length - (pagestep ? 1 : rows*cols));
 
 			// update current page
 			self._paging.each(function (paging) {
 				// remove and set active page marker (if paging controls are present)
-				var activeitem = paging.getChildren().removeClass(_class(['active']))['at'](self._index / (options['step'] == 'page' ? rows*cols : 1)).addClass(_class(['active']));
+				var activeitem = paging.getChildren().removeClass(_class(['active']))['at'](self._index / (pagestep ? rows*cols : 1)).addClass(_class(['active']));
 
 				// scroll active page into view
 				var position_x = activeitem.getPosition(paging).x;  // ranges between 0 and container width if left edge is in view
