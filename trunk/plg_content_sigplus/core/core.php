@@ -343,6 +343,46 @@ class SIGPlusDatabase {
 	}
 }
 
+/**
+* Measures execution time and prevents time-outs.
+*/
+class SIGPlusTimer {
+	private static function getStartedTime() {
+		return time();  // save current timestamp
+	}
+
+	private static function getMaximumDuration() {
+		$duration = ini_get('max_execution_time');
+		if ($duration) {
+			$duration = (int)$duration;
+		} else {
+			$duration = 0;
+		}
+
+		if ($duration >= 10) {
+			return $duration - 5;
+		} else {
+			return 10;  // a feasible guess
+		}
+	}
+
+	public static function checkpoint() {
+		static $hit_count = 0;
+		static $started_time;
+		static $maximum_duration;
+
+		// initialize static variables
+		isset($started_time) || $started_time = SIGPlusTimer::getStartedTime();
+		isset($maximum_duration) || $maximum_duration = SIGPlusTimer::getMaximumDuration();
+
+		if (time() >= $started_time + $maximum_duration) {
+			throw new SIGPlusTimeoutException();
+		}
+
+		$hit_count++;
+	}
+}
+
 class SIGPlusLabels {
 	private $multilingual = false;
 	private $caption_source = 'labels.txt';
@@ -482,12 +522,15 @@ class SIGPlusLabels {
 }
 
 class SIGPlusImageMetadata {
+	private $imagepath;
 	private $metadata;
 
 	/**
 	* Fetches metadata associated with an image.
 	*/
 	public function __construct($imagepath) {
+		$this->imagepath = $imagepath;
+
 		require_once dirname(__FILE__).DS.'metadata.php';
 		$this->metadata = SIGPlusMetadataServices::getImageMetadata($imagepath);
 	}
@@ -498,7 +541,7 @@ class SIGPlusImageMetadata {
 	public function inject($imageid) {
 		// insert image metadata
 		if ($this->metadata !== false) {
-			SIGPlusLogging::appendStatus('Metadata available in image <code>'.$imagepath.'</code> [id='.$imageid.'].');
+			SIGPlusLogging::appendStatus('Metadata available in image <code>'.$this->imagepath.'</code> [id='.$imageid.'].');
 			$entries = array();
 
 			foreach ($this->metadata as $key => $metavalue) {
@@ -828,6 +871,8 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* @param string $imagepath An absolute file system path to an image.
 	*/
 	private function getGeneratedImages($imagepath) {
+		SIGPlusTimer::checkpoint();
+
 		$previewparams = new SIGPlusPreviewParameters($this->config->gallery);  // current image generation parameters
 		$thumbparams = new SIGPlusThumbParameters($this->config->gallery);
 
@@ -1809,6 +1854,7 @@ class SIGPlusCore {
 
 		// test user access level
 		if (!$this->getDownloadAuthorization()) {  // authorization is required
+			SIGPlusLogging::appendStatus('User is not authorized to download image.');
 			return false;
 		}
 
@@ -1825,6 +1871,12 @@ class SIGPlusCore {
 		} else {
 			$depthcond = '';
 		}
+		
+		// test if source contains wildcard character
+		if (strpos($source, '*') !== false) {  // contains wildcard character
+			// remove file name component of path
+			$source = dirname($source);
+		}
 
 		// test whether image is part of the gallery
 		$db = JFactory::getDbo();
@@ -1838,7 +1890,8 @@ class SIGPlusCore {
 				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_hierarchy').' AS h'.PHP_EOL.
 				'ON f.'.$db->nameQuote('folderid').' = h.'.$db->nameQuote('ancestorid').PHP_EOL.
-			'WHERE '.$db->nameQuote('folderurl').' = '.$db->quote($source).' AND '.$db->nameQuote('imageid').' = '.$imageid.$depthcond
+			'WHERE '.$db->nameQuote('folderurl').' = '.$db->quote($source).PHP_EOL.
+				'AND '.$db->nameQuote('imageid').' = '.$imageid.$depthcond
 		);
 		$row = $db->loadRow();
 		if ($row) {
@@ -1861,6 +1914,7 @@ class SIGPlusCore {
 			}
 			return true;
 		} else {
+			SIGPlusLogging::appendStatus('Image to download is not found in gallery database.');
 			return false;
 		}
 	}
@@ -1872,6 +1926,8 @@ class SIGPlusCore {
 	* w.r.t. the image base folder, which is passed in a configuration object to the class constructor.
 	*/
 	public function getGalleryHTML($imagesource, &$galleryid) {
+		SIGPlusTimer::checkpoint();
+
 		// get active set of parameters from the top of the stack
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
@@ -1918,16 +1974,16 @@ class SIGPlusCore {
 			} else {
 				$source = $this->getImageGalleryPath(trim($imagesource, '/\\'));  // remove leading and trailing slash and backslash
 			}
-			
+
 			// parse wildcard patterns in file name component
 			if (strpos($source, '*') !== false) {  // contains wildcard character
 				// replace "*" and "?" with LIKE expression equivalents "%" and "_" in file name component of path
 				$pattern = SIGPlusDatabase::sqlpattern(basename($source));
-				
+
 				// remove file name component of path
 				$source = dirname($source);
 			}
-			
+
 			// set up gallery populator
 			if (is_dir($source)) {
 				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from folder: <code>'.$source.'</code>');

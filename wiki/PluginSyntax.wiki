@@ -4,7 +4,7 @@
 
 By typing
 
-<pre>{gallery}_imagefolder_{/gallery}</pre>
+<pre>{gallery}imagefolder{/gallery}</pre>
 
 into the body of an article (content item), the plug-in will automatically produce previews of all the images in the folder `/images/`_`imagefolder`_. Clicking on any of the preview images will bring up a pop-up window. For example, type the following into the body of an article:
 
@@ -43,6 +43,15 @@ The following example demonstrates how wildcard pattern matching works. The exam
 Wildcard patterns are understood only in the file name component of the path. When sigplus encounters a path with a special wildcard character, the path is split into a directory component (e.g. `sampledata/parks/landscape`) and a pattern component (e.g. `*australia*`). The pattern will act as a filter on files in the directory.
 
 Wildcard expressions are supported for only those galleries that are backed by the same file system where Joomla is running (local file system).
+
+= User name substitution =
+
+For logged-in users, sigplus can substitute the user name in the image source reference. Use
+
+<pre>
+{gallery}users/{$username}/images{/gallery}</pre>
+
+to have the log-in name of the current user be substituted in place of `{$username}`. Galleries created with such activation tags are accessible to registered users only, anonymous users are prompted an access forbidden message.
 
 = Activating the lightbox =
 
