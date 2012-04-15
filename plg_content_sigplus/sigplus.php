@@ -109,6 +109,11 @@ class plgContentSIGPlus extends JPlugin {
 	*    Example: {gallery} http://example.com/image.jpg {/gallery}
 	*/
 	public function onContentPrepare($context, &$article, &$params, $limitstart) {
+		// skip plug-in activation when the content is being indexed
+		if ($context === 'com_finder.indexer') {
+			return;
+		}
+
 		$this->parseContent($article);  // replacements take effect
 	}
 

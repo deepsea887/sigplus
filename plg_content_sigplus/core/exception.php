@@ -232,6 +232,15 @@ class SIGPlusNotSupportedException extends SIGPlusException {
 */
 class SIGPlusLoginRequiredException extends SIGPlusException {
 	public function __construct() {
-		parent::__construct(JERROR_LOGIN_DENIED);
+		parent::__construct('JERROR_LOGIN_DENIED');
+	}
+}
+
+/**
+* Triggered when the script is nearing the maximum execution time the script is allowed to run.
+*/
+class SIGPlusTimeoutException extends SIGPlusException {
+	public function __construct() {
+		parent::__construct('SIGPLUS_EXCEPTION_TIMEOUT');
 	}
 }
