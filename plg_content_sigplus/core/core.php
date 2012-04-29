@@ -146,6 +146,44 @@ class SIGPlusLogging {
 }
 SIGPlusLogging::setService(new SIGPlusNoLogging());  // disable logging
 
+class SIGPlusUser {
+	/**
+	* The normalized user group title for the currently logged-in user.
+	*/
+	public static function getCurrentUserGroup() {
+		$user = JFactory::getUser();
+		if ($user->guest) {
+			return false;
+		}
+
+		// get all groups the user is member of, but not inherited groups
+		$groups = JAccess::getGroupsByUser($user->id, false);
+		if (count($groups) < 1) {
+			return false;  // not a member of any group
+		}
+
+		// get first group out of all groups the user may be a member of
+		$group = $groups[0];
+
+		// get the group title from the database
+		$db = JFactory::getDBO();
+		$query = $db->getQuery(true);
+		$query
+			->select('grp.title')
+			->from('`#__usergroups` AS grp')
+			->where('grp.id = '.$group)
+		;
+		$db->setQuery($query);
+		$groupname = $db->loadResult();
+		
+		if ($groupname) {
+			return $groupname;
+		} else {
+			return false;
+		}
+	}
+}
+
 /**
 * Database layer.
 */
@@ -347,6 +385,8 @@ class SIGPlusDatabase {
 * Measures execution time and prevents time-outs.
 */
 class SIGPlusTimer {
+	private static $timeout_count = 0;
+
 	private static function getStartedTime() {
 		return time();  // save current timestamp
 	}
@@ -365,9 +405,18 @@ class SIGPlusTimer {
 			return 10;  // a feasible guess
 		}
 	}
-
+	
+	/**
+	* Short-circuit plug-in activation if allotted execution time has already been used up.
+	*/
+	public static function shortcircuit() {
+		return SIGPlusTimer::$timeout_count > 0;
+	}
+	
+	/**
+	* Check whether execution time is within the allotted maximum limit.
+	*/
 	public static function checkpoint() {
-		static $hit_count = 0;
 		static $started_time;
 		static $maximum_duration;
 
@@ -379,7 +428,7 @@ class SIGPlusTimer {
 			throw new SIGPlusTimeoutException();
 		}
 
-		$hit_count++;
+		SIGPlusTimer::$timeout_count++;
 	}
 }
 
@@ -457,7 +506,7 @@ class SIGPlusLabels {
 			$title = count($match) > 2 ? $match[2] : null;
 			$summary = count($match) > 3 ? $match[3] : null;
 
-			if (strpos($imagefile, '*') !== false) {  // contains wildcard character
+			if (strpos($imagefile, '*') !== false || strpos($imagefile, '?') !== false) {  // contains wildcard character
 				// replace "*" and "?" with LIKE expression equivalents "%" and "_"
 				$patterns[] = array(SIGPlusDatabase::sqlpattern($imagefile), ++$priority, $title, $summary);
 			} else {
@@ -1939,13 +1988,29 @@ class SIGPlusCore {
 			$imagesource = $this->config->base_folder;
 		}
 
-       // make placeholder replacement for {$username}
-	   if (strpos($imagesource, '{$username}') !== false) {
+		// make placeholder replacement for {$username}
+		if (strpos($imagesource, '{$username}') !== false) {
 			$user = JFactory::getUser();
 			if ($user->guest) {
 				throw new SIGPlusLoginRequiredException();
 			} else {
 				$imagesource = str_replace('{$username}', $user->username, $imagesource);
+			}
+		}
+
+		// make placeholder replacement for {$group}
+		if (strpos($imagesource, '{$group}') !== false) {
+			$user = JFactory::getUser();
+			if ($user->guest) {
+				throw new SIGPlusLoginRequiredException();
+			} else {
+				$groupname = SIGPlusUser::getCurrentUserGroup();
+				if ($groupname) {
+					$groupname = str_replace(' ', '', $groupname);  // normalize whitespace
+				} else {
+					$groupname = '.';  // no group, use current directory
+				}
+				$imagesource = str_replace('{$group}', $groupname, $imagesource);
 			}
 		}
 
@@ -1976,7 +2041,7 @@ class SIGPlusCore {
 			}
 
 			// parse wildcard patterns in file name component
-			if (strpos($source, '*') !== false) {  // contains wildcard character
+			if (strpos($source, '*') !== false || strpos($source, '?') !== false) {  // contains wildcard character
 				// replace "*" and "?" with LIKE expression equivalents "%" and "_" in file name component of path
 				$pattern = SIGPlusDatabase::sqlpattern(basename($source));
 
@@ -2113,7 +2178,7 @@ class SIGPlusCore {
 				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
 				$db->nameQuote('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
-				(isset($pattern) ? $db->nameQuote('fileurl').' LIKE '.$db->quote($pattern).' AND '.PHP_EOL : '').
+				(isset($pattern) ? $db->nameQuote('filename').' LIKE '.$db->quote($pattern).' AND '.PHP_EOL : '').
 				$db->nameQuote('viewid').' = '.$viewid.$depthcond.PHP_EOL.
 			'ORDER BY '.$sortorder
 		);

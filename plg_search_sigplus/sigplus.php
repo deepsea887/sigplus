@@ -178,38 +178,68 @@ class plgSearchSIGPlus extends JPlugin {
 							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
 						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
-				') AS '.$db->nameQuote('summary').PHP_EOL.
+				') AS '.$db->nameQuote('summary').','.PHP_EOL.
+				$db->nameQuote('preview_fileurl').','.PHP_EOL.
+				$db->nameQuote('preview_width').','.PHP_EOL.
+				$db->nameQuote('preview_height').PHP_EOL.
 			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
 				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
+				'INNER JOIN '.$db->nameQuote('#__sigplus_imageview').' AS v'.PHP_EOL.
+				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
 			'WHERE '.$where.PHP_EOL.
 			'ORDER BY '.$orderby;
 		$db->setQuery($query, 0, $this->limit);
 		$rows = $db->loadAssocList();
 
+		$show_thumbnails = (bool) $this->params->get('search_thumbnail');
+		$show_lightbox = (bool) $this->params->get('search_lightbox');
+
 		// fetch database results
 		$results = array();
 		if ($rows) {
-			foreach($rows as $row) {
+			if ($show_thumbnails || $show_lightbox) {
+				$instance = SIGPlusEngineServices::instance();
+
+				if ($show_thumbnails) {
+					// import script services to add thumbnail images to image description text
+					$instance->addScript('/media/sigplus/js/search.js');
+				}
+
+				if ($show_lightbox) {
+					// include lightbox script only if there are image results
+					$this->core->addLightboxScripts('.search-results > .result-title > a');
+				}
+			}
+
+			foreach ($rows as $row) {
 				if ($row['title']) {
 					$title = $row['title'];
 				} else {
 					$title = $row['filename'];
 				}
 
-				// '<img src="'.$this->core->makeURL($row['preview_fileurl']).'" width="'.$row['preview_width'].'" height="'.$row['preview_height'].'" />'
 				$results[] = (object) array(
 					'href'        => $this->core->makeURL($row['url']),
+					// standard Joomla search code strips HTML tags from search result text
 					'text'        => '('.$row['width'].'x'.$row['height'].') '.htmlspecialchars($row['summary']),
 					'title'       => html_entity_decode(strip_tags($title), ENT_QUOTES),
 					'section'     => JText::_('SIGPLUS_IMAGES'),
 					'created'     => $row['filetime'],
 					'browsernav'  => '1'
 				);
-			}
 
-			// include lightbox script only if there are image results
-			$this->core->addLightboxScripts('.search-results > .result-title > a');
+				if ($show_thumbnails) {
+					// add thumbnail image to image description text
+					// <img src="preview_fileurl" width="preview_width" height="preview_height" />
+					$json_params = array();
+					$json_params[] = json_encode($this->core->makeURL($row['url']));
+					$json_params[] = json_encode($this->core->makeURL($row['preview_fileurl']));
+					$json_params[] = (int) $row['preview_width'];
+					$json_params[] = (int) $row['preview_height'];
+					$instance->addOnReadyScript('__sigplusSearch('.join(',', $json_params).');');
+				}
+			}
 		}
 
 		return $results;

@@ -74,6 +74,9 @@ class SIGPlusSlidePlusRotatorEngine extends SIGPlusRotatorEngine {
 		}
 		$jsparams['transition'] = $params->rotator_transition;
 		$jsparams['loop'] = $params->loop;
+		if ($params->sort_criterion == SIGPLUS_SORT_RANDOM) {
+			$jsparams['random'] = true;
+		}
 		$jsparams['protection'] = $params->protection;
 
 		if (preg_match('/^boxplus\b/', $params->lightbox)) {

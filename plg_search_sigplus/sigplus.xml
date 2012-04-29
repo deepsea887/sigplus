@@ -21,6 +21,14 @@
 		<fields name="params">
 			<fieldset name="basic">
 				<field name="search_limit" type="text" default="50" description="JFIELD_PLG_SEARCH_SEARCHLIMIT_DESC" label="JFIELD_PLG_SEARCH_SEARCHLIMIT_LABEL" size="5" />
+				<field name="search_thumbnail" type="radio" default="1" label="SIGPLUS_SEARCH_THUMBNAIL" description="SIGPLUS_SEARCH_THUMBNAIL_DESCRIPTION">
+					<option value="1">JSHOW</option>
+					<option value="0">JHIDE</option>
+				</field>
+				<field name="search_lightbox" type="radio" default="1" label="SIGPLUS_SEARCH_LIGHTBOX" description="SIGPLUS_SEARCH_LIGHTBOX_DESCRIPTION">
+					<option value="1">JSHOW</option>
+					<option value="0">JHIDE</option>
+				</field>
 			</fieldset>
 		</fields>
 	</config>
