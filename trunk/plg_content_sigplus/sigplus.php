@@ -122,6 +122,10 @@ class plgContentSIGPlus extends JPlugin {
 			return false;  // short-circuit plugin activation, no replacements made
 		}
 
+		if (SIGPlusTimer::shortcircuit()) {
+			return false;  // short-circuit plugin activation, allotted execution time expired, error message already printed
+		}
+		
 		// load language file for internationalized labels and error messages
 		$lang = JFactory::getLanguage();
 		$lang->load('plg_content_sigplus', JPATH_ADMINISTRATOR);
@@ -193,6 +197,10 @@ class plgContentSIGPlus extends JPlugin {
 		$count = 0;
 		$offset = 0;
 		while (preg_match($pattern, $text, $match, PREG_OFFSET_CAPTURE, $offset)) {
+			if (SIGPlusTimer::shortcircuit()) {
+				return $count;  // short-circuit plugin activation, allotted execution time expired, error message already printed
+			}
+
 			$count++;
 			$start = $match[0][1];
 			$end = $start + strlen($match[0][0]);

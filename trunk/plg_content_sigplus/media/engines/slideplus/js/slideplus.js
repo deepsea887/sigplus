@@ -161,7 +161,12 @@
 			* Whether the rotator loops around in a circular fashion [false|true].
 			* @type {boolean}
 			*/
-			'loop': true,
+			'loop': false,
+			/**
+			* Whether the rotator randomizes the order of images on startup [false|true].
+			* @type {boolean}
+			*/
+			'random': false,
 			/**
 			* Orientation of sliding image strip ['horizontal'|'vertical'].
 			* @type {string}
@@ -273,6 +278,10 @@
 				return;
 			}
 			var listitems = self._allitems = list.getChildren('li');
+			if (options['random']) {  // randomize order of elements in the list
+				listitems.sort(function () { return Math.random() - 0.5; });
+			}
+
 			// create a nesting <div><div class="slideplus"><ul>...</ul></div></div>
 			var viewer = new Element('div', {
 				'class': 'slideplus'
@@ -612,7 +621,7 @@
 		_buttons: function (cls) {
 			return this._gallery.getElements(_dotclass(cls));
 		},
-		
+
 		/**
 		* Determines if sufficient number of images are available for display without cloning.
 		*/
