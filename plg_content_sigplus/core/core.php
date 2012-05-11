@@ -425,10 +425,9 @@ class SIGPlusTimer {
 		isset($maximum_duration) || $maximum_duration = SIGPlusTimer::getMaximumDuration();
 
 		if (time() >= $started_time + $maximum_duration) {
+			SIGPlusTimer::$timeout_count++;
 			throw new SIGPlusTimeoutException();
 		}
-
-		SIGPlusTimer::$timeout_count++;
 	}
 }
 

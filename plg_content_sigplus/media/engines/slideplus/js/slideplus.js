@@ -272,11 +272,21 @@
 			self['setOptions'](options);
 			options = self.options;
 
-			// save list items
+			// save list of items
 			var list = self._list = (self._gallery = elem).getElement('ul,ol');
 			if (!list) {
 				return;
 			}
+
+			// select node ancestors that have their CSS display attribute set to "none"
+			var ancestorshidden = list.getParents().filter(function (elem) {
+				return elem.getStyle('display') == 'none';
+			});
+			
+			// show hidden ancestors temporarily to obtain valid values for width, height, padding, border and margin
+			ancestorshidden.setStyle('display', 'block');
+			
+			// select and save list items
 			var listitems = self._allitems = list.getChildren('li');
 			if (options['random']) {  // randomize order of elements in the list
 				listitems.sort(function () { return Math.random() - 0.5; });
@@ -567,6 +577,9 @@
 					});
 				}
 			}
+
+			// hide ancestors initially hidden and shown temporarily
+			ancestorshidden.setStyle('display', 'none');
 		},
 
 		'prev': function () {
