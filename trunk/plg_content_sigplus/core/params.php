@@ -514,6 +514,26 @@ class SIGPlusConfigurationBase {
 		return $value;
 	}
 
+	protected static function as_accesslevel($value) {
+		if (is_numeric($value)) {  // numeric access level
+			$result = (int)$value;
+		} else {  // access level as string
+			$db = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query->select('a.id');
+			$query->from('#__viewlevels AS a');
+			$query->where('a.title = '.$db->quote($value));
+			$db->setQuery($query);
+			$result = $db->loadResult();  // may return null
+		}
+
+		if ($result) {
+			return $result;
+		} else {
+			return false;
+		}
+	}
+
 	public function validate() {
 		// overridden in descendant classes
 	}
@@ -1109,11 +1129,12 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 		}
 
 		// download and metadata
-		// ...
+		$this->download = self::as_accesslevel($this->download);
+		$this->metadata = self::as_accesslevel($this->metadata);
 
 		// client-side protection measures
 		$this->protection = self::as_boolean($this->protection);
-		
+
 		// image styling
 		$this->preview_margin = self::as_css_measure($this->preview_margin);
 		$this->preview_border_width = self::as_css_measure($this->preview_border_width);
