@@ -533,6 +533,16 @@ class SIGPlusConfigurationBase {
 			return false;
 		}
 	}
+	
+	protected static function as_filter($expression) {
+		if (is_array($expression)) {
+			return $expression;
+		} elseif (is_string($expression)) {
+			return explode(';', $expression);
+		} else {
+			return false;
+		}
+	}
 
 	public function validate() {
 		// overridden in descendant classes
@@ -986,6 +996,16 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	*/
 	public $index = 1;
 	/**
+	* Files to include in a filtered gallery.
+	* @type {array|boolean}
+	*/
+	public $filter_include = false;
+	/**
+	* Files to exclude in a filtered gallery.
+	* @type {array|boolean}
+	*/
+	public $filter_exclude = false;
+	/**
 	* Custom CSS class to annotate the generated gallery with.
 	*/
 	public $classname = false;
@@ -1185,6 +1205,10 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 		// representative image index
 		$this->index = self::as_positive_integer($this->index);
 
+		// filters
+		$this->filter_include = self::as_filter($this->filter_include);
+		$this->filter_exclude = self::as_filter($this->filter_exclude);
+		
 		// miscellaneous advanced settings
 		$this->depth = (int) $this->depth;
 		if ($this->depth < -1) {  // -1 for recursive listing with no limit, 0 for flat listing (no subdirectories), >0 for recursive listing with limit
@@ -1221,7 +1245,7 @@ class SIGPlusParameterStack {
 	}
 
 	public function dup() {
-		$this->stack[] = end($this->stack);
+		$this->stack[] = clone end($this->stack);
 	}
 
 	public function pop() {
