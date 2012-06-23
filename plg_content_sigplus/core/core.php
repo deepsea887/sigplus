@@ -175,7 +175,7 @@ class SIGPlusUser {
 		;
 		$db->setQuery($query);
 		$groupname = $db->loadResult();
-		
+
 		if ($groupname) {
 			return $groupname;
 		} else {
@@ -405,14 +405,14 @@ class SIGPlusTimer {
 			return 10;  // a feasible guess
 		}
 	}
-	
+
 	/**
 	* Short-circuit plug-in activation if allotted execution time has already been used up.
 	*/
 	public static function shortcircuit() {
 		return SIGPlusTimer::$timeout_count > 0;
 	}
-	
+
 	/**
 	* Check whether execution time is within the allotted maximum limit.
 	*/
@@ -531,6 +531,9 @@ class SIGPlusLabels {
 	public function populate($imagefolder, $folderid) {
 		$this->parseLabels($imagefolder, $entries, $patterns);
 
+		// force type to prevent SQL injection
+		$folderid = (int) $folderid;
+
 		// update and insert data
 		$db = JFactory::getDbo();
 		$queries = array();
@@ -551,7 +554,6 @@ class SIGPlusLabels {
 		}
 
 		// invalidate custom order
-		$folderid = (int) $folderid;  // force type to prevent SQL injection
 		$queries[] = 'UPDATE '.$db->nameQuote('#__sigplus_image').' SET '.$db->nameQuote('ordnum').' = NULL WHERE '.$db->nameQuote('folderid').' = '.$folderid;
 
 		if (!empty($entries)) {
@@ -1117,7 +1119,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 			array('folderid','fileurl','filename','filetime','width','height'),
 			array($folderid, $imagepath, $filename, $filetime, $width, $height)
 		);
-		SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> [id='.$imageid.'] has been recorded in the database.');
+		SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> [id='.$imageid.', folder='.$folderid.'] has been recorded in the database.');
 
 		$metadata->inject($imageid);
 
@@ -1219,73 +1221,6 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	}
 }
 
-class SIGPlusLocalImage extends SIGPlusLocalBase {
-	/**
-	* Populates a single-image pseudo-folder with the specified image.
-	*/
-	private function populatePseudoFolder($imagefile) {
-		// add folder
-		$folderparams = new SIGPlusFolderParameters();
-		$folderparams->time = fsx::filemtime($imagefile);
-		$folderid = $this->insertFolder($imagefile, $folderparams);
-
-		// remove entries that correspond to non-existent images
-		$this->purgeFolder($folderid);
-
-		// check presence of image
-		$entry = $this->populateImage($imagefile, $folderid);
-
-		return $folderid;
-	}
-
-	/**
-	* Populates the view of a single-image pseudo-folder.
-	*/
-	private function populatePseudoFolderView($folderid) {
-		// add folder view
-		$viewid = (int) $this->insertView($folderid);
-
-		// check if image has no preview or thumbnail image
-		$rows = $this->getMissingImageViews($folderid, $viewid);
-		if (!empty($rows)) {  // 0 or 1 row
-			$row = $rows[0];
-			list($path, $imageid) = $row;
-			$this->populateImageView($path, $imageid, $viewid);
-		} else {
-			SIGPlusLogging::appendStatus('Pseudo-folder view [id='.$viewid.'] has not changed.');
-		}
-		return $viewid;
-	}
-
-	/**
-	* Generate output from a single image in the local file system.
-	*/
-	public function populate($imagefile, $folderparams) {
-		// check whether cache folder has been removed manually by user
-		$this->purgeCache();
-
-		// get last modified time of file, also inspecting a related labels file
-		$lastmod = $this->getLabelsLastModified(dirname($imagefile), fsx::filemtime($imagefile));
-
-		if (!isset($folderparams->time) || strcmp($lastmod, $folderparams->time) > 0) {
-			$this->populatePseudoFolder($imagefile);
-
-			// update folder entry with last modified date
-			$folderparams->time = $lastmod;
-			$folderid = $this->insertFolder($imagefile, $folderparams);
-
-			// add caption from external labels file
-			$labels = new SIGPlusLabels($this->config);  // get labels file manager
-			$labels->populate(dirname($imagefile), $folderid);
-		} else {
-			$folderid = $folderparams->id;
-			SIGPlusLogging::appendStatus('File <code>'.$imagefile.'</code> has not changed.');
-		}
-
-		return $this->populatePseudoFolderView($folderid);
-	}
-}
-
 /**
 * A gallery hosted in the file system.
 */
@@ -1305,10 +1240,13 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 		}
 	}
 
+	/**
+	* Populates a database equivalent of a folder with images in the folder.
+	*/
 	public /*private*/ function populateFolder($path, $files, $folders, $ancestors) {
 		// add folder
 		$folderparams = new SIGPlusFolderParameters();
-		$folderparams->time = fsx::filemtime($path);
+		$folderparams->time = fsx::filemtime($path);  // directory timestamp
 		$folderid = $this->insertFolder($path, $folderparams, $ancestors);
 
 		// remove entries that correspond to non-existent images
@@ -1328,10 +1266,14 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 		return $folderid;
 	}
 
+	/**
+	* Populates the view of a database equivalent of a folder.
+	*/
 	protected function populateFolderViews($folderid) {
 		// add folder view
 		$viewid = (int) $this->insertView($folderid);
 
+		// collect images that have no preview or thumbnail image
 		$rows = $this->getMissingImageViews($folderid, $viewid);
 		if (!empty($rows)) {
 			foreach ($rows as $row) {
@@ -1356,7 +1298,7 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 		$lastmod = $this->getLabelsLastModified($imagefolder, get_folder_last_modified($imagefolder, $this->config->gallery->depth));
 
 		if (!isset($folderparams->time) || strcmp($lastmod, $folderparams->time) > 0) {
-			// get list of direct and indirect child folders and files inside root folder
+			// get list of direct child and indirect descendant folders and files inside root folder
 			$exclude = array(
 				$this->config->service->folder_thumb,
 				$this->config->service->folder_preview,
@@ -1919,7 +1861,7 @@ class SIGPlusCore {
 		} else {
 			$depthcond = '';
 		}
-		
+
 		// test if source contains wildcard character
 		if (strpos($source, '*') !== false) {  // contains wildcard character
 			// remove file name component of path
@@ -1970,6 +1912,7 @@ class SIGPlusCore {
 	/**
 	* Generates image thumbnails with alternate text, title and lightbox pop-up activation on mouse click.
 	* This method is typically called by the class plgContentSIGPlus, which represents the sigplus Joomla plug-in.
+	* The method may modify the top of the parameter stack; the caller must provide a discardable copy.
 	* @param {string|boolean} $imagesource A string that defines the gallery source. Relative paths are interpreted
 	* w.r.t. the image base folder, which is passed in a configuration object to the class constructor.
 	*/
@@ -2042,20 +1985,27 @@ class SIGPlusCore {
 			// parse wildcard patterns in file name component
 			if (strpos($source, '*') !== false || strpos($source, '?') !== false) {  // contains wildcard character
 				// replace "*" and "?" with LIKE expression equivalents "%" and "_" in file name component of path
-				$pattern = SIGPlusDatabase::sqlpattern(basename($source));
+				$curparams->filter_include = array( basename($source) );
+				$curparams->filter_exclude = false;
 
 				// remove file name component of path
 				$source = dirname($source);
-			}
 
-			// set up gallery populator
-			if (is_dir($source)) {
+				// set up gallery populator
+				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from filtered folder: <code>'.$source.'</code>');
+				$generator = new SIGPlusLocalGallery($config);
+			} elseif (is_dir($source)) {
 				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from folder: <code>'.$source.'</code>');
 				$generator = new SIGPlusLocalGallery($config);
 			} elseif (is_file($source)) {
-				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from file: <code>'.$source.'</code>');
-				$generator = new SIGPlusLocalImage($config);
+				$curparams->filter_include = array( basename($source) );
+				$curparams->filter_exclude = false;
 				$curparams->maxcount = 1;
+
+				$source = dirname($source);
+
+				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from file: <code>'.$source.'</code>');
+				$generator = new SIGPlusLocalGallery($config);
 			}
 		}
 		if (!isset($generator)) {
@@ -2070,6 +2020,7 @@ class SIGPlusCore {
 		$db = JFactory::getDbo();
 		$db->setQuery('SELECT '.$db->nameQuote('folderid').', '.$db->nameQuote('foldertime').', '.$db->nameQuote('entitytag').' FROM '.$db->nameQuote('#__sigplus_folder').' WHERE '.$db->nameQuote('folderurl').' = '.$db->quote($source));
 		$result = $db->loadRow();
+
 		$folderparams = new SIGPlusFolderParameters();
 		if ($result) {
 			list($folderparams->id, $folderparams->time, $folderparams->entitytag) = $result;
@@ -2127,11 +2078,28 @@ class SIGPlusCore {
 		}
 		$sortorder = 'depthnum ASC, '.$sortorder;  // keep descending from topmost to bottommost in hierarchy, do not mix entries from different levels
 
-		// add depth condition
+		// build SQL condition for depth
 		if ($curparams->depth >= 0) {
 			$depthcond = ' AND depthnum <= '.$curparams->depth;
 		} else {
 			$depthcond = '';
+		}
+
+		// build SQL condition for file match pattern
+		$patterncond = '';
+		if (is_array($curparams->filter_include)) {
+			$subcond = array();
+			foreach ($curparams->filter_include as $expr) {
+				$subcond[] = $db->nameQuote('filename').' LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
+			}
+			$patterncond .= ' AND ('.implode(' OR ', $subcond).')';
+		}
+		if (is_array($curparams->filter_exclude)) {
+			$subcond = array();
+			foreach ($curparams->filter_exclude as $expr) {
+				$subcond[] = $db->nameQuote('filename').' NOT LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
+			}
+			$patterncond .= ' AND ('.implode(' AND ', $subcond).')';
 		}
 
 		// build and execute SQL query
@@ -2177,8 +2145,9 @@ class SIGPlusCore {
 				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
 				$db->nameQuote('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
-				(isset($pattern) ? $db->nameQuote('filename').' LIKE '.$db->quote($pattern).' AND '.PHP_EOL : '').
-				$db->nameQuote('viewid').' = '.$viewid.$depthcond.PHP_EOL.
+				$db->nameQuote('viewid').' = '.$viewid.PHP_EOL.
+				$patterncond.PHP_EOL.
+				$depthcond.PHP_EOL.
 			'ORDER BY '.$sortorder
 		);
 		$db->query();
@@ -2186,7 +2155,7 @@ class SIGPlusCore {
 		$rows = $db->loadRowList();
 
 		// generate HTML code for each image
-		if ($rows) {
+		if ($total > 0) {
 			ob_start();  // start output buffering
 			print '<!--[if gte IE 9]><!--><noscript class="sigplus-gallery"><!--<![endif]-->';  // downlevel-hidden conditional comment, browsers below IE9 ignore HTML inside, all other browsers interpret it
 			print '<div id="'.$galleryid.'" class="'.$gallerystyle.'">';
