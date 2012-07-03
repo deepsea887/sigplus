@@ -75,7 +75,7 @@ class plgButtonSIGPlus extends JPlugin {
 			$lang->load('plg_content_sigplus', JPATH_ADMINISTRATOR);
 
 			$xmlfile = JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'sigplus.xml';
-			$htmlfile = JPATH_ROOT.DS.'media'.DS.'sigplus'.DS.'editor'.DS.'button.'.$lang->getTag().'.html';
+			$htmlfile = JPATH_ROOT.DS.'media'.DS.'plg_button_sigplus'.DS.'button.'.$lang->getTag().'.html';
 			
 			// check for existence of content plug-in XML configuration file
 			if (!file_exists($xmlfile)) {
@@ -97,9 +97,9 @@ class plgButtonSIGPlus extends JPlugin {
 				print '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.$lang->getTag().'" lang="'.$lang->getTag().'">';
 				print '<head>';
 				print '<meta http-equiv="content-type" content="text/html; charset=utf-8" />';
-				print '<link rel="stylesheet" href="button.css" type="text/css" />';
+				print '<link rel="stylesheet" href="css/button.css" type="text/css" />';
 				print '<script type="text/javascript" src="../../system/js/mootools-core.js"></script>';
-				print '<script type="text/javascript" src="button.js"></script>';
+				print '<script type="text/javascript" src="js/button.js"></script>';
 				print '</head>';
 				print '<body>';
 				print '<form id="sigplus-settings-form">';
@@ -147,6 +147,7 @@ class plgButtonSIGPlus extends JPlugin {
 					print '</fieldset>';
 				}
 				print '</form>';
+				print '<p>'.JText::_('SIGPLUS_EDITORBUTTON_DOCUMENTATION').'</p>';
 				print '</body>';
 				print '</html>';
 				$html = ob_get_clean();
@@ -167,9 +168,10 @@ class plgButtonSIGPlus extends JPlugin {
 			//$button->set('link', '#sigplus-settings-form');
 			$app = JFactory::getApplication();
 			if ($app->isAdmin()) {
-				$button->set('link', '../media/sigplus/editor/button.'.$lang->getTag().'.html');  // leave folder "administrator"
+				// Joomla expects a relative path, leave site folder "administrator"
+				$button->set('link', '../media/plg_button_sigplus/button.'.$lang->getTag().'.html');
 			} else {
-				$button->set('link', 'media/sigplus/editor/button.'.$lang->getTag().'.html');
+				$button->set('link', 'media/plg_button_sigplus/button.'.$lang->getTag().'.html');
 			}
 			$button->set('text', 'sigplus');
 			$button->set('name', 'image');

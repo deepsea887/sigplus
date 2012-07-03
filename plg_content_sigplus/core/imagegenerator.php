@@ -213,8 +213,12 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 			$thumb_img = $source_img;
 		} else {
 			$ratio_orig = $orig_w/$orig_h;  // width-to-height ratio of original image
-			$ratio_thumb = $thumb_w/$thumb_h;  // width-to-height ratio of thumbnail image
 			if ($crop) {  // resize with automatic centering, crop image if necessary
+				if ($thumb_w == 0 || $thumb_h == 0) {
+					throw new Exception('Both width and height must be specified when images are rescaled with cropping enabled.');
+				}
+				
+				$ratio_thumb = $thumb_w/$thumb_h;  // width-to-height ratio of thumbnail image
 				if ($ratio_thumb > $ratio_orig) {  // crop top and bottom
 					$zoom = $orig_w / $thumb_w;  // zoom factor of original image w.r.t. thumbnail
 					$crop_h = floor($zoom * $thumb_h);
@@ -233,7 +237,13 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				$crop_h = $orig_h;
 				$crop_x = 0;
 				$crop_y = 0;
-				if ($ratio_thumb > $ratio_orig) {  // fit height
+				if ($thumb_w == 0) {  // width unspecified
+					$zoom = $orig_h / $thumb_h;
+					$thumb_w = floor($orig_w / $zoom);
+				} elseif ($thumb_h == 0) {  // height unspecified
+					$zoom = $orig_w / $thumb_w;
+					$thumb_h = floor($orig_h / $zoom);
+				} elseif ($thumb_w/$thumb_h > $ratio_orig) {  // fit height
 					$zoom = $orig_h / $thumb_h;
 					$thumb_w = floor($orig_w / $zoom);
 				} else {  // fit width

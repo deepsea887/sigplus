@@ -593,9 +593,9 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 	public $debug_client = false;
 	/**
 	* Whether to print verbose status messages of actions performed on the server.
-	* @type {bool}
+	* @type {'default'|'laconic'|'verbose'}
 	*/
-	public $debug_server = false;
+	public $debug_server = 'default';
 
 	public function validate() {
 		$this->multilingual = (bool) $this->multilingual;
@@ -623,7 +623,7 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 		}
 		$this->library_jsapi = self::as_one_of($this->library_jsapi, array('default','local','none','cdn-google','cdn-microsoft','cdn-jquery'));
 		$this->debug_client = (bool) $this->debug_client;
-		$this->debug_server = (bool) $this->debug_server;
+		$this->debug_server = self::as_one_of($this->debug_server, array('default','laconic','verbose'));
 		$this->checkFolders();
 	}
 
@@ -763,12 +763,12 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $maxcount = 0;
 	/**
 	* Width of preview images [px].
-	* @type {positive_integer}
+	* @type {nonnegative_integer}
 	*/
 	public $preview_width = 100;
 	/**
 	* Height of preview images [px].
-	* @type {positive_integer}
+	* @type {nonnegative_integer}
 	*/
 	public $preview_height = 100;
 	/**
@@ -1090,10 +1090,22 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 		$this->alignment = str_replace(array('after','before'), $language->isRTL() ? array('left','right') : array('right','left'), $this->alignment);
 
 		$this->maxcount = self::as_nonnegative_integer($this->maxcount);
-		$this->preview_width = self::as_positive_integer($this->preview_width, 100);
-		$this->preview_height = self::as_positive_integer($this->preview_height, 100);
+		$this->preview_width = self::as_nonnegative_integer($this->preview_width, 0);
+		$this->preview_height = self::as_nonnegative_integer($this->preview_height, 0);
 		$this->preview_crop = self::as_boolean($this->preview_crop);
 		$this->quality = self::as_percentage($this->quality);
+		if ($this->preview_crop) {  // cropping enabled, both width and height are required
+			if ($this->preview_width == 0) {
+				$this->preview_width = 100;
+			}
+			if ($this->preview_height == 0) {
+				$this->preview_height = 100;
+			}
+		} else {  // cropping disabled, at least width or height is required
+			if ($this->preview_width == 0 && $this->preview_height == 0) {  // both width and height is set to be determined automatically
+				$this->preview_width = 100;
+			}
+		}
 
 		// lightbox properties
 		$this->lightbox_autocenter = self::as_boolean($this->lightbox_autocenter);

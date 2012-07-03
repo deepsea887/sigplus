@@ -140,7 +140,7 @@ class plgContentSIGPlus extends JPlugin {
 				$configuration->gallery = new SIGPlusGalleryParameters();
 				$configuration->gallery->setParameters($this->params);
 
-				if (SIGPLUS_LOGGING || $configuration->service->debug_server) {
+				if (SIGPLUS_LOGGING || $configuration->service->debug_server == 'verbose') {
 					SIGPlusLogging::setService(new SIGPlusHTMLLogging());
 				} else {
 					SIGPlusLogging::setService(new SIGPlusNoLogging());
@@ -211,8 +211,24 @@ class plgContentSIGPlus extends JPlugin {
 				$offset = $start + strlen($body);
 			} catch (Exception $e) {
 				$app = JFactory::getApplication();
-				$app->enqueueMessage($e->getMessage(), 'error');
-				$offset = $end;
+				switch ($this->core->verbosityLevel()) {
+					case 'laconic':
+						// display a very general, uninformative message
+						$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE');
+						
+						// hide activation tag completely
+						$text = substr($text, 0, $start).substr($text, $end);
+						$offset = $start;
+						break;
+					case 'verbose':
+					default:
+						// display a specific, informative message
+						$message = $e->getMessage();
+						
+						// leave activation tag as it appears
+						$offset = $end;
+				}
+				$app->enqueueMessage($message, 'error');
 			}
 		}
 		return $count;

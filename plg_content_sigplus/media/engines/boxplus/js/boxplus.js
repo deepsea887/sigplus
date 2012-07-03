@@ -37,6 +37,7 @@
 ;
 (function ($) {
 	$extend(Element['NativeEvents'], {
+		'popstate': 2,
 		'dragstart': 2  // listen to browser-native drag-and-drop events
 	});
 
@@ -124,7 +125,7 @@
 
 		// --- EDIT OPTIONS BELOW TO MODIFY DEFAULTS --- //
 		// ---  SEE FURTHER BELOW FOR OTHER OPTIONS  --- //
-		
+
 		/**
 		* boxplus dialog options.
 		* Normally, these would be configured via a boxplus gallery and not directly.
@@ -134,7 +135,7 @@
 			* Pop-up window theme. If set, stylesheets that have a "title" attribute starting with
 			* "boxplus" but with a different ending than specified will be disabled. For instance,
 			* the value "darksquare" will enable the stylesheet "boxplus-darksquare" but disable
-			* "boxplus-darkrounded" and "boxplus-lightsquare".			
+			* "boxplus-darkrounded" and "boxplus-lightsquare".
 			* @type {boolean|string}
 			*/
 			'theme': false,
@@ -201,7 +202,7 @@
 		},
 
 		// --- END OF DEFAULT OPTIONS --- //
-		
+
 		// Properties assigned on initialization:
 		//    container,
 		//    shadedbackground,
@@ -318,7 +319,7 @@
 			*/
 			var HIDDEN = 'hidden';
 			self.container = _create([], {id: BOXPLUS_ID},
-				self.shadedbackground = _create(['background',HIDDEN]).addEvent('click', function () { self.close(); }),
+				self.shadedbackground = _create(['background',HIDDEN]),
 				self.popup = _create(['dialog',HIDDEN], {},
 					_create('progress'),
 					_create('sideways', {},
@@ -396,6 +397,11 @@
 				_message('unknown-type'),
 				_message('not-found')
 			).inject(document.body);
+
+			// close window when user clicks outside window area (but not on mobile devices)
+			if (self.container.getStyle('background-repeat') == 'repeat') {  // test for CSS @media handheld
+				self.shadedbackground.addEvent('click', function () { self.close(); });
+			}
 
 			/**
 			* Fired when the user right-clicks or starts to drag an item in the viewer to open the context menu or copy an image.
@@ -1428,8 +1434,8 @@
 			}
 
 			// click event bindings
-			anchors.addEvent('click', function () {
-				self.show(this);  // click opens the gallery showing image of selected anchor
+			anchors.addEvent('click', function () {  // event "click" opens the gallery showing image of selected anchor
+				self.show['delay'](1, self, this);  // this = image clicked, delay required for seamless history support (event processing function must exit before function "show" is invoked)
 				return false;
 			});
 
@@ -1483,6 +1489,10 @@
 			});
 			self.dialogevents = callbacks.associate(events);
 
+			// add history support
+			self._updateHistory(anchor['href']);
+			window.addEvent('popstate', self.close['bind'](self));
+
 			// subscribe to dialog box events
 			dialog.addEvents(self.dialogevents);
 			dialog.show(self['options']);
@@ -1507,6 +1517,11 @@
 			dialog.removeEvents(this.dialogevents);
 			dialog.hide();
 			dialog.clearThumbs();
+
+			// unwind history stack
+			while (window.history.state == 'boxplus') {  // boxplus uses the special history state string "boxplus"
+				window.history.go(-1);
+			}
 
 			// fire onClose event
 			this._fireEvent('close');
@@ -1572,6 +1587,27 @@
 		},
 
 		/**
+		* Updates the latest history entry, either injecting a new entry or updating an existing one.
+		* The history entry is updated only if the latest entry has also been injected by this class.
+		* @param {string} href The new URL for the topmost history entry.
+		*/
+		_updateHistory: function (href) {
+			// check if the latest history entry has been injected by boxplus (which uses the special history state string "boxplus")
+			var hist = window.history;
+			var name = hist.state == 'boxplus' ? 'replaceState' : 'pushState';
+			
+			// check for history support and execute function
+			var fn = hist[name];
+			if (fn) {
+				try {
+					fn('boxplus', '', href);
+				} catch (err) {
+					// catch security vulnerability errors (e.g. site URL domain does not match image URL domain)
+				}
+			}
+		},
+		
+		/**
 		* @param {number} index
 		*/
 		_replace: function (index) {
@@ -1616,6 +1652,9 @@
 
 				// un-cloak URLs to be able to extract anchor parameters
 				uncloak(anchor);
+
+				// update history
+				self._updateHistory(anchor['href']);
 
 				// extract anchor parameters
 				var href = anchor.get('href');  // <a> href (as it occurs in source)

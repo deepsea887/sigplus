@@ -1241,6 +1241,22 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 	}
 
 	/**
+	* Removes all images and related generated images associated with a folder that has been deleted.
+	*/
+	private function purgeLocalFolder($url) {
+		$db = JFactory::getDbo();
+		$db->setQuery(
+			'SELECT '.$db->nameQuote('folderid').PHP_EOL.
+			'FROM '.$db->nameQuote('#__sigplus_folder').PHP_EOL.
+			'WHERE '.$db->nameQuote('folderurl').' = '.$db->quote($url)
+		);
+		$folderid = $db->loadResult();
+		if ($folderid) {
+			$this->purgeFolder($folderid);
+		}
+	}
+	
+	/**
 	* Populates a database equivalent of a folder with images in the folder.
 	*/
 	public /*private*/ function populateFolder($path, $files, $folders, $ancestors) {
@@ -1293,6 +1309,11 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 	public function populate($imagefolder, $folderparams) {
 		// check whether cache folder has been removed manually by user
 		$this->purgeCache();
+		
+		if (!file_exists($imagefolder)) {
+			$this->purgeLocalFolder($imagefolder);
+			return null;
+		}
 
 		// get last modified time of folder
 		$lastmod = $this->getLabelsLastModified($imagefolder, get_folder_last_modified($imagefolder, $this->config->gallery->depth));
@@ -1452,6 +1473,10 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		$sizes_uncropped = array_merge($sizes_cropped, array(94, 110, 128, 200, 220, 288, 320, 400, 512, 576, 640, 720, 800, 912, 1024, 1152, 1280, 1440, 1600));
 		sort($sizes_uncropped);
 
+		// set preferred width and height
+		$prefwidth = max(100, $this->config->gallery->preview_width);
+		$prefheight = max(100, $this->config->gallery->preview_height);
+		
 		// choose cropped vs. uncropped
 		if ($this->config->gallery->preview_crop) {
 			$sizes = $sizes_cropped;
@@ -1462,13 +1487,13 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		}
 
 		// get thumbnail size(s) that best match(es) expected preview image dimensions
-		$mindim = min($this->config->gallery->preview_width, $this->config->gallery->preview_height);  // smaller dimension
+		$mindim = min($prefwidth, $prefheight);  // smaller dimension
 		$minsize = $sizes[0];
 		for ($k = 0; $k < count($sizes) && $mindim >= $sizes[$k]; $k++) {  // smaller than both width and height
 			$minsize = $sizes[$k];
 		}
 		$preferred = array($minsize);
-		$maxdim = max($this->config->gallery->preview_width, $this->config->gallery->preview_height);  // larger dimension
+		$maxdim = max($prefwidth, $prefheight);  // larger dimension
 		for ($k = 0; $k < count($sizes) && $maxdim >= $sizes[$k]; $k++) {
 			$preferred[] = $sizes[$k];
 		}
@@ -1527,7 +1552,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 				$curheight = (int) $attrs['height'];
 
 				// update thumbnail to use if it fits in image bounds
-				if ($this->config->gallery->preview_width >= $curwidth && $this->config->gallery->preview_height >= $curheight && ($curwidth > $thumbwidth || $curheight > $thumbheight)) {
+				if ($prefwidth >= $curwidth && $prefheight >= $curheight && ($curwidth > $thumbwidth || $curheight > $thumbheight)) {
 					$thumburl = (string) $attrs['url'];  // <media:thumbnail url='...' height='...' width='...' />
 					$thumbwidth = $curwidth;
 					$thumbheight = $curheight;
@@ -1691,6 +1716,10 @@ class SIGPlusCore {
 		SIGPlusLogging::appendCodeBlock('Default gallery parameters are:', print_r($config->gallery, true));
 		$this->paramstack = new SIGPlusParameterStack();
 		$this->paramstack->push($config->gallery);
+	}
+	
+	public function verbosityLevel() {
+		return $this->config->debug_server;
 	}
 
 	/**
@@ -1991,9 +2020,11 @@ class SIGPlusCore {
 				// remove file name component of path
 				$source = dirname($source);
 
-				// set up gallery populator
-				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from filtered folder: <code>'.$source.'</code>');
-				$generator = new SIGPlusLocalGallery($config);
+				if (is_dir($source)) {
+					// set up gallery populator
+					SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from filtered folder: <code>'.$source.'</code>');
+					$generator = new SIGPlusLocalGallery($config);
+				}
 			} elseif (is_dir($source)) {
 				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from folder: <code>'.$source.'</code>');
 				$generator = new SIGPlusLocalGallery($config);
@@ -2157,7 +2188,8 @@ class SIGPlusCore {
 		// generate HTML code for each image
 		if ($total > 0) {
 			ob_start();  // start output buffering
-			print '<!--[if gte IE 9]><!--><noscript class="sigplus-gallery"><!--<![endif]-->';  // downlevel-hidden conditional comment, browsers below IE9 ignore HTML inside, all other browsers interpret it
+			//print '<!--[if gte IE 9]><!--><noscript class="sigplus-gallery"><!--<![endif]-->';  // downlevel-hidden conditional comment, browsers below IE9 ignore HTML inside, all other browsers interpret it
+			print '<div>';  // HTML tag <noscript> is unreliable on mobile platforms
 			print '<div id="'.$galleryid.'" class="'.$gallerystyle.'">';
 
 			print '<ul>';
@@ -2176,7 +2208,8 @@ class SIGPlusCore {
 			}
 
 			print '</div>';
-			print '<!--[if gte IE 9]><!--></noscript><!--<![endif]-->';
+			//print '<!--[if gte IE 9]><!--></noscript><!--<![endif]-->';
+			print '</div>';  // HTML tag <noscript> is unreliable on mobile platforms
 			$body = ob_get_clean();  // fetch output buffer
 		} else {
 			$body = JText::_('SIGPLUS_GALLERY_EMPTY');
