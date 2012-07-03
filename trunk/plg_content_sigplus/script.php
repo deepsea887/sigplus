@@ -43,6 +43,12 @@ class plgContentSIGPlusInstallerScript {
 
 	function preflight($type, $parent) {
 		switch ($type) {
+			case 'install':
+			case 'discover_install':
+				$message = 'This version of the sigplus extension is experimental, contains only a subset of the features a future stable release will, and is strictly for evaluation purposes only, no backward or forward compatibility with previous versions or the future stable release is guaranteed. Consequently, using this version on production sites is <b>NOT recommended</b>, install one of the stable versions from <a href="http://joomlacode.org/gf/project/sigplus/frs/">JoomlaCode</a> instead. If you run into any problems with this distribution or would like to make a feature request, do not contact the developer directly but <a href="http://code.google.com/p/sigplus/issues/list">submit an issue report</a>. You find preliminary documentation on the project <a href="http://code.google.com/p/sigplus/w/list">wiki pages</a>.';
+				$app = JFactory::getApplication();
+				$app->enqueueMessage($message, 'warning');
+				break;
 			case 'update':
 				$required = '1.5';  // minimum version required for upgrade installation to succeed
 				if ((include_once JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'core'.DS.'version.php') !== false) {  // available since 1.5.0
@@ -67,10 +73,6 @@ class plgContentSIGPlusInstallerScript {
 				self::updateDatabase();
 				break;
 		}
-
-		$message = 'This version of the sigplus extension is experimental, contains only a subset of the features a future stable release will, and is strictly for evaluation purposes only, no backward or forward compatibility with previous versions or the future stable release is guaranteed. Consequently, using this version on production sites is <b>NOT recommended</b>, install one of the stable versions from <a href="http://joomlacode.org/gf/project/sigplus/frs/">JoomlaCode</a> instead. If you run into any problems with this distribution or would like to make a feature request, do not contact the developer directly but <a href="http://code.google.com/p/sigplus/issues/list">submit an issue report</a>. You find preliminary documentation on the project <a href="http://code.google.com/p/sigplus/w/list">wiki pages</a>.';
-		$app = JFactory::getApplication();
-		$app->enqueueMessage($message, 'warning');
 	}
 
 	function postflight($type, $parent) {

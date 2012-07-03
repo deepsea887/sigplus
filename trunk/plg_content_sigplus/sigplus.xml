@@ -300,9 +300,10 @@
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="debug_server" type="radio" default="0" label="SIGPLUS_DEBUG_SERVER" description="SIGPLUS_DEBUG_SERVER_DESCRIPTION">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
+				<field name="debug_server" type="list" default="default" label="SIGPLUS_DEBUG_SERVER" description="SIGPLUS_DEBUG_SERVER_DESCRIPTION">
+					<option value="default">SIGPLUS_DEBUG_DEFAULT</option>
+					<option value="laconic">SIGPLUS_DEBUG_LACONIC</option>
+					<option value="verbose">SIGPLUS_DEBUG_VERBOSE</option>
 				</field>
 			</fieldset>
 		</fields>

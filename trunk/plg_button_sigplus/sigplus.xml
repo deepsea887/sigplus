@@ -13,8 +13,10 @@
 		<filename plugin="sigplus">sigplus.php</filename>
 		<filename>index.html</filename>
 	</files>
-	<media folder="media" destination="sigplus">
-		<folder>editor</folder>
+	<media folder="media" destination="plg_button_sigplus">
+		<folder>css</folder>
+		<folder>js</folder>
+		<filename>index.html</filename>
 	</media>
 	<languages folder="language">
 		<language tag="en-GB">en-GB.plg_editors-xtd_sigplus.ini</language>

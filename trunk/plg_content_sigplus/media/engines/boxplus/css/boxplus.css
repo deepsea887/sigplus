@@ -8,6 +8,10 @@
 * @see      http://hunyadi.info.hu/projects/boxplus
 */
 
+#boxplus {
+background-repeat:repeat;  /* used in CSS @media detection */
+}
+
 #boxplus .boxplus-background {
 position:fixed;
 width:100%;
@@ -350,4 +354,18 @@ display:none !important;
 
 #boxplus > span {
 display:none;
+}
+
+@media handheld, only screen and (max-width: 480px), only screen and (max-device-width: 480px) { /* rules for handheld devices */
+#boxplus {
+background-repeat:no-repeat;  /* used in CSS @media detection */
+}
+
+#boxplus .boxplus-viewer > .boxplus-prev {
+background:transparent url(navigation-prev.png) no-repeat scroll 0 center;
+}
+
+#boxplus .boxplus-viewer > .boxplus-next {
+background:transparent url(navigation-next.png) no-repeat scroll 0 center;
+}
 }
