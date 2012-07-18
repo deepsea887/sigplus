@@ -256,6 +256,36 @@ class SIGPlusDatabase {
 		return $row;
 	}
 
+	/**
+	* The database identifier that belongs to an ISO language code.
+	*/
+	public static function getLanguageId($language) {
+		$db = JFactory::getDbo();
+		$db->setQuery(
+			'SELECT'.PHP_EOL.
+				$db->nameQuote('langid').PHP_EOL.
+			'FROM '.$db->nameQuote('#__sigplus_language').PHP_EOL.
+			'WHERE'.PHP_EOL.
+				$db->nameQuote('lang').' = '.$db->quote($language)
+		);
+		return $db->loadResult();
+	}
+
+	/**
+	* The database identifier that belongs to an ISO country code.
+	*/
+	public static function getCountryId($country) {
+		$db = JFactory::getDbo();
+		$db->setQuery(
+			'SELECT'.PHP_EOL.
+				$db->nameQuote('countryid').PHP_EOL.
+			'FROM '.$db->nameQuote('#__sigplus_country').PHP_EOL.
+			'WHERE'.PHP_EOL.
+				$db->nameQuote('country').' = '.$db->quote($country)
+		);
+		return $db->loadResult();
+	}
+
 	public static function getInsertBatchStatement($table, array $cols, array $rows, array $keys = null, array $constants = null) {
 		$db = JFactory::getDbo();
 
@@ -273,7 +303,7 @@ class SIGPlusDatabase {
 		// build update closure
 		$update = array();
 		foreach ($cols as $col) {
-			if (!isset($keys) || !in_array($col, $keys)) {  // there are not keys or column is not a key
+			if (!isset($keys) || !in_array($col, $keys)) {  // there are no keys or column is not a key
 				$update[] = $col.' = VALUES('.$col.')';
 			}
 		}
@@ -446,21 +476,31 @@ class SIGPlusLabels {
 	* @return The full path to the language-specific labels file.
 	*/
 	public function getLabelsFilePath($imagefolder) {
+		$lang = JFactory::getLanguage();
+		$data = new stdClass;
+
 		$labelsname = pathinfo($this->caption_source, PATHINFO_FILENAME);
 		$labelsextn = pathinfo($this->caption_source, PATHINFO_EXTENSION);
 		$labelsextn = '.'.( $labelsextn ? $labelsextn : 'txt' );
 		if ($this->multilingual) {  // check for language-specific labels file
-			$lang = JFactory::getLanguage();
 			$file = $imagefolder.DS.$labelsname.'.'.$lang->getTag().$labelsextn;
 			if (is_file($file)) {
-				return $file;
+				list($language, $country) = explode('-', $lang->getTag());  // site current language
+				$data->language = $language;
+				$data->country = $country;
+				$data->file = $file;
+				return $data;
 			}
 		}
 
 		// default to language-neutral labels file
 		$file = $imagefolder.DS.$labelsname.$labelsextn;  // filesystem path to labels file
 		if (is_file($file)) {
-			return $file;
+			list($language, $country) = explode('-', $lang->getDefault());  // site default language
+			$data->language = $language;
+			$data->country = $country;
+			$data->file = $file;
+			return $data;
 		}
 		return false;
 	}
@@ -468,11 +508,12 @@ class SIGPlusLabels {
 	/**
 	* Extract short captions and descriptions attached to images from a "labels.txt" file.
 	*/
-	private function parseLabels($imagefolder, &$entries = array(), &$patterns = array()) {
-		$labelspath = $this->getLabelsFilePath($imagefolder);
-		if ($labelspath === false) {
+	private function parseLabels($imagefolder, &$entries = array(), &$patterns = array(), &$labelsdata = null) {
+		$labelsdata = $this->getLabelsFilePath($imagefolder);
+		if ($labelsdata === false) {
 			return false;
 		}
+		$labelspath = $labelsdata->file;
 		$contents = file_get_contents($labelspath);
 		if ($contents === false) {
 			return false;
@@ -506,8 +547,12 @@ class SIGPlusLabels {
 			$summary = count($match) > 3 ? $match[3] : null;
 
 			if (strpos($imagefile, '*') !== false || strpos($imagefile, '?') !== false) {  // contains wildcard character
-				// replace "*" and "?" with LIKE expression equivalents "%" and "_"
-				$patterns[] = array(SIGPlusDatabase::sqlpattern($imagefile), ++$priority, $title, $summary);
+				$pattern = new stdClass;
+				$pattern->match = SIGPlusDatabase::sqlpattern($imagefile);  // replace "*" and "?" with LIKE expression equivalents "%" and "_"
+				$pattern->priority = ++$priority;
+				$pattern->title = $title;
+				$pattern->summary = $summary;
+				$patterns[] = $pattern;
 			} else {
 				if (is_url_http($imagefile)) {  // a URL to a remote image
 					$imagefile = safeurlencode($imagefile);
@@ -521,15 +566,23 @@ class SIGPlusLabels {
 				}
 
 				// prepare data for injection into database
-				$index++;
-				$entries[] = array($imagefile, $index, $title, $summary);
+				$entry = new stdClass;
+				$entry->file = $imagefile;
+				$entry->index = ++$index;
+				$entry->title = $title;
+				$entry->summary = $summary;
+				$entries[] = $entry;
 			}
 		}
 		return true;
 	}
 
 	public function populate($imagefolder, $folderid) {
-		$this->parseLabels($imagefolder, $entries, $patterns);
+		$this->parseLabels($imagefolder, $entries, $patterns, $labelsdata);
+
+		// fetch language and country database identifier
+		$langid = SIGPlusDatabase::getLanguageId($labelsdata->language);
+		$countryid = SIGPlusDatabase::getCountryId($labelsdata->country);
 
 		// force type to prevent SQL injection
 		$folderid = (int) $folderid;
@@ -544,27 +597,59 @@ class SIGPlusLabels {
 			'WHERE'.PHP_EOL.
 				$db->nameQuote('folderid').' = '.$folderid;
 		if (!empty($patterns)) {
-			$queries[] = SIGPlusDatabase::getInsertBatchStatement(
-				'#__sigplus_foldercaption',
-				array('pattern','priority','title','summary'),
-				$patterns,
-				null,
-				array('folderid' => $folderid)
-			);
+			$rows = array();
+			foreach ($patterns as $pattern) {
+				$row = array(
+					$folderid,
+					$db->quote($pattern->match),
+					$langid,
+					$countryid,
+					$pattern->priority,
+					$db->quote($pattern->title),
+					$db->quote($pattern->summary)
+				);
+				$rows[] = '('.implode(',',$row).')';
+			}
+
+			// add captions
+			$queries[] =
+				'INSERT INTO '.$db->nameQuote('#__sigplus_foldercaption').' (folderid, pattern, langid, countryid, priority, title, summary)'.PHP_EOL.
+				'VALUES '.implode(',',$rows)
+			;
 		}
 
-		// invalidate custom order
-		$queries[] = 'UPDATE '.$db->nameQuote('#__sigplus_image').' SET '.$db->nameQuote('ordnum').' = NULL WHERE '.$db->nameQuote('folderid').' = '.$folderid;
+		// invalidate existing labels data
+		$queries[] =
+			'DELETE c'.PHP_EOL.
+			'FROM '.$db->nameQuote('#__sigplus_caption').' AS c'.PHP_EOL.
+				'INNER JOIN '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
+				'ON c.'.$db->nameQuote('imageid').' = i.'.$db->nameQuote('imageid').PHP_EOL.
+			'WHERE'.PHP_EOL.
+				'i.'.$db->nameQuote('folderid').' = '.$folderid.' AND '.
+				'c.'.$db->nameQuote('langid').' = '.$langid.' AND '.
+				'c.'.$db->nameQuote('countryid').' = '.$countryid
+			;
 
+		// insert new labels data
 		if (!empty($entries)) {
-			// add and update entries
-			$queries[] = SIGPlusDatabase::getInsertBatchStatement(
-				'#__sigplus_image',
-				array('fileurl','ordnum','title','summary'),
-				$entries,
-				array('fileurl'),
-				array('folderid' => $folderid)
-			);
+			$rows = array();
+			foreach ($entries as $entry) {
+				$row = array(
+					'(SELECT imageid FROM #__sigplus_image WHERE fileurl = '.$db->quote($entry->file).')',  // look up image identifier that belongs to unique file URL
+					$langid,
+					$countryid,
+					$entry->index,
+					$db->quote($entry->title),
+					$db->quote($entry->summary)
+				);
+				$rows[] = '('.implode(',',$row).')';
+			}
+
+			// add captions
+			$queries[] =
+				'INSERT INTO '.$db->nameQuote('#__sigplus_caption').' (imageid, langid, countryid, ordnum, title, summary)'.PHP_EOL.
+				'VALUES '.implode(',',$rows)
+			;
 		}
 
 		SIGPlusDatabase::executeAll($queries);
@@ -633,15 +718,13 @@ abstract class SIGPlusGalleryBase {
 		$datetime = SIGPlusDatabase::sqldate($folderparams->time);
 
 		$db = JFactory::getDbo();
-		$db->setQuery(
-			'SELECT'.PHP_EOL.
-				$db->nameQuote('folderid').','.PHP_EOL.
-				$db->nameQuote('foldertime').','.PHP_EOL.
-				$db->nameQuote('entitytag').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_folder').PHP_EOL.
-			'WHERE'.PHP_EOL.
-				$db->nameQuote('folderurl').' = '.$db->quote($url)
-		);
+		$query = $db->getQuery(true);
+		$query
+			->select(array('folderid','foldertime','entitytag'))
+			->from('#__sigplus_folder')
+			->where('folderurl = '.$db->quote($url))
+		;
+		$db->setQuery($query);
 		$row = $db->loadRow();
 		if ($row !== false) {
 			list($folderid, $foldertime, $entitytag) = $row;
@@ -723,14 +806,18 @@ abstract class SIGPlusGalleryBase {
 		$hash = $this->getViewHash($folderid);
 
 		// verify if preview image parameters for the folder have changed
-		$db->setQuery(
-			'SELECT'.PHP_EOL.
-				$db->nameQuote('viewid').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_view').PHP_EOL.
-			'WHERE'.PHP_EOL.
-				$db->nameQuote('folderid').' = '.$folderid.' AND '.PHP_EOL.
-				$db->nameQuote('hash').' = '.$db->quote($hash)
-		);
+		$query = $db->getQuery(true);
+		$query
+			->select('viewid')
+			->from('#__sigplus_view')
+			->where(
+				array(
+					'folderid = '.$folderid,
+					'hash = '.$db->quote($hash)
+				)
+			)
+		;
+		$db->setQuery($query);
 		return $db->loadResult();
 	}
 
@@ -1211,11 +1298,11 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	protected function getLabelsLastModified($folder, $lastmod) {
 		// get last modified time of labels file
 		$labels = new SIGPlusLabels($this->config);  // get labels file manager
-		$labelsfile = $labels->getLabelsFilePath($folder);
+		$labelsdata = $labels->getLabelsFilePath($folder);
 
 		// update last modified time if labels file has been changed
-		if ($labelsfile !== false) {
-			$lastmod = max($lastmod, fsx::filemtime($labelsfile));
+		if ($labelsdata !== false) {
+			$lastmod = max($lastmod, fsx::filemtime($labelsdata->file));
 		}
 		return gmdate('Y-m-d H:i:s', $lastmod);  // use SQL DATE format "yyyy-mm-dd hh:nn:ss"
 	}
@@ -1255,7 +1342,7 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 			$this->purgeFolder($folderid);
 		}
 	}
-	
+
 	/**
 	* Populates a database equivalent of a folder with images in the folder.
 	*/
@@ -1309,7 +1396,7 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 	public function populate($imagefolder, $folderparams) {
 		// check whether cache folder has been removed manually by user
 		$this->purgeCache();
-		
+
 		if (!file_exists($imagefolder)) {
 			$this->purgeLocalFolder($imagefolder);
 			return null;
@@ -1476,7 +1563,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		// set preferred width and height
 		$prefwidth = max(100, $this->config->gallery->preview_width);
 		$prefheight = max(100, $this->config->gallery->preview_height);
-		
+
 		// choose cropped vs. uncropped
 		if ($this->config->gallery->preview_crop) {
 			$sizes = $sizes_cropped;
@@ -1533,8 +1620,8 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 			$mediagroup = $media->group;
 
 			// get image title and description
-			$title = (string) $mediagroup->title;
-			$summary = (string) $mediagroup->description;
+			$title = (string) $mediagroup->title;  // TODO: image title currently unused
+			$summary = (string) $mediagroup->description;  // TODO: image summary currently unused
 
 			// get image URL
 			$attrs = $mediagroup->content->attributes();
@@ -1567,18 +1654,14 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 					'fileurl',
 					'filetime',
 					'width',
-					'height',
-					'title',
-					'summary'
+					'height'
 				),
 				array(
 					$folderparams->id,
 					$imageurl,
 					$time,
 					$width,
-					$height,
-					$title,
-					$summary
+					$height
 				),
 				'imageid'
 			);
@@ -1717,7 +1800,7 @@ class SIGPlusCore {
 		$this->paramstack = new SIGPlusParameterStack();
 		$this->paramstack->push($config->gallery);
 	}
-	
+
 	public function verbosityLevel() {
 		return $this->config->debug_server;
 	}
@@ -2109,6 +2192,12 @@ class SIGPlusCore {
 		}
 		$sortorder = 'depthnum ASC, '.$sortorder;  // keep descending from topmost to bottommost in hierarchy, do not mix entries from different levels
 
+		// determine current site language
+		$lang = JFactory::getLanguage();
+		list($language, $country) = explode('-', $lang->getTag());  // site current language
+		$langid = SIGPlusDatabase::getLanguageId($language);
+		$countryid = SIGPlusDatabase::getCountryId($country);
+
 		// build SQL condition for depth
 		if ($curparams->depth >= 0) {
 			$depthcond = ' AND depthnum <= '.$curparams->depth;
@@ -2141,24 +2230,28 @@ class SIGPlusCore {
 				'IFNULL('.$db->nameQuote('watermark_fileurl').', '.$db->nameQuote('fileurl').') AS '.$db->nameQuote('url').','.PHP_EOL.
 				$db->nameQuote('width').','.PHP_EOL.
 				$db->nameQuote('height').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('title').','.PHP_EOL.
+				'IFNULL(c.'.$db->nameQuote('title').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT c.'.$db->nameQuote('title').PHP_EOL.
-						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'SELECT p.'.$db->nameQuote('title').PHP_EOL.
+						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS p'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
-						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+							'p.'.$db->nameQuote('langid').' = '.$langid.' AND '.PHP_EOL.
+							'p.'.$db->nameQuote('countryid').' = '.$countryid.' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('filename').' LIKE p.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('folderid').' = p.'.$db->nameQuote('folderid').PHP_EOL.
+						'ORDER BY p.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
 				') AS '.$db->nameQuote('title').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('summary').','.PHP_EOL.
+				'IFNULL(c.'.$db->nameQuote('summary').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT c.'.$db->nameQuote('summary').PHP_EOL.
-						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'SELECT p.'.$db->nameQuote('summary').PHP_EOL.
+						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS p'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
-						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+							'p.'.$db->nameQuote('langid').' = '.$langid.' AND '.PHP_EOL.
+							'p.'.$db->nameQuote('countryid').' = '.$countryid.' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('filename').' LIKE p.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
+							'i.'.$db->nameQuote('folderid').' = p.'.$db->nameQuote('folderid').PHP_EOL.
+						'ORDER BY p.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
 				') AS '.$db->nameQuote('summary').','.PHP_EOL.
 				$db->nameQuote('preview_fileurl').','.PHP_EOL.
@@ -2168,6 +2261,8 @@ class SIGPlusCore {
 				$db->nameQuote('thumb_width').','.PHP_EOL.
 				$db->nameQuote('thumb_height').PHP_EOL.
 			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
+				'LEFT JOIN '.$db->nameQuote('#__sigplus_caption').' AS c'.PHP_EOL.
+				'ON i.'.$db->nameQuote('imageid').' = c.'.$db->nameQuote('imageid').PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
 				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_hierarchy').' AS h'.PHP_EOL.
@@ -2175,6 +2270,8 @@ class SIGPlusCore {
 				'INNER JOIN '.$db->nameQuote('#__sigplus_imageview').' AS v'.PHP_EOL.
 				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
+				$db->nameQuote('langid').' = '.$langid.' AND '.PHP_EOL.
+				$db->nameQuote('countryid').' = '.$countryid.' AND '.PHP_EOL.
 				$db->nameQuote('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
 				$db->nameQuote('viewid').' = '.$viewid.PHP_EOL.
 				$patterncond.PHP_EOL.

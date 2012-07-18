@@ -533,7 +533,7 @@ class SIGPlusConfigurationBase {
 			return false;
 		}
 	}
-	
+
 	protected static function as_filter($expression) {
 		if (is_array($expression)) {
 			return $expression;
@@ -1220,7 +1220,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 		// filters
 		$this->filter_include = self::as_filter($this->filter_include);
 		$this->filter_exclude = self::as_filter($this->filter_exclude);
-		
+
 		// miscellaneous advanced settings
 		$this->depth = (int) $this->depth;
 		if ($this->depth < -1) {  // -1 for recursive listing with no limit, 0 for flat listing (no subdirectories), >0 for recursive listing with limit

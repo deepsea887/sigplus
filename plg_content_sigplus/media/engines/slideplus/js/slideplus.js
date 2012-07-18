@@ -173,6 +173,11 @@
 			*/
 			'orientation': 'horizontal',
 			/**
+			* Layout of sliding image strip ['natural'|'row'|'column'].
+			* @type {string}
+			*/
+			'layout': 'natural',
+			/**
 			* Horizontal alignment of current image in sliding image strip ['center'|'start'|'end'].
 			* @type {string}
 			*/
@@ -715,12 +720,24 @@
 
 			// add new items displayed
 			listitems.each(function (listitem, index) {
+				// determine layout order
+				var rowmajor = options['orientation'] == 'vertical';  // initialize with layout that fits orientation model (row-major for vertical and column-major for horizontal)
+				var layout = options['layout'];
+				if (layout == 'row') {
+					rowmajor = true;  // force row-major layout
+				}
+				if (layout == 'column') {
+					rowmajor = false;  // force column-major layout
+				}
+
 				// arrange list items on sliding canvas
 				var left, top;
-				if (options['orientation'] == 'vertical') {
+				if (rowmajor) {
+					// row-major layout (layout by rows)
 					left = (index%cols) * maxwidth;
 					top = (index/cols).toInt() * maxheight - (pagestep ? rows : 1) * maxheight;
 				} else {
+					// column-major layout (layout by columns)
 					left = (index/rows).toInt() * maxwidth - (pagestep ? cols : 1) * maxwidth;
 					top = (index%rows) * maxheight;
 				}

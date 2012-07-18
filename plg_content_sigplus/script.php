@@ -185,12 +185,53 @@ class plgContentSIGPlusInstallerScript {
 		}
 	}
 
+	private static function populateTable($values, $table, $field) {
+		$db = JFactory::getDBO();
+		foreach ($values as &$item) {
+			$item = '('.$db->quote($item).')';  // e.g. ('Title')
+		}
+		$db->setQuery('INSERT INTO '.$db->nameQuote($table).' ('.$db->nameQuote($field).') VALUES '.implode(',', $values));
+		$db->query();
+	}
+	
 	/**
 	* Populates the database.
 	*/
 	private static function populateDatabase() {
-		// discard existing metadata
 		$db = JFactory::getDBO();
+
+		// language codes
+		$languages = array(
+			'aa','ab','ae','af','ak','am','an','ar','as','av','ay','az','ba','be','bg','bh','bi','bm','bn','bo',
+			'br','bs','ca','ce','ch','co','cr','cs','cu','cv','cy','da','de','dv','dz','ee','el','en','eo','es',
+			'et','eu','fa','ff','fi','fj','fo','fr','fy','ga','gd','gl','gn','gu','gv','ha','he','hi','ho','hr',
+			'ht','hu','hy','hz','ia','id','ie','ig','ii','ik','io','is','it','iu','ja','jv','ka','kg','ki','kj',
+			'kk','kl','km','kn','ko','kr','ks','ku','kv','kw','ky','la','lb','lg','li','ln','lo','lt','lu','lv',
+			'mg','mh','mi','mk','ml','mn','mr','ms','mt','my','na','nb','nd','ne','ng','nl','nn','no','nr','nv',
+			'ny','oc','oj','om','or','os','pa','pi','pl','ps','pt','qu','rm','rn','ro','ru','rw','sa','sc','sd',
+			'se','sg','si','sk','sl','sm','sn','so','sq','sr','ss','st','su','sv','sw','ta','te','tg','th','ti',
+			'tk','tl','tn','to','tr','ts','tt','tw','ty','ug','uk','ur','uz','ve','vi','vo','wa','wo','xh','yi',
+			'yo','za','zh','zu'
+		);
+		self::populateTable($languages, '#__sigplus_language', 'lang');
+
+		// country codes
+		$countries = array(
+			'AD','AE','AF','AG','AL','AM','AO','AQ','AR','AT','AU','AW','AZ','BA','BB','BD','BE','BF','BG','BH',
+			'BI','BJ','BM','BN','BO','BR','BS','BT','BW','BY','BZ','CA','CD','CF','CG','CH','CI','CL','CM','CN',
+			'CO','CR','CU','CV','CY','CZ','DE','DJ','DK','DM','DO','DZ','EC','EE','EG','EH','ER','ES','ET','FI',
+			'FJ','FM','FO','FR','GA','GB','GD','GE','GF','GH','GM','GN','GP','GQ','GR','GT','GW','GY','HN','HR',
+			'HT','HU','ID','IE','IL','IN','IO','IQ','IR','IS','IT','JE','JM','JO','JP','KE','KG','KH','KI','KM',
+			'KN','KP','KR','KW','KZ','LA','LB','LC','LI','LK','LR','LS','LT','LU','LV','LY','MA','MC','MD','ME',
+			'MG','MK','ML','MM','MN','MO','MQ','MR','MS','MU','MV','MW','MX','MY','MZ','NA','NE','NG','NI','NL',
+			'NO','NP','NZ','OM','PA','PE','PG','PH','PK','PL','PS','PT','PW','PY','QA','RE','RO','RS','RU','RW',
+			'SA','SB','SC','SD','SE','SH','SI','SK','SL','SM','SN','SO','SR','ST','SV','SY','SZ','TD','TF','TG',
+			'TH','TJ','TL','TM','TN','TR','TT','TW','TZ','UA','UG','US','UY','UZ','VC','VE','VN','VU','YE','ZA',
+			'ZM','ZW'
+		);
+		self::populateTable($countries, '#__sigplus_country', 'country');
+
+		// discard existing metadata
 		$db->setQuery('DELETE FROM '.$db->nameQuote('#__sigplus_data'));
 		$db->query();
 		$db->setQuery('DELETE FROM '.$db->nameQuote('#__sigplus_property'));
@@ -200,11 +241,7 @@ class plgContentSIGPlusInstallerScript {
 		// populate metadata store with properties
 		require_once dirname(__FILE__).DS.'core'.DS.'metadata.php';
 		$properties = SIGPlusMetadataServices::getProperties();
-		foreach ($properties as &$property) {
-			$property = '('.$db->quote($property).')';  // e.g. ('Title')
-		}
-		$db->setQuery('INSERT INTO '.$db->nameQuote('#__sigplus_property').' ('.$db->nameQuote('propertyname').') VALUES '.implode(',', $properties));
-		$db->query();
+		self::populateTable($properties, '#__sigplus_property', 'propertyname');
 	}
 }
 
