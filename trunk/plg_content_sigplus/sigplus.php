@@ -125,7 +125,7 @@ class plgContentSIGPlus extends JPlugin {
 		if (SIGPlusTimer::shortcircuit()) {
 			return false;  // short-circuit plugin activation, allotted execution time expired, error message already printed
 		}
-		
+
 		// load language file for internationalized labels and error messages
 		$lang = JFactory::getLanguage();
 		$lang->load('plg_content_sigplus', JPATH_ADMINISTRATOR);
@@ -215,7 +215,7 @@ class plgContentSIGPlus extends JPlugin {
 					case 'laconic':
 						// display a very general, uninformative message
 						$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE');
-						
+
 						// hide activation tag completely
 						$text = substr($text, 0, $start).substr($text, $end);
 						$offset = $start;
@@ -224,7 +224,7 @@ class plgContentSIGPlus extends JPlugin {
 					default:
 						// display a specific, informative message
 						$message = $e->getMessage();
-						
+
 						// leave activation tag as it appears
 						$offset = $end;
 				}
@@ -244,7 +244,7 @@ class plgContentSIGPlus extends JPlugin {
 		}
 
 		// the activation code {gallery key=value}myfolder{/gallery} translates into a source and a parameter string
-		$this->core->setParameterString(html_entity_decode($params, ENT_QUOTES, 'utf-8'));
+		$this->core->setParameterString(self::strip_html($params));
 
 		try {
 			if (is_absolute_path($imagereference)) {  // do not permit an absolute path enclosed in activation tags
@@ -291,8 +291,7 @@ class plgContentSIGPlus extends JPlugin {
 	*/
 	private function getLightboxReplacement($match) {
 		// extract parameter string
-		$paramstring = html_entity_decode($match[1], ENT_QUOTES, 'utf-8');
-		$params = SIGPlusConfigurationBase::string_to_array($paramstring);
+		$params = SIGPlusConfigurationBase::string_to_array(self::strip_html($match[1]));
 
 		// extract or create identifier
 		if (!isset($params['id'])) {
@@ -335,8 +334,7 @@ class plgContentSIGPlus extends JPlugin {
 		$replacement = $match[0];  // no replacements
 
 		// extract parameter string
-		$paramstring = html_entity_decode($match[1], ENT_QUOTES, 'utf-8');
-		$params = SIGPlusConfigurationBase::string_to_array($paramstring);
+		$params = SIGPlusConfigurationBase::string_to_array(self::strip_html($match[1]));
 
 		// apply lightbox to all items that satisfy the CSS selector
 		if (isset($params['selector'])) {
@@ -353,5 +351,11 @@ class plgContentSIGPlus extends JPlugin {
 		}
 
 		return $replacement;
+	}
+
+	private static function strip_html($html) {
+		$text = html_entity_decode($html, ENT_QUOTES, 'utf-8');  // translate HTML entities to regular characters
+		$text = str_replace("\xc2\xa0", ' ', $text);  // translate non-breaking space to regular space
+		return $text;
 	}
 }

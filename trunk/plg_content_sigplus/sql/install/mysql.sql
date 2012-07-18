@@ -1,11 +1,30 @@
 DROP TABLE IF EXISTS `#__sigplus_data`;
 DROP TABLE IF EXISTS `#__sigplus_imageview`;
+DROP TABLE IF EXISTS `#__sigplus_caption`;
 DROP TABLE IF EXISTS `#__sigplus_image`;
 DROP TABLE IF EXISTS `#__sigplus_view`;
 DROP TABLE IF EXISTS `#__sigplus_hierarchy`;
 DROP TABLE IF EXISTS `#__sigplus_foldercaption`;
 DROP TABLE IF EXISTS `#__sigplus_folder`;
 DROP TABLE IF EXISTS `#__sigplus_property`;
+DROP TABLE IF EXISTS `#__sigplus_country`;
+DROP TABLE IF EXISTS `#__sigplus_language`;
+
+CREATE TABLE `#__sigplus_language` (
+	`langid` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	-- language ISO code such as hu or en
+	`lang` CHAR(2) NOT NULL,
+	PRIMARY KEY (`langid`),
+	UNIQUE (`lang`)
+) DEFAULT CHARSET=ascii, ENGINE=InnoDB;
+
+CREATE TABLE `#__sigplus_country` (
+	`countryid` TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	-- country ISO code such as HU or US
+	`country` CHAR(2) NOT NULL,
+	PRIMARY KEY (`countryid`),
+	UNIQUE (`country`)
+) DEFAULT CHARSET=ascii, ENGINE=InnoDB;
 
 --
 -- Metadata property names.
@@ -39,13 +58,19 @@ CREATE TABLE `#__sigplus_foldercaption` (
 	`folderid` INT UNSIGNED NOT NULL,
 	-- pattern to match labels against
 	`pattern` VARCHAR(128) NOT NULL,
+	-- language associated with caption filter
+	`langid` TINYINT UNSIGNED NOT NULL,
+	-- country associated with caption filter
+	`countryid` TINYINT UNSIGNED NOT NULL,
 	-- pattern priority
 	`priority` SMALLINT UNSIGNED NOT NULL,
 	-- title for images that match pattern in folder
 	`title` VARCHAR(64000),
 	-- summary text for images that match pattern in folder
 	`summary` VARCHAR(64000),
-	PRIMARY KEY (`folderid`,`pattern`),
+	PRIMARY KEY (`folderid`,`pattern`,`langid`,`countryid`),
+	FOREIGN KEY (`langid`) REFERENCES `#__sigplus_language`(`langid`) ON DELETE CASCADE,
+	FOREIGN KEY (`countryid`) REFERENCES `#__sigplus_country`(`countryid`) ON DELETE CASCADE,
 	FOREIGN KEY (`folderid`) REFERENCES `#__sigplus_folder`(`folderid`) ON DELETE CASCADE
 ) DEFAULT CHARSET=utf8, ENGINE=InnoDB;
 
@@ -93,15 +118,31 @@ CREATE TABLE `#__sigplus_image` (
 	`fileurl` VARCHAR(767) CHARACTER SET ascii NOT NULL,
 	`filename` VARCHAR(255) NOT NULL,
 	`filetime` DATETIME,
-	`ordnum` SMALLINT UNSIGNED,
 	`width` SMALLINT UNSIGNED NOT NULL,
 	`height` SMALLINT UNSIGNED NOT NULL,
-	`title` VARCHAR(64000),
-	`summary` VARCHAR(64000),
 	PRIMARY KEY (`imageid`),
 	UNIQUE (`fileurl`),
-	INDEX (`ordnum`),
 	FOREIGN KEY (`folderid`) REFERENCES `#__sigplus_folder`(`folderid`) ON DELETE CASCADE
+) DEFAULT CHARSET=utf8, ENGINE=InnoDB;
+
+--
+-- Image captions.
+--
+
+CREATE TABLE `#__sigplus_caption` (
+	`imageid` INT UNSIGNED NOT NULL,
+	`langid` TINYINT UNSIGNED NOT NULL,
+	`countryid` TINYINT UNSIGNED NOT NULL,
+	`ordnum` SMALLINT UNSIGNED,
+	-- image title string
+	`title` VARCHAR(64000),
+	-- image description string
+	`summary` VARCHAR(64000),
+	PRIMARY KEY (`imageid`,`langid`,`countryid`),
+	INDEX (`ordnum`),
+	FOREIGN KEY (`langid`) REFERENCES `#__sigplus_language`(`langid`) ON DELETE CASCADE,
+	FOREIGN KEY (`countryid`) REFERENCES `#__sigplus_country`(`countryid`) ON DELETE CASCADE,
+	FOREIGN KEY (`imageid`) REFERENCES `#__sigplus_image`(`imageid`) ON DELETE CASCADE
 ) DEFAULT CHARSET=utf8, ENGINE=InnoDB;
 
 --

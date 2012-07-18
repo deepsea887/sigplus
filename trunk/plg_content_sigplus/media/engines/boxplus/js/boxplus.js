@@ -1595,7 +1595,7 @@
 			// check if the latest history entry has been injected by boxplus (which uses the special history state string "boxplus")
 			var hist = window.history;
 			var name = hist.state == 'boxplus' ? 'replaceState' : 'pushState';
-			
+
 			// check for history support and execute function
 			var fn = hist[name];
 			if (fn) {
@@ -1606,7 +1606,7 @@
 				}
 			}
 		},
-		
+
 		/**
 		* @param {number} index
 		*/

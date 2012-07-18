@@ -91,6 +91,9 @@ class plgButtonSIGPlus extends JPlugin {
 
 				// get permissible gallery parameters
 				$vars = get_class_vars('SIGPlusGalleryParameters');
+				
+				// get full path to MooTools
+				$mootools = JURI::root(true).'/media/system/js/mootools-core.js';
 
 				ob_start();
 				print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">';
@@ -98,7 +101,7 @@ class plgButtonSIGPlus extends JPlugin {
 				print '<head>';
 				print '<meta http-equiv="content-type" content="text/html; charset=utf-8" />';
 				print '<link rel="stylesheet" href="css/button.css" type="text/css" />';
-				print '<script type="text/javascript" src="../../system/js/mootools-core.js"></script>';
+				print '<script type="text/javascript" src="'.$mootools.'"></script>';
 				print '<script type="text/javascript" src="js/button.js"></script>';
 				print '</head>';
 				print '<body>';
