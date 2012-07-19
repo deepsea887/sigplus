@@ -38,7 +38,7 @@ class SIGPlusSlidePlusRotatorEngine extends SIGPlusRotatorEngine {
 		$instance = SIGPlusEngineServices::instance();
 		$language = JFactory::getLanguage();
 		list($lang, $country) = explode('-', $language->getTag());
-		$instance->addScript('/media/sigplus/engines/'.$this->getIdentifier().'/js/'.$this->getIdentifier().'.lang?lang='.$lang.'-'.$country.'.js');
+		//$instance->addScript('/media/sigplus/engines/'.$this->getIdentifier().'/js/'.$this->getIdentifier().'.lang?lang='.$lang.'-'.$country.'.js');
 
 		// build rotator engine options
 		$jsparams = $params->rotator_params;
