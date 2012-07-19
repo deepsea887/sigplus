@@ -581,8 +581,15 @@ class SIGPlusLabels {
 		$this->parseLabels($imagefolder, $entries, $patterns, $labelsdata);
 
 		// fetch language and country database identifier
-		$langid = SIGPlusDatabase::getLanguageId($labelsdata->language);
-		$countryid = SIGPlusDatabase::getCountryId($labelsdata->country);
+		if (isset($labelsdata)) {
+			$language = $labelsdata->language;
+			$country = $labelsdata->country;
+		} else {
+			$lang = JFactory::getLanguage();
+			list($language, $country) = explode('-', $lang->getDefault());  // site default language
+		}
+		$langid = SIGPlusDatabase::getLanguageId($language);
+		$countryid = SIGPlusDatabase::getCountryId($country);
 
 		// force type to prevent SQL injection
 		$folderid = (int) $folderid;
@@ -2195,8 +2202,8 @@ class SIGPlusCore {
 		// determine current site language
 		$lang = JFactory::getLanguage();
 		list($language, $country) = explode('-', $lang->getTag());  // site current language
-		$langid = SIGPlusDatabase::getLanguageId($language);
-		$countryid = SIGPlusDatabase::getCountryId($country);
+		$langid = (int)SIGPlusDatabase::getLanguageId($language);
+		$countryid = (int)SIGPlusDatabase::getCountryId($country);
 
 		// build SQL condition for depth
 		if ($curparams->depth >= 0) {
@@ -2224,12 +2231,12 @@ class SIGPlusCore {
 
 		// build and execute SQL query
 		$viewid = (int) $viewid;
-		$db->setQuery(
+		$query =
 			'SELECT'.PHP_EOL.
 				'i.'.$db->nameQuote('imageid').','.PHP_EOL.
-				'IFNULL('.$db->nameQuote('watermark_fileurl').', '.$db->nameQuote('fileurl').') AS '.$db->nameQuote('url').','.PHP_EOL.
-				$db->nameQuote('width').','.PHP_EOL.
-				$db->nameQuote('height').','.PHP_EOL.
+				'IFNULL(v.'.$db->nameQuote('watermark_fileurl').', i.'.$db->nameQuote('fileurl').') AS '.$db->nameQuote('url').','.PHP_EOL.
+				'i.'.$db->nameQuote('width').','.PHP_EOL.
+				'i.'.$db->nameQuote('height').','.PHP_EOL.
 				'IFNULL(c.'.$db->nameQuote('title').','.PHP_EOL.
 					'('.PHP_EOL.
 						'SELECT p.'.$db->nameQuote('title').PHP_EOL.
@@ -2261,23 +2268,29 @@ class SIGPlusCore {
 				$db->nameQuote('thumb_width').','.PHP_EOL.
 				$db->nameQuote('thumb_height').PHP_EOL.
 			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
-				'LEFT JOIN '.$db->nameQuote('#__sigplus_caption').' AS c'.PHP_EOL.
-				'ON i.'.$db->nameQuote('imageid').' = c.'.$db->nameQuote('imageid').PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
 				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_hierarchy').' AS h'.PHP_EOL.
 				'ON f.'.$db->nameQuote('folderid').' = h.'.$db->nameQuote('ancestorid').PHP_EOL.
 				'INNER JOIN '.$db->nameQuote('#__sigplus_imageview').' AS v'.PHP_EOL.
 				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
+				'LEFT JOIN '.$db->nameQuote('#__sigplus_caption').' AS c'.PHP_EOL.
+				'ON i.'.$db->nameQuote('imageid').' = c.'.$db->nameQuote('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				$db->nameQuote('langid').' = '.$langid.' AND '.PHP_EOL.
-				$db->nameQuote('countryid').' = '.$countryid.' AND '.PHP_EOL.
+				// no caption belongs to image or caption language matches site language
+				'(ISNULL(c.'.$db->nameQuote('langid').') OR c.'.$db->nameQuote('langid').' = '.$langid.') AND '.PHP_EOL.
+				'(ISNULL(c.'.$db->nameQuote('countryid').') OR c.'.$db->nameQuote('countryid').' = '.$countryid.') AND '.PHP_EOL.
+				// condition to match folder URL with (activation tag or module) source folder
 				$db->nameQuote('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
+				// condition to match folder view with activation tag or module instance
 				$db->nameQuote('viewid').' = '.$viewid.PHP_EOL.
+				// include and exclude filters or single image selection
 				$patterncond.PHP_EOL.
+				// limit on hierarchical listing
 				$depthcond.PHP_EOL.
 			'ORDER BY '.$sortorder
-		);
+		;
+		$db->setQuery($query);
 		$db->query();
 		$total = $db->getNumRows();  // get number of images in gallery
 		$rows = $db->loadRowList();
