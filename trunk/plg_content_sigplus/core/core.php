@@ -471,49 +471,50 @@ class SIGPlusLabels {
 	}
 
 	/**
-	* Finds the language-specific labels file.
-	* @param {string} $imagefolder An absolute path or URL to a directory with a labels file.
-	* @return The full path to the language-specific labels file.
+	* Finds language-specific labels files.
+	* @param {string} $imagefolder An absolute path or URL to a directory with labels files.
+	* @return {array} A list of full paths to the language-specific labels files.
 	*/
-	public function getLabelsFilePath($imagefolder) {
-		$lang = JFactory::getLanguage();
-		$data = new stdClass;
+	public function getLabelsFilePaths($imagefolder) {
+		$sources = array();
 
+		// get labels source file name components
 		$labelsname = pathinfo($this->caption_source, PATHINFO_FILENAME);
 		$labelsextn = pathinfo($this->caption_source, PATHINFO_EXTENSION);
-		$labelsextn = '.'.( $labelsextn ? $labelsextn : 'txt' );
-		if ($this->multilingual) {  // check for language-specific labels file
-			$file = $imagefolder.DS.$labelsname.'.'.$lang->getTag().$labelsextn;
-			if (is_file($file)) {
-				list($language, $country) = explode('-', $lang->getTag());  // site current language
-				$data->language = $language;
-				$data->country = $country;
-				$data->file = $file;
-				return $data;
+		$labelssuff = '.'.( $labelsextn ? $labelsextn : 'txt' );
+
+		// read default (language-neutral) labels file
+		$file = $imagefolder.DS.$labelsname.$labelssuff;  // filesystem path to labels file
+		if (is_file($file)) {
+			$lang = JFactory::getLanguage();
+			$tag = $lang->getDefault();  // use site default language
+			$sources[$tag] = $file;  // language tag has format hu-HU or en-GB
+		}
+
+		if ($this->multilingual) {
+			// look for language-specific labels files in folder
+			$files = fsx::scandir($imagefolder);
+			foreach ($files as $file) {
+				if (preg_match('#'.preg_quote($labelsname, '#').'[.]([a-z]{2}-[A-Z]{2})'.preg_quote($labelssuff, '#').'$#Su', $file, $matches)) {
+					$tag = $matches[1];
+					$file = $imagefolder.DS.$labelsname.'.'.$tag.$labelssuff;
+					if (is_file($file)) {
+						$sources[$tag] = $file;  // assignment may overwrite entry for default language
+					}
+				}
 			}
 		}
 
-		// default to language-neutral labels file
-		$file = $imagefolder.DS.$labelsname.$labelsextn;  // filesystem path to labels file
-		if (is_file($file)) {
-			list($language, $country) = explode('-', $lang->getDefault());  // site default language
-			$data->language = $language;
-			$data->country = $country;
-			$data->file = $file;
-			return $data;
-		}
-		return false;
+		return $sources;
 	}
 
 	/**
 	* Extract short captions and descriptions attached to images from a "labels.txt" file.
 	*/
-	private function parseLabels($imagefolder, &$entries = array(), &$patterns = array(), &$labelsdata = null) {
-		$labelsdata = $this->getLabelsFilePath($imagefolder);
-		if ($labelsdata === false) {
-			return false;
-		}
-		$labelspath = $labelsdata->file;
+	private function parseLabels($labelspath, &$entries = array(), &$patterns = array()) {
+		$imagefolder = dirname($labelspath);
+
+		// read file contents
 		$contents = file_get_contents($labelspath);
 		if ($contents === false) {
 			return false;
@@ -578,52 +579,18 @@ class SIGPlusLabels {
 	}
 
 	public function populate($imagefolder, $folderid) {
-		$this->parseLabels($imagefolder, $entries, $patterns, $labelsdata);
-
-		// fetch language and country database identifier
-		if (isset($labelsdata)) {
-			$language = $labelsdata->language;
-			$country = $labelsdata->country;
-		} else {
-			$lang = JFactory::getLanguage();
-			list($language, $country) = explode('-', $lang->getDefault());  // site default language
-		}
-		$langid = SIGPlusDatabase::getLanguageId($language);
-		$countryid = SIGPlusDatabase::getCountryId($country);
-
-		// force type to prevent SQL injection
-		$folderid = (int) $folderid;
-
-		// update and insert data
 		$db = JFactory::getDbo();
 		$queries = array();
 
-		// update title and description patterns
+		// force type to prevent SQL injection
+		$folderid = (int)$folderid;
+
+		// delete existing data
 		$queries[] =
 			'DELETE FROM '.$db->nameQuote('#__sigplus_foldercaption').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				$db->nameQuote('folderid').' = '.$folderid;
-		if (!empty($patterns)) {
-			$rows = array();
-			foreach ($patterns as $pattern) {
-				$row = array(
-					$folderid,
-					$db->quote($pattern->match),
-					$langid,
-					$countryid,
-					$pattern->priority,
-					$db->quote($pattern->title),
-					$db->quote($pattern->summary)
-				);
-				$rows[] = '('.implode(',',$row).')';
-			}
-
-			// add captions
-			$queries[] =
-				'INSERT INTO '.$db->nameQuote('#__sigplus_foldercaption').' (folderid, pattern, langid, countryid, priority, title, summary)'.PHP_EOL.
-				'VALUES '.implode(',',$rows)
+				$db->nameQuote('folderid').' = '.$folderid
 			;
-		}
 
 		// invalidate existing labels data
 		$queries[] =
@@ -632,31 +599,82 @@ class SIGPlusLabels {
 				'INNER JOIN '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
 				'ON c.'.$db->nameQuote('imageid').' = i.'.$db->nameQuote('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				'i.'.$db->nameQuote('folderid').' = '.$folderid.' AND '.
-				'c.'.$db->nameQuote('langid').' = '.$langid.' AND '.
-				'c.'.$db->nameQuote('countryid').' = '.$countryid
+				'i.'.$db->nameQuote('folderid').' = '.$folderid
 			;
 
-		// insert new labels data
-		if (!empty($entries)) {
-			$rows = array();
-			foreach ($entries as $entry) {
-				$row = array(
-					'(SELECT imageid FROM #__sigplus_image WHERE fileurl = '.$db->quote($entry->file).')',  // look up image identifier that belongs to unique file URL
-					$langid,
-					$countryid,
-					$entry->index,
-					$db->quote($entry->title),
-					$db->quote($entry->summary)
-				);
-				$rows[] = '('.implode(',',$row).')';
+		$sources = $this->getLabelsFilePaths($imagefolder);
+		foreach ($sources as $languagetag => $source) {
+			// fetch language and country database identifier
+			list($language, $country) = explode('-', $languagetag);
+			$langid = (int)SIGPlusDatabase::getLanguageId($language);
+			$countryid = (int)SIGPlusDatabase::getCountryId($country);
+			if (!$langid || !$countryid) {  // language does not exist
+				continue;
 			}
 
-			// add captions
-			$queries[] =
-				'INSERT INTO '.$db->nameQuote('#__sigplus_caption').' (imageid, langid, countryid, ordnum, title, summary)'.PHP_EOL.
-				'VALUES '.implode(',',$rows)
-			;
+			// extract captions and patterns from labels source
+			$this->parseLabels($source, $entries, $patterns);
+			SIGPlusLogging::appendStatus(count($entries).' caption(s) and '.count($patterns).' pattern(s) extracted from <code>'.$source.'</code>.');
+
+			// update title and description patterns
+			if (!empty($patterns)) {
+				$rows = array();
+				foreach ($patterns as $pattern) {
+					$row = array(
+						$folderid,
+						$db->quote($pattern->match),
+						$langid,
+						$countryid,
+						$pattern->priority,
+						$db->quote($pattern->title),
+						$db->quote($pattern->summary)
+					);
+					$rows[] = '('.implode(',',$row).')';
+				}
+
+				// add captions matched with patterns
+				$queries[] =
+					'INSERT INTO '.$db->nameQuote('#__sigplus_foldercaption').' ('.
+						$db->nameQuote('folderid').','.
+						$db->nameQuote('pattern').','.
+						$db->nameQuote('langid').','.
+						$db->nameQuote('countryid').','.
+						$db->nameQuote('priority').','.
+						$db->nameQuote('title').','.
+						$db->nameQuote('summary').
+					')'.PHP_EOL.
+					'VALUES '.implode(',',$rows)
+				;
+			}
+
+			// insert new labels data
+			if (!empty($entries)) {
+				$rows = array();
+				foreach ($entries as $entry) {
+					$row = array(
+						'(SELECT '.$db->nameQuote('imageid').' FROM '.$db->nameQuote('#__sigplus_image').' WHERE '.$db->nameQuote('fileurl').' = '.$db->quote($entry->file).')',  // look up image identifier that belongs to unique file URL
+						$langid,
+						$countryid,
+						$entry->index,
+						$db->quote($entry->title),
+						$db->quote($entry->summary)
+					);
+					$rows[] = '('.implode(',',$row).')';
+				}
+
+				// add captions
+				$queries[] =
+					'INSERT INTO '.$db->nameQuote('#__sigplus_caption').' ('.
+						$db->nameQuote('imageid').','.
+						$db->nameQuote('langid').','.
+						$db->nameQuote('countryid').','.
+						$db->nameQuote('ordnum').','.
+						$db->nameQuote('title').','.
+						$db->nameQuote('summary').
+					')'.PHP_EOL.
+					'VALUES '.implode(',',$rows)
+				;
+			}
 		}
 
 		SIGPlusDatabase::executeAll($queries);
@@ -1305,11 +1323,11 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	protected function getLabelsLastModified($folder, $lastmod) {
 		// get last modified time of labels file
 		$labels = new SIGPlusLabels($this->config);  // get labels file manager
-		$labelsdata = $labels->getLabelsFilePath($folder);
+		$sources = $labels->getLabelsFilePaths($folder);
 
 		// update last modified time if labels file has been changed
-		if ($labelsdata !== false) {
-			$lastmod = max($lastmod, fsx::filemtime($labelsdata->file));
+		foreach ($sources as $source) {
+			$lastmod = max($lastmod, fsx::filemtime($source));
 		}
 		return gmdate('Y-m-d H:i:s', $lastmod);  // use SQL DATE format "yyyy-mm-dd hh:nn:ss"
 	}
