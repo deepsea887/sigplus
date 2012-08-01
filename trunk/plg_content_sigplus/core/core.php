@@ -487,7 +487,7 @@ class SIGPlusLabels {
 		$file = $imagefolder.DS.$labelsname.$labelssuff;  // filesystem path to labels file
 		if (is_file($file)) {
 			$lang = JFactory::getLanguage();
-			$tag = $lang->getDefault();  // use site default language
+			$tag = $lang->getTag();  // use site default language
 			$sources[$tag] = $file;  // language tag has format hu-HU or en-GB
 		}
 
@@ -511,7 +511,10 @@ class SIGPlusLabels {
 	/**
 	* Extract short captions and descriptions attached to images from a "labels.txt" file.
 	*/
-	private function parseLabels($labelspath, &$entries = array(), &$patterns = array()) {
+	private function parseLabels($labelspath, &$entries, &$patterns) {
+		$entries = array();
+		$patterns = array();
+
 		$imagefolder = dirname($labelspath);
 
 		// read file contents
