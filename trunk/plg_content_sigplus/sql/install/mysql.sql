@@ -118,6 +118,7 @@ CREATE TABLE `#__sigplus_image` (
 	`fileurl` VARCHAR(767) CHARACTER SET ascii NOT NULL,
 	`filename` VARCHAR(255) NOT NULL,
 	`filetime` DATETIME,
+	`filesize` INT UNSIGNED NOT NULL,
 	`width` SMALLINT UNSIGNED NOT NULL,
 	`height` SMALLINT UNSIGNED NOT NULL,
 	PRIMARY KEY (`imageid`),
