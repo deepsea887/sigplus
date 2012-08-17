@@ -183,9 +183,11 @@
 				<field name="sort_criterion" type="list" default="labels-filename" label="SIGPLUS_SORT_CRITERION" description="SIGPLUS_SORT_CRITERION_DESCRIPTION">
 					<option value="labels-filename">SIGPLUS_SORT_CRITERION_LABELS_FILENAME</option>
 					<option value="labels-mtime">SIGPLUS_SORT_CRITERION_LABELS_MTIME</option>
+					<option value="labels-filesize">SIGPLUS_SORT_CRITERION_LABELS_FILESIZE</option>
 					<option value="labels-random">SIGPLUS_SORT_CRITERION_LABELS_RANDOM</option>
 					<option value="filename">SIGPLUS_SORT_CRITERION_FILENAME</option>
 					<option value="mtime">SIGPLUS_SORT_CRITERION_MTIME</option>
+					<option value="filesize">SIGPLUS_SORT_CRITERION_FILESIZE</option>
 					<option value="random">SIGPLUS_SORT_CRITERION_RANDOM</option>
 				</field>
 				<field name="sort_order" type="list" default="0" label="SIGPLUS_SORT_ORDER" description="SIGPLUS_SORT_ORDER_DESCRIPTION">
@@ -279,7 +281,7 @@
 				<field name="tag_gallery" type="text" default="gallery" label="SIGPLUS_TAG_GALLERY" description="SIGPLUS_TAG_GALLERY_DESCRIPTION" />
 				<field name="tag_lightbox" type="text" default="lightbox" label="SIGPLUS_TAG_LIGHTBOX" description="SIGPLUS_TAG_LIGHTBOX_DESCRIPTION" />
 			</fieldset>
-			<fieldset name="expert" label="SIGPLUS_FIELDSET_EXPERT">
+			<fieldset name="expert" label="SIGPLUS_FIELDSET_EXPERT" addfieldpath="plugins/content/sigplus/fields/">
 				<field name="base_url" type="text" default="" label="SIGPLUS_BASE_URL" description="SIGPLUS_BASE_URL_DESCRIPTION" />
 				<field type="spacer" hr="true" />
 				<field name="library_jsapi" type="list" default="local" label="SIGPLUS_LIBRARY_JSAPI" description="SIGPLUS_LIBRARY_JSAPI_DESCRIPTION">
@@ -305,6 +307,7 @@
 					<option value="laconic">SIGPLUS_DEBUG_LACONIC</option>
 					<option value="verbose">SIGPLUS_DEBUG_VERBOSE</option>
 				</field>
+				<field name="settings_exporter" type="exporter" label="SIGPLUS_SETTINGS_MIGRATE" description="SIGPLUS_SETTINGS_MIGRATE_DESCRIPTION" />
 			</fieldset>
 		</fields>
 	</config>

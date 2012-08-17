@@ -1225,14 +1225,15 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		}
 		SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> ['.$width.'x'.$height.'] has been added or updated.');
 
-		// image filename
+		// image filename and size
 		$filename = basename($imagepath);
+		$filesize = fsx::filesize($imagepath);
 
 		// insert main image data into database
 		$imageid = SIGPlusDatabase::replaceSingle(  // deletes rows related via foreign key constraints
 			'#__sigplus_image',
-			array('folderid','fileurl','filename','filetime','width','height'),
-			array($folderid, $imagepath, $filename, $filetime, $width, $height)
+			array('folderid','fileurl','filename','filetime','filesize','width','height'),
+			array($folderid, $imagepath, $filename, $filetime, $filesize, $width, $height)
 		);
 		SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> [id='.$imageid.', folder='.$folderid.'] has been recorded in the database.');
 
@@ -1618,6 +1619,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		// build URL query string to fetch list of photos in album
 		$feedquery = array(
 			'v' => '2.0',  // use Google Data Protocol v2.0
+			// 'prettyprint' => 'true',  // for debugging purposes only
 			'kind' => 'photo',
 			'thumbsize' => implode($crop.',', $preferred).$crop,  // preferred thumb sizes
 			'fields' => 'id,updated,entry(id,updated,media:group)'  // fetch only the listed XML elements
@@ -1681,6 +1683,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 					'folderid',
 					'fileurl',
 					'filetime',
+					'filesize',
 					'width',
 					'height'
 				),
@@ -1688,6 +1691,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 					$folderparams->id,
 					$imageurl,
 					$time,
+					0,  // information not available for Picasa albums
 					$width,
 					$height
 				),
@@ -1752,6 +1756,7 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 		$folderid = $this->insertFolder($url, $folderparams);
 
 		$metadata = null;
+		$filesize = 0;
 		$width = null;
 		$height = null;
 
@@ -1763,7 +1768,8 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 				// extract image metadata from file
 				$metadata = new SIGPlusImageMetadata($imagepath);
 
-				// image size
+				// image file size and dimensions
+				$filesize = fsx::filesize($imagepath);
 				$imagedims = getimagesize($imagepath);
 				if ($imagedims !== false) {
 					$width = $imagedims[0];
@@ -1776,8 +1782,8 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 		// insert image data into database
 		$imageid = SIGPlusDatabase::replaceSingle(  // deletes rows related via foreign key constraints
 			'#__sigplus_image',
-			array('folderid','fileurl','filename','filetime','width','height'),
-			array($folderid, $url, basename($url), $folderparams->time, $width, $height)
+			array('folderid','fileurl','filename','filetime','filesize','width','height'),
+			array($folderid, $url, basename($url), $folderparams->time, $filesize, $width, $height)
 		);
 
 		if (isset($metadata)) {
@@ -2191,6 +2197,14 @@ class SIGPlusCore {
 						$sortorder = 'ordnum DESC, filetime DESC'; break;
 				}
 				break;
+			case SIGPLUS_SORT_LABELS_OR_FILESIZE:
+				switch ($curparams->sort_order) {
+					case SIGPLUS_SORT_ASCENDING:
+						$sortorder = '-ordnum DESC, filesize ASC'; break;
+					case SIGPLUS_SORT_DESCENDING:
+						$sortorder = 'ordnum DESC, filesize DESC'; break;
+				}
+				break;
 			case SIGPLUS_SORT_LABELS_OR_RANDOM:
 				switch ($curparams->sort_order) {
 					case SIGPLUS_SORT_ASCENDING:
@@ -2205,6 +2219,14 @@ class SIGPlusCore {
 						$sortorder = 'filetime ASC'; break;
 					case SIGPLUS_SORT_DESCENDING:
 						$sortorder = 'filetime DESC'; break;
+				}
+				break;
+			case SIGPLUS_SORT_FILESIZE:
+				switch ($curparams->sort_order) {
+					case SIGPLUS_SORT_ASCENDING:
+						$sortorder = 'filesize ASC'; break;
+					case SIGPLUS_SORT_DESCENDING:
+						$sortorder = 'filesize DESC'; break;
 				}
 				break;
 			case SIGPLUS_SORT_RANDOM:

@@ -31,20 +31,24 @@
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
 require_once dirname(__FILE__).DS.'filesystem.php';
+require_once dirname(__FILE__).DS.'useragent.php';
+
+define('SIGPLUS_SORT_LABELS', 1);
 
 // sort criterion override modes
-define('SIGPLUS_SORT_FILENAME', 1);            // sort based on file name ignoring order in labels file
-define('SIGPLUS_SORT_MTIME', 2);               // sort based on last modified time ignoring order in labels file
-define('SIGPLUS_SORT_RANDOM', 4);              // random order
+define('SIGPLUS_SORT_FILENAME', 2);            // sort based on file name ignoring order in labels file
+define('SIGPLUS_SORT_MTIME', 4);               // sort based on last modified time ignoring order in labels file
+define('SIGPLUS_SORT_FILESIZE', 8);            // sort based on file size ignoring order in labels file
+define('SIGPLUS_SORT_RANDOM', 128);            // random order
+
+define('SIGPLUS_SORT_LABELS_OR_FILENAME', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_FILENAME);  // sort based on labels file with fallback to file name
+define('SIGPLUS_SORT_LABELS_OR_MTIME', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_MTIME);        // sort based on labels file with fallback to last modified time
+define('SIGPLUS_SORT_LABELS_OR_FILESIZE', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_FILESIZE);  // sort based on labels file with fallback to file size
+define('SIGPLUS_SORT_LABELS_OR_RANDOM', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_RANDOM);      // sort based on labels file with fallback to random order
 
 // sort order
 define('SIGPLUS_SORT_ASCENDING', 0);
 define('SIGPLUS_SORT_DESCENDING', 1);
-
-define('SIGPLUS_SORT_LABELS', 8);
-define('SIGPLUS_SORT_LABELS_OR_FILENAME', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_FILENAME);  // sort based on labels file with fallback to file name
-define('SIGPLUS_SORT_LABELS_OR_MTIME', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_MTIME);        // sort based on labels file with fallback to last modified time
-define('SIGPLUS_SORT_LABELS_OR_RANDOM', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_RANDOM);      // sort based on labels file with fallback to random order
 
 class SIGPlusColors {
 	/** Maps color names to color codes. */
@@ -335,7 +339,7 @@ class SIGPlusConfigurationBase {
 				$this->$key = $exactvalue;
 			} elseif (strpos($key, ':') !== false) {  // contains special instruction for pop-up window or rotator engine
 				list($engine, $key) = explode(':', $key, 2);
-				$property = $engine.'_params';  // e.g. 'lightbox_params', 'rotator_params' or 'caption_params'
+				$property = $engine.'_params';  // e.g. 'mobile_params', 'lightbox_params', 'rotator_params' or 'caption_params'
 				if (property_exists($this, $property) && is_array($this->$property)) {
 					$this->$property[$key] = $exactvalue;
 				}
@@ -1010,6 +1014,8 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	*/
 	public $classname = false;
 
+	/** Parameter overrides for handheld devices. */
+	public $mobile_params = array();
 	/** Additional parameters to pass to the lightbox engine. */
 	public $lightbox_params = array();
 	/** Additional parameters to pass to the rotator engine. */
@@ -1021,6 +1027,14 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	* Enforces that parameters are of the valid type and value.
 	*/
 	public function validate() {
+		// apply parameter overrides for handheld devices
+		if (!empty($this->mobile_params) && SIGPlusUserAgent::handheld()) {  // settings for mobile devices
+			foreach ($this->mobile_params as $key => $value) {
+				$this->$key = $value;  // override values set for desktop computers
+			}
+		}
+		
+		// force type for gallery identifier
 		$this->id = !empty($this->id) ? (string) $this->id : null;
 
 		// get engines to use
@@ -1176,20 +1190,28 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 
 		// sort criterion and sort order
 		if (is_numeric($this->sort_criterion)) {
-			$this->sort_criterion = self::as_one_of((int) $this->sort_criterion, array(SIGPLUS_SORT_LABELS_OR_FILENAME,SIGPLUS_SORT_LABELS_OR_MTIME,SIGPLUS_SORT_FILENAME,SIGPLUS_SORT_MTIME,SIGPLUS_SORT_RANDOM,SIGPLUS_SORT_LABELS_OR_RANDOM));
+			$this->sort_criterion = self::as_one_of((int) $this->sort_criterion, array(SIGPLUS_SORT_LABELS_OR_FILENAME,SIGPLUS_SORT_FILENAME,SIGPLUS_SORT_LABELS_OR_MTIME,SIGPLUS_SORT_MTIME,SIGPLUS_SORT_LABELS_OR_FILESIZE,SIGPLUS_SORT_FILESIZE,SIGPLUS_SORT_LABELS_OR_RANDOM,SIGPLUS_SORT_RANDOM));
 		} else {
 			switch ($this->sort_criterion) {
 				case 'labels':
 				case 'labels-filename':
 				case 'labels-fname':
 					$this->sort_criterion = SIGPLUS_SORT_LABELS_OR_FILENAME; break;
+				case 'labels-filemtime':
 				case 'labels-mtime':
 					$this->sort_criterion = SIGPLUS_SORT_LABELS_OR_MTIME; break;
+				case 'labels-filesize':
+				case 'labels-fsize':
+					$this->sort_criterion = SIGPLUS_SORT_LABELS_OR_FILESIZE; break;
 				case 'filename':
 				case 'fname':
 					$this->sort_criterion = SIGPLUS_SORT_FILENAME; break;
+				case 'filemtime':
 				case 'mtime':
 					$this->sort_criterion = SIGPLUS_SORT_MTIME; break;
+				case 'filesize':
+				case 'fsize':
+					$this->sort_criterion = SIGPLUS_SORT_FILESIZE; break;
 				case 'random':
 					$this->sort_criterion = SIGPLUS_SORT_RANDOM; break;
 				case 'labels-random':

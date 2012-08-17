@@ -41,11 +41,11 @@ class JFormFieldColor extends JFormField {
 
 	public function getInput() {
 		$class = ( $this->element->getAttribute('class') ? $this->element->getAttribute('class') : 'inputbox' );
-		$ctrlid = str_replace(array('[',']'), '', $this->name);
+		$ctrlid = str_replace(array('][','[',']'), array('_','_',''), $this->name);
 		$html = '<input type="text" class="'. $class .'" name="'. $this->name .'" id="'. $ctrlid .'" value="'. $this->value .'" />';
 		
 		$scriptpath = JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'fields';
-		if (file_exists($scriptpath.DS.'colorplus.min.js') || file_exists($scriptpath.DS.'js'.DS.'colorplus.js')) {
+		if (file_exists($scriptpath.DS.'js'.DS.'colorplus.min.js') || file_exists($scriptpath.DS.'js'.DS.'colorplus.js')) {
 			$buttonid = $ctrlid . '-button';
 
 			// add script declaration to header
