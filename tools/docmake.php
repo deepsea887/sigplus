@@ -9,8 +9,6 @@
 * @see      http://hunyadi.info.hu/projects/sigplus
 */
 
-define('DS', DIRECTORY_SEPARATOR);
-
 $codeblocks = array();
 
 function wiki_codeblock_save($matches) {
@@ -69,17 +67,17 @@ class DocString {
 }
 
 // load configuration XML manifest
-$configuration = simplexml_load_file(dirname(__FILE__).DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'sigplus.xml');
+$configuration = simplexml_load_file(dirname(__FILE__).DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'sigplus.xml');
 $fieldsets = $configuration->xpath('/extension/config/fields/fieldset');
 
 // load language data
-$language = parse_ini_file(dirname(__FILE__).DS.'administrator'.DS.'language'.DS.'en-GB'.DS.'en-GB.plg_content_sigplus.ini');
+$language = parse_ini_file(dirname(__FILE__).DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR.'en-GB'.DIRECTORY_SEPARATOR.'en-GB.plg_content_sigplus.ini');
 
 // load parameters
 $params = array();
 
 define('_JEXEC', 1);
-require_once dirname(__FILE__).DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'core'.DS.'params.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'params.php';
 $class = new ReflectionClass('SIGPlusGalleryParameters');
 //$docstring = new DocString($class->getDocComment());
 foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {

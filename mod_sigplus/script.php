@@ -41,7 +41,7 @@ class mod_sigplusInstallerScript {
 
 	function preflight($type, $parent) {
 		/*
-		if ((include_once JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'core'.DS.'version.php') === false || SIGPLUS_VERSION !== '$__VERSION__$') {  // available since 1.5.0
+		if ((include_once JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'version.php') === false || SIGPLUS_VERSION !== '$__VERSION__$') {  // available since 1.5.0
 			$message = 'Installing or upgrading the sigplus module requires a matching version $__VERSION__$ of the sigplus content plug-in to have been installed previously; please install or upgrade the sigplus content plug-in first.';
 			$app = JFactory::getApplication();
 			$app->enqueueMessage($message, 'error');
@@ -53,8 +53,8 @@ class mod_sigplusInstallerScript {
 
 	function postflight($type, $parent) {
 		// copy language file
-		$pluginlang = JPATH_ROOT.DS.'administrator'.DS.'language'.DS.'en-GB'.DS.'en-GB.plg_content_sigplus.ini';
-		$modulelang = JPATH_ROOT.DS.'language'.DS.'en-GB'.DS.'en-GB.mod_sigplus.ini';
+		$pluginlang = JPATH_ROOT.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR.'en-GB'.DIRECTORY_SEPARATOR.'en-GB.plg_content_sigplus.ini';
+		$modulelang = JPATH_ROOT.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR.'en-GB'.DIRECTORY_SEPARATOR.'en-GB.mod_sigplus.ini';
 		if (($data = file_get_contents($pluginlang)) !== false && ($handle = fopen($modulelang, 'a')) !== false) {
 			fwrite($handle, "\n\n");
 			fwrite($handle, $data);
@@ -62,12 +62,12 @@ class mod_sigplusInstallerScript {
 		}
 
 		// copy back-end controls
-		$sourcepath = JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'fields';
-		$targetpath = JPATH_ROOT.DS.'modules'.DS.'mod_sigplus'.DS.'fields';
+		$sourcepath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'fields';
+		$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.'mod_sigplus'.DIRECTORY_SEPARATOR.'fields';
 		$fieldfiles = scandir($sourcepath);
 		foreach ($fieldfiles as $fieldfile) {
-			if (pathinfo($sourcepath.DS.$fieldfile, PATHINFO_EXTENSION) == 'php') {
-				@copy($sourcepath.DS.$fieldfile, $targetpath.DS.$fieldfile);
+			if (pathinfo($sourcepath.DIRECTORY_SEPARATOR.$fieldfile, PATHINFO_EXTENSION) == 'php') {
+				@copy($sourcepath.DIRECTORY_SEPARATOR.$fieldfile, $targetpath.DIRECTORY_SEPARATOR.$fieldfile);
 			}
 		}
 	}

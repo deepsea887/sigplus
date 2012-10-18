@@ -40,19 +40,19 @@ class JFormFieldColor extends JFormField {
 	protected $type = 'Color';
 
 	public function getInput() {
-		$class = ( $this->element->getAttribute('class') ? $this->element->getAttribute('class') : 'inputbox' );
+		$class = ( isset($this->element['class']) ? (string)$this->element['class'] : 'inputbox' );
 		$ctrlid = str_replace(array('][','[',']'), array('_','_',''), $this->name);
 		$html = '<input type="text" class="'. $class .'" name="'. $this->name .'" id="'. $ctrlid .'" value="'. $this->value .'" />';
 		
-		$scriptpath = JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'fields';
-		if (file_exists($scriptpath.DS.'js'.DS.'colorplus.min.js') || file_exists($scriptpath.DS.'js'.DS.'colorplus.js')) {
+		$scriptpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'fields';
+		if (file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'colorplus.min.js') || file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'colorplus.js')) {
 			$buttonid = $ctrlid . '-button';
 
 			// add script declaration to header
 			JHTML::_('behavior.framework', true);  // include MooTools Core and MooTools More
 			$document = JFactory::getDocument();
 			$document->addStylesheet(JURI::root(true).'/plugins/content/sigplus/fields/css/colorplus.css');
-			if (file_exists($scriptpath.DS.'js'.DS.'colorplus.min.js') && filemtime($scriptpath.DS.'js'.DS.'colorplus.min.js') >= filemtime($scriptpath.DS.'js'.DS.'colorplus.js')) {
+			if (file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'colorplus.min.js') && filemtime($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'colorplus.min.js') >= filemtime($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'colorplus.js')) {
 				$document->addScript(JURI::root(true).'/plugins/content/sigplus/fields/js/colorplus.min.js');
 			} else {
 				$document->addScript(JURI::root(true).'/plugins/content/sigplus/fields/js/colorplus.js');

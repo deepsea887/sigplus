@@ -40,7 +40,7 @@ if (!defined('SIGPLUS_LOGGING')) {
 }
 
 // include the helper file
-require_once dirname(__FILE__).DS.'helper.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'helper.php';
 
 $galleryHTML = false;
 

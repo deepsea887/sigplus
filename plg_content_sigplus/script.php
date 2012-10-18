@@ -51,12 +51,15 @@ class plgContentSIGPlusInstallerScript {
 				break;
 			case 'update':
 				$required = '1.5';  // minimum version required for upgrade installation to succeed
-				if ((include_once JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'core'.DS.'version.php') !== false) {  // available since 1.5.0
+				if ((include_once JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'version.php') !== false) {  // available since 1.5.0
 					$current = SIGPLUS_VERSION;  // version number of installed plug-in
 					$supported = $current === '$__'.'VERSION'.'__$' || version_compare($current, $required) >= 0;  // allow upgrading experimental versions
-				} else {
-					$current = '';
+				} elseif (file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core.php')) {  // available since 1.4.x
+					$current = SIGPLUS_VERSION;
 					$supported = false;
+				} else {  // not yet installed
+					$current = '';
+					$supported = true;
 				}
 
 				if (!$supported) {
@@ -89,7 +92,7 @@ class plgContentSIGPlusInstallerScript {
 	}
 
 	private static function checkDependencies() {
-		require_once dirname(__FILE__).DS.'core'.DS.'librarian.php';
+		require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'librarian.php';
 
 		$app = JFactory::getApplication();
 		if (!is_gd_supported() && !is_imagick_supported()) {
@@ -101,7 +104,7 @@ class plgContentSIGPlusInstallerScript {
 	}
 
 	private static function copyScriptLibrary() {
-		$targetpath = JPATH_ROOT.DS.'media'.DS.'sigplus'.DS.'js'.DS.'jquery.js';
+		$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'jquery.js';
 		$sourcepaths = array(
 			'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js',
 			'http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js',
@@ -127,13 +130,13 @@ class plgContentSIGPlusInstallerScript {
 		foreach ($files as $file) {
 			if (preg_match('/(?<!\.min)\.css$/', $file)) {
 				// minify stylesheet files
-				$stylesheet = Minify_CSS_Compressor::process(file_get_contents($path.DS.$file));
+				$stylesheet = Minify_CSS_Compressor::process(file_get_contents($path.DIRECTORY_SEPARATOR.$file));
 
 				// substitute image URLs with data URIs
-				$stylesheet = SIGPlusUriSubstitution::replace($stylesheet, $path.DS.dirname($file), $count);
+				$stylesheet = SIGPlusUriSubstitution::replace($stylesheet, $path.DIRECTORY_SEPARATOR.dirname($file), $count);
 
 				// write file
-				file_put_contents($path.DS.basename($file,'.css').'.min.css', $stylesheet);
+				file_put_contents($path.DIRECTORY_SEPARATOR.basename($file,'.css').'.min.css', $stylesheet);
 			}
 		}
 	}
@@ -142,9 +145,9 @@ class plgContentSIGPlusInstallerScript {
 	* Minifies stylesheets.
 	*/
 	private static function minifyAllStylesheets() {
-		require_once dirname(__FILE__).DS.'core'.DS.'filesystem.php';
+		require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'filesystem.php';
 
-		walkdir(JPATH_ROOT.DS.'media'.DS.'sigplus', array(), -1, array(__CLASS__, 'minifyStylesheets'));
+		walkdir(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus', array(), -1, array(__CLASS__, 'minifyStylesheets'));
 	}
 
 	/**
@@ -152,13 +155,13 @@ class plgContentSIGPlusInstallerScript {
 	* @param {string} $folder The name of the folder whose contents to remove from the cache.
 	*/
 	private static function removeCacheFolder($complete = true) {
-		$folder = JPATH_ROOT.DS.'cache'.DS.'sigplus';  // use site cache folder, not administrator cache folder
+		$folder = JPATH_ROOT.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'sigplus';  // use site cache folder, not administrator cache folder
 		if (file_exists($folder)) {
 			$files = scandir($folder);
 			if ($files !== false) {
 				foreach ($files as $file) {
 					if ($file[0] != '.') {  // skip parent directory entries and hidden files
-						unlink($folder.DS.$file);
+						unlink($folder.DIRECTORY_SEPARATOR.$file);
 					}
 				}
 				if ($complete) {
@@ -173,12 +176,12 @@ class plgContentSIGPlusInstallerScript {
 	*/
 	private static function updateDatabase() {
 		$db = JFactory::getDBO();
-		$uninstall = file_get_contents(dirname(__FILE__).DS.'sql'.DS.'uninstall'.DS.'mysql.sql');
+		$uninstall = file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'uninstall'.DIRECTORY_SEPARATOR.'mysql.sql');
 		if ($uninstall !== false) {
 			$db->setQuery($uninstall);
 			$db->queryBatch();
 		}
-		$install = file_get_contents(dirname(__FILE__).DS.'sql'.DS.'install'.DS.'mysql.sql');
+		$install = file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'install'.DIRECTORY_SEPARATOR.'mysql.sql');
 		if ($install !== false) {
 			$db->setQuery($install);
 			$db->queryBatch();
@@ -190,7 +193,7 @@ class plgContentSIGPlusInstallerScript {
 		foreach ($values as &$item) {
 			$item = '('.$db->quote($item).')';  // e.g. ('Title')
 		}
-		$db->setQuery('INSERT INTO '.$db->nameQuote($table).' ('.$db->nameQuote($field).') VALUES '.implode(',', $values));
+		$db->setQuery('INSERT INTO '.$db->quoteName($table).' ('.$db->quoteName($field).') VALUES '.implode(',', $values));
 		$db->query();
 	}
 	
@@ -232,14 +235,14 @@ class plgContentSIGPlusInstallerScript {
 		self::populateTable($countries, '#__sigplus_country', 'country');
 
 		// discard existing metadata
-		$db->setQuery('DELETE FROM '.$db->nameQuote('#__sigplus_data'));
+		$db->setQuery('DELETE FROM '.$db->quoteName('#__sigplus_data'));
 		$db->query();
-		$db->setQuery('DELETE FROM '.$db->nameQuote('#__sigplus_property'));
+		$db->setQuery('DELETE FROM '.$db->quoteName('#__sigplus_property'));
 		$db->query();
-		$db->setQuery('ALTER TABLE '.$db->nameQuote('#__sigplus_property').' AUTO_INCREMENT = 1');
+		$db->setQuery('ALTER TABLE '.$db->quoteName('#__sigplus_property').' AUTO_INCREMENT = 1');
 
 		// populate metadata store with properties
-		require_once dirname(__FILE__).DS.'core'.DS.'metadata.php';
+		require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'metadata.php';
 		$properties = SIGPlusMetadataServices::getProperties();
 		self::populateTable($properties, '#__sigplus_property', 'propertyname');
 	}
@@ -273,7 +276,7 @@ class SIGPlusUriSubstitution {
 		if ($url[0] == '"' || $url == "'") {  // unquote quoted strings
 			$url = trim($url, $url[0]);
 		}
-		$path = $this->root.DS.str_replace('/', DS, $url);
+		$path = $this->root.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $url);
 		if (file_exists($path) && ($imagedata = getimagesize($path)) !== false) {
 			return 'url("'.self::datauri($imagedata['mime'], file_get_contents($path)).'")';
 		} else {

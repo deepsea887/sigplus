@@ -109,16 +109,16 @@ class plgSearchSIGPlus extends JPlugin {
 		foreach ($words as $word) {
 			// images whose metadata contain the given word
 			$wherewords[] =
-				'i.'.$db->nameQuote('imageid').' IN ('.PHP_EOL.
-					'SELECT wi.'.$db->nameQuote('imageid').PHP_EOL.
-					'FROM '.$db->nameQuote('#__sigplus_image').' AS wi'.PHP_EOL.
-						'LEFT JOIN '.$db->nameQuote('#__sigplus_data').' AS wd'.PHP_EOL.
-						'ON wi.'.$db->nameQuote('imageid').' = wd.'.$db->nameQuote('imageid').PHP_EOL.
+				'i.'.$db->quoteName('imageid').' IN ('.PHP_EOL.
+					'SELECT wi.'.$db->quoteName('imageid').PHP_EOL.
+					'FROM '.$db->quoteName('#__sigplus_image').' AS wi'.PHP_EOL.
+						'LEFT JOIN '.$db->quoteName('#__sigplus_data').' AS wd'.PHP_EOL.
+						'ON wi.'.$db->quoteName('imageid').' = wd.'.$db->quoteName('imageid').PHP_EOL.
 					'WHERE'.PHP_EOL.
-						'wi.'.$db->nameQuote('filename').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
-						'wi.'.$db->nameQuote('title').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
-						'wi.'.$db->nameQuote('summary').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
-						'wd.'.$db->nameQuote('textvalue').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).PHP_EOL.
+						'wi.'.$db->quoteName('filename').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
+						'wi.'.$db->quoteName('title').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
+						'wi.'.$db->quoteName('summary').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
+						'wd.'.$db->quoteName('textvalue').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).PHP_EOL.
 				')';
 		}
 		switch ($phrase) {
@@ -154,39 +154,39 @@ class plgSearchSIGPlus extends JPlugin {
 		// build database query
 		$query =
 			'SELECT'.PHP_EOL.
-				$db->nameQuote('fileurl').' AS url,'.PHP_EOL.
-				$db->nameQuote('filename').','.PHP_EOL.
-				$db->nameQuote('filetime').','.PHP_EOL.
-				$db->nameQuote('width').','.PHP_EOL.
-				$db->nameQuote('height').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('title').','.PHP_EOL.
+				$db->quoteName('fileurl').' AS url,'.PHP_EOL.
+				$db->quoteName('filename').','.PHP_EOL.
+				$db->quoteName('filetime').','.PHP_EOL.
+				$db->quoteName('width').','.PHP_EOL.
+				$db->quoteName('height').','.PHP_EOL.
+				'IFNULL(i.'.$db->quoteName('title').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT c.'.$db->nameQuote('title').PHP_EOL.
-						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'SELECT c.'.$db->quoteName('title').PHP_EOL.
+						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS c'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
-						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+							'i.'.$db->quoteName('filename').' LIKE c.'.$db->quoteName('pattern').' AND '.PHP_EOL.
+							'i.'.$db->quoteName('folderid').' = c.'.$db->quoteName('folderid').PHP_EOL.
+						'ORDER BY c.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
-				') AS '.$db->nameQuote('title').','.PHP_EOL.
-				'IFNULL(i.'.$db->nameQuote('summary').','.PHP_EOL.
+				') AS '.$db->quoteName('title').','.PHP_EOL.
+				'IFNULL(i.'.$db->quoteName('summary').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT c.'.$db->nameQuote('summary').PHP_EOL.
-						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'SELECT c.'.$db->quoteName('summary').PHP_EOL.
+						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS c'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'i.'.$db->nameQuote('filename').' LIKE c.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('folderid').' = c.'.$db->nameQuote('folderid').PHP_EOL.
-						'ORDER BY c.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+							'i.'.$db->quoteName('filename').' LIKE c.'.$db->quoteName('pattern').' AND '.PHP_EOL.
+							'i.'.$db->quoteName('folderid').' = c.'.$db->quoteName('folderid').PHP_EOL.
+						'ORDER BY c.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
-				') AS '.$db->nameQuote('summary').','.PHP_EOL.
-				$db->nameQuote('preview_fileurl').','.PHP_EOL.
-				$db->nameQuote('preview_width').','.PHP_EOL.
-				$db->nameQuote('preview_height').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
-				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_imageview').' AS v'.PHP_EOL.
-				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
+				') AS '.$db->quoteName('summary').','.PHP_EOL.
+				$db->quoteName('preview_fileurl').','.PHP_EOL.
+				$db->quoteName('preview_width').','.PHP_EOL.
+				$db->quoteName('preview_height').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_image').' AS i'.PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_folder').' AS f'.PHP_EOL.
+				'ON i.'.$db->quoteName('folderid').' = f.'.$db->quoteName('folderid').PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_imageview').' AS v'.PHP_EOL.
+				'ON i.'.$db->quoteName('imageid').' = v.'.$db->quoteName('imageid').PHP_EOL.
 			'WHERE '.$where.PHP_EOL.
 			'ORDER BY '.$orderby;
 		$db->setQuery($query, 0, $this->limit);

@@ -239,7 +239,7 @@ class fsx_unix implements fsx_functions {
 			if (!is_regular_file($filename)) {
 				continue;
 			}
-			$files[$filename] = filemtime($dir.DS.$filename);
+			$files[$filename] = filemtime($dir.DIRECTORY_SEPARATOR.$filename);
 		}
 		closedir($dh);
 		return $files;
@@ -402,9 +402,9 @@ function walkdir($path, array $exclude = array(), $depth = 0, $callback = null, 
 		$files = array();
 		foreach ($entries as $entry) {
 			if ($entry{0} != '.' && !in_array($entry, $exclude)) {  // skip hidden files, special directory entries "." and "..", and excluded entries
-				if (is_file($path.DS.$entry)) {
+				if (is_file($path.DIRECTORY_SEPARATOR.$entry)) {
 					$files[] = $entry;
-				} elseif (is_dir($path.DS.$entry)) {
+				} elseif (is_dir($path.DIRECTORY_SEPARATOR.$entry)) {
 					$folders[] = $entry;
 				}
 			}
@@ -431,9 +431,9 @@ function walkdir($path, array $exclude = array(), $depth = 0, $callback = null, 
 		if ($depth < 0 || $depth > 0) {
 			foreach ($folders as $folder) {
 				if (isset($ancestors)) {
-					walkdir($path.DS.$folder, $exclude, $depth - 1, $callback, $ancestors);
+					walkdir($path.DIRECTORY_SEPARATOR.$folder, $exclude, $depth - 1, $callback, $ancestors);
 				} else {
-					walkdir($path.DS.$folder, $exclude, $depth - 1, $callback);
+					walkdir($path.DIRECTORY_SEPARATOR.$folder, $exclude, $depth - 1, $callback);
 				}
 			}
 		}
@@ -481,7 +481,7 @@ function safeurlencode($url) {
 * URL-encodes all components of a path.
 */
 function pathurlencode($path) {
-	$parts = explode('/', strtr($path, DS, '/'));
+	$parts = explode('/', strtr($path, DIRECTORY_SEPARATOR, '/'));
 	foreach ($parts as &$part) {
 		$part = rawurlencode($part);
 	}
@@ -511,7 +511,7 @@ function is_regular_file($filename) {
 }
 
 function is_filename($filename) {
-	return strpos(strtr($filename, DS, '/'), '/') === false;
+	return strpos(strtr($filename, DIRECTORY_SEPARATOR, '/'), '/') === false;
 }
 
 /**
@@ -557,8 +557,8 @@ function get_folder_last_modified($dir, $depth = 0) {
 		// scan directory for last modified descandant folder
 		if ($dh = @opendir($dir)) {
 			while (($entry = readdir($dh)) !== false) {
-				if ($entry != '.' && $entry != '..' && is_dir($dir.DS.$entry)) {
-					$mtime = max($mtime, get_folder_last_modified($dir.DS.$entry, $depth - 1));
+				if ($entry != '.' && $entry != '..' && is_dir($dir.DIRECTORY_SEPARATOR.$entry)) {
+					$mtime = max($mtime, get_folder_last_modified($dir.DIRECTORY_SEPARATOR.$entry, $depth - 1));
 				}
 			}
 			closedir($dh);

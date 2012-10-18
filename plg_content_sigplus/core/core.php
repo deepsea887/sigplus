@@ -30,11 +30,11 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-require_once dirname(__FILE__).DS.'version.php';
-require_once dirname(__FILE__).DS.'exception.php';
-require_once dirname(__FILE__).DS.'params.php';
-require_once dirname(__FILE__).DS.'imagegenerator.php';
-require_once dirname(__FILE__).DS.'engines.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'version.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'exception.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'params.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'imagegenerator.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'engines.php';
 
 define('SIGPLUS_TEST', 0);
 define('SIGPLUS_CREATE', 1);
@@ -82,7 +82,7 @@ class SIGPlusHTMLLogging implements SIGPlusLoggingService {
 		$document = JFactory::getDocument();
 
 		//$document->addScript(JURI::base(true).'/media/sigplus/js/log.js');  // language-neutral
-		$script = file_get_contents(JPATH_ROOT.DS.'media'.DS.'sigplus'.DS.'js'.DS.'log.js');
+		$script = file_get_contents(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'log.js');
 		if ($script !== false) {
 			$script = str_replace(array("'Show'","'Hide'"), array("'".JText::_('JSHOW')."'","'".JText::_('JHIDE')."'"), $script);
 			$document->addScriptDeclaration($script);
@@ -221,7 +221,7 @@ class SIGPlusDatabase {
 
 		// quote identifier names
 		foreach ($cols as &$col) {
-			$col = $db->nameQuote($col);
+			$col = $db->quoteName($col);
 		}
 		return $cols;
 	}
@@ -263,10 +263,10 @@ class SIGPlusDatabase {
 		$db = JFactory::getDbo();
 		$db->setQuery(
 			'SELECT'.PHP_EOL.
-				$db->nameQuote('langid').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_language').PHP_EOL.
+				$db->quoteName('langid').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_language').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				$db->nameQuote('lang').' = '.$db->quote($language)
+				$db->quoteName('lang').' = '.$db->quote($language)
 		);
 		return $db->loadResult();
 	}
@@ -278,10 +278,10 @@ class SIGPlusDatabase {
 		$db = JFactory::getDbo();
 		$db->setQuery(
 			'SELECT'.PHP_EOL.
-				$db->nameQuote('countryid').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_country').PHP_EOL.
+				$db->quoteName('countryid').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_country').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				$db->nameQuote('country').' = '.$db->quote($country)
+				$db->quoteName('country').' = '.$db->quote($country)
 		);
 		return $db->loadResult();
 	}
@@ -324,7 +324,7 @@ class SIGPlusDatabase {
 
 		if (!empty($rows)) {
 			return
-				'INSERT INTO '.$db->nameQuote($table).' ('.implode(',',$cols).')'.PHP_EOL.
+				'INSERT INTO '.$db->quoteName($table).' ('.implode(',',$cols).')'.PHP_EOL.
 				'VALUES '.implode(',',$rows).PHP_EOL.
 				'ON DUPLICATE KEY UPDATE '.implode(', ',$update);
 		} else {
@@ -357,7 +357,7 @@ class SIGPlusDatabase {
 		// quote identifier names
 		$cols = self::quoteColumns($cols);
 		if (isset($lastkey)) {
-			$lastkey = $db->nameQuote($lastkey);
+			$lastkey = $db->quoteName($lastkey);
 		}
 
 		// build update closure
@@ -374,7 +374,7 @@ class SIGPlusDatabase {
 		$values = '('.implode(',',$values).')';
 
 		$db->setQuery(
-			'INSERT INTO '.$db->nameQuote($table).' ('.implode(',',$cols).')'.PHP_EOL.
+			'INSERT INTO '.$db->quoteName($table).' ('.implode(',',$cols).')'.PHP_EOL.
 			'VALUES '.$values.PHP_EOL.
 			'ON DUPLICATE KEY UPDATE '.implode(', ',$update)
 		);
@@ -396,7 +396,7 @@ class SIGPlusDatabase {
 		$values = '('.implode(',',$values).')';
 
 		$db->setQuery(
-			'REPLACE INTO '.$db->nameQuote($table).' ('.implode(',',$cols).')'.PHP_EOL.
+			'REPLACE INTO '.$db->quoteName($table).' ('.implode(',',$cols).')'.PHP_EOL.
 			'VALUES '.$values
 		);
 		$db->query();
@@ -484,7 +484,7 @@ class SIGPlusLabels {
 		$labelssuff = '.'.( $labelsextn ? $labelsextn : 'txt' );
 
 		// read default (language-neutral) labels file
-		$file = $imagefolder.DS.$labelsname.$labelssuff;  // filesystem path to labels file
+		$file = $imagefolder.DIRECTORY_SEPARATOR.$labelsname.$labelssuff;  // filesystem path to labels file
 		if (is_file($file)) {
 			$lang = JFactory::getLanguage();
 			$tag = $lang->getTag();  // use site default language
@@ -497,7 +497,7 @@ class SIGPlusLabels {
 			foreach ($files as $file) {
 				if (preg_match('#'.preg_quote($labelsname, '#').'[.]([a-z]{2}-[A-Z]{2})'.preg_quote($labelssuff, '#').'$#Su', $file, $matches)) {
 					$tag = $matches[1];
-					$file = $imagefolder.DS.$labelsname.'.'.$tag.$labelssuff;
+					$file = $imagefolder.DIRECTORY_SEPARATOR.$labelsname.'.'.$tag.$labelssuff;
 					if (is_file($file)) {
 						$sources[$tag] = $file;  // assignment may overwrite entry for default language
 					}
@@ -561,12 +561,12 @@ class SIGPlusLabels {
 				if (is_url_http($imagefile)) {  // a URL to a remote image
 					$imagefile = safeurlencode($imagefile);
 				} else {  // a local image
-					$imagefile = str_replace('/', DS, $imagefile);
-					$imagefile = file_exists_case_insensitive($imagefolder.DS.$imagefile);
+					$imagefile = str_replace('/', DIRECTORY_SEPARATOR, $imagefile);
+					$imagefile = file_exists_case_insensitive($imagefolder.DIRECTORY_SEPARATOR.$imagefile);
 					if ($imagefile === false) {  // check that image file truly exists
 						continue;
 					}
-					$imagefile = $imagefolder.DS.$imagefile;
+					$imagefile = $imagefolder.DIRECTORY_SEPARATOR.$imagefile;
 				}
 
 				// prepare data for injection into database
@@ -590,19 +590,19 @@ class SIGPlusLabels {
 
 		// delete existing data
 		$queries[] =
-			'DELETE FROM '.$db->nameQuote('#__sigplus_foldercaption').PHP_EOL.
+			'DELETE FROM '.$db->quoteName('#__sigplus_foldercaption').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				$db->nameQuote('folderid').' = '.$folderid
+				$db->quoteName('folderid').' = '.$folderid
 			;
 
 		// invalidate existing labels data
 		$queries[] =
 			'DELETE c'.PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_caption').' AS c'.PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
-				'ON c.'.$db->nameQuote('imageid').' = i.'.$db->nameQuote('imageid').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_caption').' AS c'.PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_image').' AS i'.PHP_EOL.
+				'ON c.'.$db->quoteName('imageid').' = i.'.$db->quoteName('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				'i.'.$db->nameQuote('folderid').' = '.$folderid
+				'i.'.$db->quoteName('folderid').' = '.$folderid
 			;
 
 		$sources = $this->getLabelsFilePaths($imagefolder);
@@ -637,14 +637,14 @@ class SIGPlusLabels {
 
 				// add captions matched with patterns
 				$queries[] =
-					'INSERT INTO '.$db->nameQuote('#__sigplus_foldercaption').' ('.
-						$db->nameQuote('folderid').','.
-						$db->nameQuote('pattern').','.
-						$db->nameQuote('langid').','.
-						$db->nameQuote('countryid').','.
-						$db->nameQuote('priority').','.
-						$db->nameQuote('title').','.
-						$db->nameQuote('summary').
+					'INSERT INTO '.$db->quoteName('#__sigplus_foldercaption').' ('.
+						$db->quoteName('folderid').','.
+						$db->quoteName('pattern').','.
+						$db->quoteName('langid').','.
+						$db->quoteName('countryid').','.
+						$db->quoteName('priority').','.
+						$db->quoteName('title').','.
+						$db->quoteName('summary').
 					')'.PHP_EOL.
 					'VALUES '.implode(',',$rows)
 				;
@@ -655,7 +655,7 @@ class SIGPlusLabels {
 				$rows = array();
 				foreach ($entries as $entry) {
 					$row = array(
-						'(SELECT '.$db->nameQuote('imageid').' FROM '.$db->nameQuote('#__sigplus_image').' WHERE '.$db->nameQuote('fileurl').' = '.$db->quote($entry->file).')',  // look up image identifier that belongs to unique file URL
+						'(SELECT '.$db->quoteName('imageid').' FROM '.$db->quoteName('#__sigplus_image').' WHERE '.$db->quoteName('fileurl').' = '.$db->quote($entry->file).')',  // look up image identifier that belongs to unique file URL
 						$langid,
 						$countryid,
 						$entry->index,
@@ -667,13 +667,13 @@ class SIGPlusLabels {
 
 				// add captions
 				$queries[] =
-					'INSERT INTO '.$db->nameQuote('#__sigplus_caption').' ('.
-						$db->nameQuote('imageid').','.
-						$db->nameQuote('langid').','.
-						$db->nameQuote('countryid').','.
-						$db->nameQuote('ordnum').','.
-						$db->nameQuote('title').','.
-						$db->nameQuote('summary').
+					'INSERT INTO '.$db->quoteName('#__sigplus_caption').' ('.
+						$db->quoteName('imageid').','.
+						$db->quoteName('langid').','.
+						$db->quoteName('countryid').','.
+						$db->quoteName('ordnum').','.
+						$db->quoteName('title').','.
+						$db->quoteName('summary').
 					')'.PHP_EOL.
 					'VALUES '.implode(',',$rows)
 				;
@@ -694,7 +694,7 @@ class SIGPlusImageMetadata {
 	public function __construct($imagepath) {
 		$this->imagepath = $imagepath;
 
-		require_once dirname(__FILE__).DS.'metadata.php';
+		require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'metadata.php';
 		$this->metadata = SIGPlusMetadataServices::getImageMetadata($imagepath);
 	}
 
@@ -886,7 +886,7 @@ abstract class SIGPlusGalleryBase {
 
 		if (isset($viewid)) {
 			$viewid = (int) $viewid;
-			$cond = ' AND '.$db->nameQuote('viewid').' = '.$viewid;
+			$cond = ' AND '.$db->quoteName('viewid').' = '.$viewid;
 		} else {
 			$cond = '';
 		}
@@ -894,15 +894,15 @@ abstract class SIGPlusGalleryBase {
 		// verify if preview image parameters for the folder have changed
 		$db->setQuery(
 			'SELECT'.PHP_EOL.
-				$db->nameQuote('preview_fileurl').','.PHP_EOL.
-				$db->nameQuote('preview_filetime').','.PHP_EOL.
-				$db->nameQuote('thumb_fileurl').','.PHP_EOL.
-				$db->nameQuote('thumb_filetime').','.PHP_EOL.
-				$db->nameQuote('watermark_fileurl').','.PHP_EOL.
-				$db->nameQuote('watermark_filetime').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_imageview').PHP_EOL.
+				$db->quoteName('preview_fileurl').','.PHP_EOL.
+				$db->quoteName('preview_filetime').','.PHP_EOL.
+				$db->quoteName('thumb_fileurl').','.PHP_EOL.
+				$db->quoteName('thumb_filetime').','.PHP_EOL.
+				$db->quoteName('watermark_fileurl').','.PHP_EOL.
+				$db->quoteName('watermark_filetime').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_imageview').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				$db->nameQuote('imageid').' = '.$imageid.$cond
+				$db->quoteName('imageid').' = '.$imageid.$cond
 		);
 		$rows = $db->loadRowList();
 
@@ -918,9 +918,9 @@ abstract class SIGPlusGalleryBase {
 
 			// remove entries from the database
 			$db->setQuery(
-				'DELETE FROM '.$db->nameQuote('#__sigplus_imageview').PHP_EOL.
+				'DELETE FROM '.$db->quoteName('#__sigplus_imageview').PHP_EOL.
 				'WHERE'.PHP_EOL.
-					$db->nameQuote('imageid').' = '.$imageid.$cond
+					$db->quoteName('imageid').' = '.$imageid.$cond
 			);
 			$db->query();
 		}
@@ -935,10 +935,10 @@ abstract class SIGPlusGalleryBase {
 		$folderid = (int) $folderid;
 		$db->setQuery(
 			'SELECT'.PHP_EOL.
-				$db->nameQuote('imageid').','.PHP_EOL.
-				$db->nameQuote('fileurl').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_image').PHP_EOL.
-			'WHERE '.$db->nameQuote('folderid').' = '.$folderid
+				$db->quoteName('imageid').','.PHP_EOL.
+				$db->quoteName('fileurl').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_image').PHP_EOL.
+			'WHERE '.$db->quoteName('folderid').' = '.$folderid
 		);
 		$rows = $db->loadRowList();
 
@@ -958,8 +958,8 @@ abstract class SIGPlusGalleryBase {
 
 			if (!empty($missing)) {
 				$db->setQuery(
-					'DELETE FROM '.$db->nameQuote('#__sigplus_image').PHP_EOL.
-					'WHERE '.$db->nameQuote('imageid').' IN ('.implode(',',$missing).')'
+					'DELETE FROM '.$db->quoteName('#__sigplus_image').PHP_EOL.
+					'WHERE '.$db->quoteName('imageid').' IN ('.implode(',',$missing).')'
 				);
 				$db->query();
 			}
@@ -970,15 +970,15 @@ abstract class SIGPlusGalleryBase {
 		$folderid = (int) $folderid;
 		$db->setQuery(
 			'SELECT'.PHP_EOL.
-				'i.'.$db->nameQuote('imageid').','.PHP_EOL.
-				'i.'.$db->nameQuote('viewid').','.PHP_EOL.
-				'i.'.$db->nameQuote('thumb_fileurl').','.PHP_EOL.
-				'i.'.$db->nameQuote('preview_fileurl').','.PHP_EOL.
-				'i.'.$db->nameQuote('watermark_fileurl').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_imageview').' AS i'.PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_view').' AS f'.PHP_EOL.
-				'ON i.'.$db->nameQuote('viewid').' = f.'.$db->nameQuote('viewid').PHP_EOL.
-			'WHERE f.'.$db->nameQuote('folderid').' = '.$folderid
+				'i.'.$db->quoteName('imageid').','.PHP_EOL.
+				'i.'.$db->quoteName('viewid').','.PHP_EOL.
+				'i.'.$db->quoteName('thumb_fileurl').','.PHP_EOL.
+				'i.'.$db->quoteName('preview_fileurl').','.PHP_EOL.
+				'i.'.$db->quoteName('watermark_fileurl').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_imageview').' AS i'.PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_view').' AS f'.PHP_EOL.
+				'ON i.'.$db->quoteName('viewid').' = f.'.$db->quoteName('viewid').PHP_EOL.
+			'WHERE f.'.$db->quoteName('folderid').' = '.$folderid
 		);
 		$rows = $db->loadRowList();
 
@@ -1004,8 +1004,8 @@ abstract class SIGPlusGalleryBase {
 			return;  // images are not set to be generated in cache folder
 		}
 
-		$thumb_folder = JPATH_CACHE.DS.str_replace('/', DS, $this->config->service->folder_thumb);
-		$preview_folder = JPATH_CACHE.DS.str_replace('/', DS, $this->config->service->folder_preview);
+		$thumb_folder = JPATH_CACHE.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $this->config->service->folder_thumb);
+		$preview_folder = JPATH_CACHE.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $this->config->service->folder_preview);
 		if (file_exists($thumb_folder) && file_exists($preview_folder)) {
 			return;  // thumb and preview folder not removed
 		}
@@ -1019,10 +1019,10 @@ abstract class SIGPlusGalleryBase {
 
 		// remove views from database with deleted image files
 		$db->setQuery(
-			'DELETE FROM '.$db->nameQuote('#__sigplus_imageview').PHP_EOL.
+			'DELETE FROM '.$db->quoteName('#__sigplus_imageview').PHP_EOL.
 			'WHERE'.PHP_EOL.
-				$db->nameQuote('thumb_fileurl').' LIKE '.$thumb_pattern.' OR '.
-				$db->nameQuote('preview_fileurl').' LIKE '.$preview_pattern
+				$db->quoteName('thumb_fileurl').' LIKE '.$thumb_pattern.' OR '.
+				$db->quoteName('preview_fileurl').' LIKE '.$preview_pattern
 		);
 		$db->query();
 	}
@@ -1095,7 +1095,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 				throw new SIGPlusFolderPermissionException($directory);
 			}
 			// create an index.html to prevent getting a web directory listing
-			@file_put_contents($directory.DS.'index.html', '<html><body></body></html>');
+			@file_put_contents($directory.DIRECTORY_SEPARATOR.'index.html', '<html><body></body></html>');
 		}
 	}
 
@@ -1107,7 +1107,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		if (!$this->config->service->folder_fullsize) {
 			return $imagepath;
 		}
-		$fullsizepath = dirname($imagepath).DS.str_replace('/', DS, $this->config->service->folder_fullsize).DS.basename($imagepath);
+		$fullsizepath = dirname($imagepath).DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $this->config->service->folder_fullsize).DIRECTORY_SEPARATOR.basename($imagepath);
 		if (!is_file($fullsizepath)) {
 			return $imagepath;
 		}
@@ -1122,11 +1122,11 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	private function getWatermarkPath($imagedirectory) {
 		$watermark_image = $this->config->gallery->watermark_source;
 		// look inside image gallery folder (e.g. "images/stories/myfolder")
-		$watermark_in_gallery = $imagedirectory.DS.$watermark_image;
+		$watermark_in_gallery = $imagedirectory.DIRECTORY_SEPARATOR.$watermark_image;
 		// look inside watermark subfolder of image gallery folder (e.g. "images/stories/myfolder/watermark")
-		$watermark_in_subfolder = $imagedirectory.DS.str_replace('/', DS, $this->config->service->folder_watermark).DS.$watermark_image;
+		$watermark_in_subfolder = $imagedirectory.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $this->config->service->folder_watermark).DIRECTORY_SEPARATOR.$watermark_image;
 		// look inside base path (e.g. "images/stories")
-		$watermark_in_base = $this->config->service->base_folder.DS.$watermark_image;
+		$watermark_in_base = $this->config->service->base_folder.DIRECTORY_SEPARATOR.$watermark_image;
 
 		if (is_file($watermark_in_gallery)) {
 			return $watermark_in_gallery;
@@ -1146,15 +1146,15 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	*/
 	private function getGeneratedImagePath($generatedfolder, $imagepath, SIGPlusImageParameters $params, $action = SIGPLUS_TEST) {
 		if ($this->config->service->cache_image) {  // images are set to be generated in cache folder
-			$directory = JPATH_CACHE.DS.str_replace('/', DS, $generatedfolder);
-			$path = $directory.DS.$params->getHash($imagepath);  // hash original image file paths to avoid name conflicts
+			$directory = JPATH_CACHE.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
+			$path = $directory.DIRECTORY_SEPARATOR.$params->getHash($imagepath);  // hash original image file paths to avoid name conflicts
 		} else {  // images are set to be generated inside folders within the directory where the images are
-			$directory = dirname($imagepath).DS.str_replace('/', DS, $generatedfolder);
+			$directory = dirname($imagepath).DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
 			$subfolder = $params->getNamingPrefix();
 			if ($subfolder) {
-				$directory .= DS.$subfolder;
+				$directory .= DIRECTORY_SEPARATOR.$subfolder;
 			}
-			$path = $directory.DS.basename($imagepath);
+			$path = $directory.DIRECTORY_SEPARATOR.basename($imagepath);
 		}
 		switch ($action) {
 			case SIGPLUS_TEST:
@@ -1204,7 +1204,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	protected function populateImage($imagepath, $folderid) {
 		// check if file has been modified since its data have been injected into the database
 		$db = JFactory::getDbo();
-		$db->setQuery('SELECT '.$db->nameQuote('filetime').' FROM '.$db->nameQuote('#__sigplus_image').' WHERE '.$db->nameQuote('fileurl').' = '.$db->quote($imagepath));
+		$db->setQuery('SELECT '.$db->quoteName('filetime').' FROM '.$db->quoteName('#__sigplus_image').' WHERE '.$db->quoteName('fileurl').' = '.$db->quote($imagepath));
 		$time = $db->loadResult();
 		$filetime = fsx::filemdate($imagepath);
 		if ($time == $filetime) {
@@ -1307,14 +1307,14 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		$db = JFactory::getDbo();
 		$db->setQuery(
 			'SELECT'.PHP_EOL.
-				'i.'.$db->nameQuote('fileurl').','.PHP_EOL.
-				'i.'.$db->nameQuote('imageid').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
-				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_hierarchy').' AS h'.PHP_EOL.
-				'ON f.'.$db->nameQuote('folderid').' = h.'.$db->nameQuote('ancestorid').PHP_EOL.
-			'WHERE i.'.$db->nameQuote('folderid').' = '.$folderid.' AND NOT EXISTS (SELECT * FROM '.$db->nameQuote('#__sigplus_imageview').' AS v WHERE i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').' AND v.'.$db->nameQuote('viewid').' = '.$viewid.')'.$depthcond
+				'i.'.$db->quoteName('fileurl').','.PHP_EOL.
+				'i.'.$db->quoteName('imageid').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_image').' AS i'.PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_folder').' AS f'.PHP_EOL.
+				'ON i.'.$db->quoteName('folderid').' = f.'.$db->quoteName('folderid').PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_hierarchy').' AS h'.PHP_EOL.
+				'ON f.'.$db->quoteName('folderid').' = h.'.$db->quoteName('ancestorid').PHP_EOL.
+			'WHERE i.'.$db->quoteName('folderid').' = '.$folderid.' AND NOT EXISTS (SELECT * FROM '.$db->quoteName('#__sigplus_imageview').' AS v WHERE i.'.$db->quoteName('imageid').' = v.'.$db->quoteName('imageid').' AND v.'.$db->quoteName('viewid').' = '.$viewid.')'.$depthcond
 		);
 		return $db->loadRowList();
 	}
@@ -1362,9 +1362,9 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 	private function purgeLocalFolder($url) {
 		$db = JFactory::getDbo();
 		$db->setQuery(
-			'SELECT '.$db->nameQuote('folderid').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_folder').PHP_EOL.
-			'WHERE '.$db->nameQuote('folderurl').' = '.$db->quote($url)
+			'SELECT '.$db->quoteName('folderid').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_folder').PHP_EOL.
+			'WHERE '.$db->quoteName('folderurl').' = '.$db->quote($url)
 		);
 		$folderid = $db->loadResult();
 		if ($folderid) {
@@ -1387,8 +1387,8 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 		// scan list of files
 		$entries = array();
 		foreach ($files as $file) {
-			if (self::is_image_file($path.DS.$file)) {
-				$entry = $this->populateImage($path.DS.$file, $folderid);
+			if (self::is_image_file($path.DIRECTORY_SEPARATOR.$file)) {
+				$entry = $this->populateImage($path.DIRECTORY_SEPARATOR.$file, $folderid);
 				if ($entry !== false) {
 					$entries[] = $entry;
 				}
@@ -1846,10 +1846,10 @@ class SIGPlusCore {
 	private function getImageGalleryPath($entry) {
 		$root = $this->config->base_folder;
 		if (!is_absolute_path($this->config->base_folder)) {
-			$root = JPATH_ROOT.DS.$root;
+			$root = JPATH_ROOT.DIRECTORY_SEPARATOR.$root;
 		}
 		if ($entry) {
-			return $root.DS.str_replace('/', DS, $entry);  // replace '/' with platform-specific directory separator
+			return $root.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $entry);  // replace '/' with platform-specific directory separator
 		} else {
 			return $root;
 		}
@@ -1942,11 +1942,11 @@ class SIGPlusCore {
 	*/
 	public function makeURL($url) {
 		if (is_absolute_path($url)) {
-			if (strpos($url, JPATH_CACHE.DS) === 0) {  // file is inside cache folder
-				$path = substr($url, strlen(JPATH_CACHE.DS));
+			if (strpos($url, JPATH_CACHE.DIRECTORY_SEPARATOR) === 0) {  // file is inside cache folder
+				$path = substr($url, strlen(JPATH_CACHE.DIRECTORY_SEPARATOR));
 				$url = JURI::base(true).'/cache/'.pathurlencode($path);
-			} elseif (strpos($url, $this->config->base_folder.DS) === 0) {  // file is inside base folder
-				$path = substr($url, strlen($this->config->base_folder.DS));
+			} elseif (strpos($url, $this->config->base_folder.DIRECTORY_SEPARATOR) === 0) {  // file is inside base folder
+				$path = substr($url, strlen($this->config->base_folder.DIRECTORY_SEPARATOR));
 				$url = $this->config->base_url.'/'.pathurlencode($path);
 			} else {
 				return false;
@@ -2019,15 +2019,15 @@ class SIGPlusCore {
 		$imageid = (int) $imageid;
 		$db->setQuery(
 			'SELECT'.PHP_EOL.
-				$db->nameQuote('fileurl').','.PHP_EOL.
-				$db->nameQuote('filename').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
-				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_hierarchy').' AS h'.PHP_EOL.
-				'ON f.'.$db->nameQuote('folderid').' = h.'.$db->nameQuote('ancestorid').PHP_EOL.
-			'WHERE '.$db->nameQuote('folderurl').' = '.$db->quote($source).PHP_EOL.
-				'AND '.$db->nameQuote('imageid').' = '.$imageid.$depthcond
+				$db->quoteName('fileurl').','.PHP_EOL.
+				$db->quoteName('filename').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_image').' AS i'.PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_folder').' AS f'.PHP_EOL.
+				'ON i.'.$db->quoteName('folderid').' = f.'.$db->quoteName('folderid').PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_hierarchy').' AS h'.PHP_EOL.
+				'ON f.'.$db->quoteName('folderid').' = h.'.$db->quoteName('ancestorid').PHP_EOL.
+			'WHERE '.$db->quoteName('folderurl').' = '.$db->quote($source).PHP_EOL.
+				'AND '.$db->quoteName('imageid').' = '.$imageid.$depthcond
 		);
 		$row = $db->loadRow();
 		if ($row) {
@@ -2166,7 +2166,7 @@ class SIGPlusCore {
 
 		// get properties of folder stored in the database
 		$db = JFactory::getDbo();
-		$db->setQuery('SELECT '.$db->nameQuote('folderid').', '.$db->nameQuote('foldertime').', '.$db->nameQuote('entitytag').' FROM '.$db->nameQuote('#__sigplus_folder').' WHERE '.$db->nameQuote('folderurl').' = '.$db->quote($source));
+		$db->setQuery('SELECT '.$db->quoteName('folderid').', '.$db->quoteName('foldertime').', '.$db->quoteName('entitytag').' FROM '.$db->quoteName('#__sigplus_folder').' WHERE '.$db->quoteName('folderurl').' = '.$db->quote($source));
 		$result = $db->loadRow();
 
 		$folderparams = new SIGPlusFolderParameters();
@@ -2260,14 +2260,14 @@ class SIGPlusCore {
 		if (is_array($curparams->filter_include)) {
 			$subcond = array();
 			foreach ($curparams->filter_include as $expr) {
-				$subcond[] = $db->nameQuote('filename').' LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
+				$subcond[] = $db->quoteName('filename').' LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
 			}
 			$patterncond .= ' AND ('.implode(' OR ', $subcond).')';
 		}
 		if (is_array($curparams->filter_exclude)) {
 			$subcond = array();
 			foreach ($curparams->filter_exclude as $expr) {
-				$subcond[] = $db->nameQuote('filename').' NOT LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
+				$subcond[] = $db->quoteName('filename').' NOT LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
 			}
 			$patterncond .= ' AND ('.implode(' AND ', $subcond).')';
 		}
@@ -2276,57 +2276,57 @@ class SIGPlusCore {
 		$viewid = (int) $viewid;
 		$query =
 			'SELECT'.PHP_EOL.
-				'i.'.$db->nameQuote('imageid').','.PHP_EOL.
-				'IFNULL(v.'.$db->nameQuote('watermark_fileurl').', i.'.$db->nameQuote('fileurl').') AS '.$db->nameQuote('url').','.PHP_EOL.
-				'i.'.$db->nameQuote('width').','.PHP_EOL.
-				'i.'.$db->nameQuote('height').','.PHP_EOL.
-				'IFNULL(c.'.$db->nameQuote('title').','.PHP_EOL.
+				'i.'.$db->quoteName('imageid').','.PHP_EOL.
+				'IFNULL(v.'.$db->quoteName('watermark_fileurl').', i.'.$db->quoteName('fileurl').') AS '.$db->quoteName('url').','.PHP_EOL.
+				'i.'.$db->quoteName('width').','.PHP_EOL.
+				'i.'.$db->quoteName('height').','.PHP_EOL.
+				'IFNULL(c.'.$db->quoteName('title').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT p.'.$db->nameQuote('title').PHP_EOL.
-						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS p'.PHP_EOL.
+						'SELECT p.'.$db->quoteName('title').PHP_EOL.
+						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS p'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'p.'.$db->nameQuote('langid').' = '.$langid.' AND '.PHP_EOL.
-							'p.'.$db->nameQuote('countryid').' = '.$countryid.' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('filename').' LIKE p.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('folderid').' = p.'.$db->nameQuote('folderid').PHP_EOL.
-						'ORDER BY p.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+							'p.'.$db->quoteName('langid').' = '.$langid.' AND '.PHP_EOL.
+							'p.'.$db->quoteName('countryid').' = '.$countryid.' AND '.PHP_EOL.
+							'i.'.$db->quoteName('filename').' LIKE p.'.$db->quoteName('pattern').' AND '.PHP_EOL.
+							'i.'.$db->quoteName('folderid').' = p.'.$db->quoteName('folderid').PHP_EOL.
+						'ORDER BY p.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
-				') AS '.$db->nameQuote('title').','.PHP_EOL.
-				'IFNULL(c.'.$db->nameQuote('summary').','.PHP_EOL.
+				') AS '.$db->quoteName('title').','.PHP_EOL.
+				'IFNULL(c.'.$db->quoteName('summary').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT p.'.$db->nameQuote('summary').PHP_EOL.
-						'FROM '.$db->nameQuote('#__sigplus_foldercaption').' AS p'.PHP_EOL.
+						'SELECT p.'.$db->quoteName('summary').PHP_EOL.
+						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS p'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'p.'.$db->nameQuote('langid').' = '.$langid.' AND '.PHP_EOL.
-							'p.'.$db->nameQuote('countryid').' = '.$countryid.' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('filename').' LIKE p.'.$db->nameQuote('pattern').' AND '.PHP_EOL.
-							'i.'.$db->nameQuote('folderid').' = p.'.$db->nameQuote('folderid').PHP_EOL.
-						'ORDER BY p.'.$db->nameQuote('priority').' LIMIT 1'.PHP_EOL.
+							'p.'.$db->quoteName('langid').' = '.$langid.' AND '.PHP_EOL.
+							'p.'.$db->quoteName('countryid').' = '.$countryid.' AND '.PHP_EOL.
+							'i.'.$db->quoteName('filename').' LIKE p.'.$db->quoteName('pattern').' AND '.PHP_EOL.
+							'i.'.$db->quoteName('folderid').' = p.'.$db->quoteName('folderid').PHP_EOL.
+						'ORDER BY p.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
-				') AS '.$db->nameQuote('summary').','.PHP_EOL.
-				$db->nameQuote('preview_fileurl').','.PHP_EOL.
-				$db->nameQuote('preview_width').','.PHP_EOL.
-				$db->nameQuote('preview_height').','.PHP_EOL.
-				$db->nameQuote('thumb_fileurl').','.PHP_EOL.
-				$db->nameQuote('thumb_width').','.PHP_EOL.
-				$db->nameQuote('thumb_height').PHP_EOL.
-			'FROM '.$db->nameQuote('#__sigplus_image').' AS i'.PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_folder').' AS f'.PHP_EOL.
-				'ON i.'.$db->nameQuote('folderid').' = f.'.$db->nameQuote('folderid').PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_hierarchy').' AS h'.PHP_EOL.
-				'ON f.'.$db->nameQuote('folderid').' = h.'.$db->nameQuote('ancestorid').PHP_EOL.
-				'INNER JOIN '.$db->nameQuote('#__sigplus_imageview').' AS v'.PHP_EOL.
-				'ON i.'.$db->nameQuote('imageid').' = v.'.$db->nameQuote('imageid').PHP_EOL.
-				'LEFT JOIN '.$db->nameQuote('#__sigplus_caption').' AS c'.PHP_EOL.
-				'ON i.'.$db->nameQuote('imageid').' = c.'.$db->nameQuote('imageid').PHP_EOL.
+				') AS '.$db->quoteName('summary').','.PHP_EOL.
+				$db->quoteName('preview_fileurl').','.PHP_EOL.
+				$db->quoteName('preview_width').','.PHP_EOL.
+				$db->quoteName('preview_height').','.PHP_EOL.
+				$db->quoteName('thumb_fileurl').','.PHP_EOL.
+				$db->quoteName('thumb_width').','.PHP_EOL.
+				$db->quoteName('thumb_height').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_image').' AS i'.PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_folder').' AS f'.PHP_EOL.
+				'ON i.'.$db->quoteName('folderid').' = f.'.$db->quoteName('folderid').PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_hierarchy').' AS h'.PHP_EOL.
+				'ON f.'.$db->quoteName('folderid').' = h.'.$db->quoteName('ancestorid').PHP_EOL.
+				'INNER JOIN '.$db->quoteName('#__sigplus_imageview').' AS v'.PHP_EOL.
+				'ON i.'.$db->quoteName('imageid').' = v.'.$db->quoteName('imageid').PHP_EOL.
+				'LEFT JOIN '.$db->quoteName('#__sigplus_caption').' AS c'.PHP_EOL.
+				'ON i.'.$db->quoteName('imageid').' = c.'.$db->quoteName('imageid').PHP_EOL.
 			'WHERE'.PHP_EOL.
 				// no caption belongs to image or caption language matches site language
-				'(ISNULL(c.'.$db->nameQuote('langid').') OR c.'.$db->nameQuote('langid').' = '.$langid.') AND '.PHP_EOL.
-				'(ISNULL(c.'.$db->nameQuote('countryid').') OR c.'.$db->nameQuote('countryid').' = '.$countryid.') AND '.PHP_EOL.
+				'(ISNULL(c.'.$db->quoteName('langid').') OR c.'.$db->quoteName('langid').' = '.$langid.') AND '.PHP_EOL.
+				'(ISNULL(c.'.$db->quoteName('countryid').') OR c.'.$db->quoteName('countryid').' = '.$countryid.') AND '.PHP_EOL.
 				// condition to match folder URL with (activation tag or module) source folder
-				$db->nameQuote('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
+				$db->quoteName('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
 				// condition to match folder view with activation tag or module instance
-				$db->nameQuote('viewid').' = '.$viewid.PHP_EOL.
+				$db->quoteName('viewid').' = '.$viewid.PHP_EOL.
 				// include and exclude filters or single image selection
 				$patterncond.PHP_EOL.
 				// limit on hierarchical listing

@@ -184,10 +184,10 @@ class SIGPlusEngineServices {
 			$extension = '';
 		}
 
-		$path = JPATH_ROOT.str_replace('/', DS, $relpath);
+		$path = JPATH_ROOT.str_replace('/', DIRECTORY_SEPARATOR, $relpath);
 		$dir = pathinfo($path, PATHINFO_DIRNAME);
-		$original = $dir.DS.$basename;
-		$minified = $dir.DS.$filename.'.min'.$extension;
+		$original = $dir.DIRECTORY_SEPARATOR.$basename;
+		$minified = $dir.DIRECTORY_SEPARATOR.$filename.'.min'.$extension;
 		if (!$this->debug && (!file_exists($original) || file_exists($minified) && filemtime($minified) >= filemtime($original))) {
 			return $folder.'/'.$filename.'.min'.$extension;
 		} else {
@@ -270,8 +270,8 @@ class SIGPlusEngineServices {
 	* Appends the contents of a JavaScript file to the code to be run on the HTML DOM ready event.
 	*/
 	public function addOnReadyScriptFile($path, array $map = array()) {
-		$path = str_replace('/', DS, $this->getResourceRelativePath($path));
-		if ($contents = file_get_contents(JPATH_BASE.DS.$path)) {
+		$path = str_replace('/', DIRECTORY_SEPARATOR, $this->getResourceRelativePath($path));
+		if ($contents = file_get_contents(JPATH_BASE.DIRECTORY_SEPARATOR.$path)) {
 			$searchmap = array();
 			foreach ($map as $key => $value) {
 				$searchmap['{$__'.$key.'__$}'] = addslashes($value);
@@ -354,7 +354,7 @@ abstract class SIGPlusEngine {
 
 		// add right-to-left reading order stylesheet (if available)
 		$language = JFactory::getLanguage();
-		if ($language->isRTL() && file_exists(JPATH_ROOT.DS.'media'.DS.'sigplus'.DS.'engines'.DS.$this->getIdentifier().DS.'css'.$this->getIdentifier().'.rtl.css')) {
+		if ($language->isRTL() && file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'engines'.DIRECTORY_SEPARATOR.$this->getIdentifier().DIRECTORY_SEPARATOR.'css'.$this->getIdentifier().'.rtl.css')) {
 			$instance->addStylesheet('/media/sigplus/engines/'.$this->getIdentifier().'/css/'.$this->getIdentifier().'.rtl.css');
 		}
 	}
@@ -394,8 +394,8 @@ abstract class SIGPlusEngine {
 		}
 
 		$engineclass = 'SIGPlus'.$engine.$enginetype.'Engine';
-		$enginedir = dirname(__FILE__).DS.'..'.DS.'engines';
-		if (is_file($enginefile = $enginedir.DS.$enginetype.DS.$engine.'.php') || is_file($enginefile = $enginedir.DS.$enginetype.DS.$engine.'.php')) {
+		$enginedir = dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'engines';
+		if (is_file($enginefile = $enginedir.DIRECTORY_SEPARATOR.$enginetype.DIRECTORY_SEPARATOR.$engine.'.php') || is_file($enginefile = $enginedir.DIRECTORY_SEPARATOR.$enginetype.DIRECTORY_SEPARATOR.$engine.'.php')) {
 			require_once $enginefile;
 		}
 		if (class_exists($engineclass)) {

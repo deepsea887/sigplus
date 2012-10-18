@@ -73,7 +73,7 @@ class SIGPlusFileSystemException extends SIGPlusException {
 	protected $file;
 
 	public function __construct($key, $file) {
-		$this->file = str_replace(array(JPATH_ROOT,DS), array('<em>'.JText::_('SIGPLUS_ROOT').'</em>','/'), $file);
+		$this->file = str_replace(array(JPATH_ROOT,DIRECTORY_SEPARATOR), array('<em>'.JText::_('SIGPLUS_ROOT').'</em>','/'), $file);
 		parent::__construct($key);
 	}
 }
@@ -106,7 +106,7 @@ class SIGPlusTextFormatException extends SIGPlusException {
 	protected $textfile;
 
 	public function __construct($textfile) {
-		$this->textfile = str_replace(array(JPATH_ROOT,DS), array('<em>root</em>','/'), $textfile);
+		$this->textfile = str_replace(array(JPATH_ROOT,DIRECTORY_SEPARATOR), array('<em>root</em>','/'), $textfile);
 		parent::__construct('SIGPLUS_EXCEPTION_TEXTFORMAT');
 	}
 }
