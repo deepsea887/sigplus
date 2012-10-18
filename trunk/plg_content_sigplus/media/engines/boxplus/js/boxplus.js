@@ -36,7 +36,7 @@
 
 ;
 (function ($) {
-	$extend(Element['NativeEvents'], {
+	Object.append(Element['NativeEvents'], {
 		'popstate': 2,
 		'dragstart': 2  // listen to browser-native drag-and-drop events
 	});
@@ -462,7 +462,7 @@
 		* @return {string}
 		*/
 		_class: function (cls) {
-			return $splat(cls).map(function (selector) {
+			return Array.from(cls).map(function (selector) {
 				return selector.replace(/\b([\w-]+)/g, '.boxplus-$1');
 			}).join(', ');
 		},
@@ -898,11 +898,11 @@
 					// build custom HTML string of nested <object> elements with the specified dimensions and attributes
 
 					self.viewerobject.set('html',
-						'<object' + _getAsAttributeList($merge({
+						'<object' + _getAsAttributeList(Object.merge({
 							'classid': 'clsid:' + classid
 						}, dims)) + '>' +
 						_getAsParameterList(attrs) +
-						'<!--[if lt IE 9]><!--><object' + _getAsAttributeList($merge({
+						'<!--[if lt IE 9]><!--><object' + _getAsAttributeList(Object.merge({
 							'type': type,
 							'data': href
 						}, dims)) + '>' + dialog.getMessage('unknown-type').replace('%s', type) + '</object><!--<![endif]-->' +
@@ -910,7 +910,7 @@
 					);
 				} else {  // /\.swf$/i.test(path)
 					// classid = 'D27CDB6E-AE6D-11cf-96B8-444553540000';
-					new Swiff(href, $merge({
+					new Swiff(href, Object.merge({
 						'container': self.viewerobject,
 						'params': {
 							'allowFullScreen': true
@@ -1200,7 +1200,7 @@
 				'link': 'cancel',
 				'transition': self['options']['transition']
 			};
-			var morph = new Fx.Morph(self.popup, $merge(params, {
+			var morph = new Fx.Morph(self.popup, Object.merge(params, {
 				'onComplete': function () {
 					// clear forced height of center panel, the pop-up window dimensions should allow for bottom and sideways panel
 					self.centerpanel.setStyle('height', 'auto');
@@ -1222,7 +1222,7 @@
 					// invoke callback if defined
 					callback && callback();
 
-					new Fx.Morph(self.popup, $merge(params, {
+					new Fx.Morph(self.popup, Object.merge(params, {
 						'onComplete': function () {
 							self.setAvailable('bottom', true);
 							self.setAvailable('sideways', true);
@@ -1427,10 +1427,10 @@
 			// interpret settings
 			self['setOptions'](options);
 			if (options) {
-				self._getTitle = $pick(options['getTitle'], self._getTitle);
-				self._getText = $pick(options['getText'], self._getText);
-				self._getDownloadUrl = $pick(options['getDownloadUrl'], self._getDownloadUrl);
-				self._getMetadata = $pick(options['getMetadata'], self._getMetadata);
+				self._getTitle = [options['getTitle'], self._getTitle].pick();
+				self._getText = [options['getText'], self._getText].pick();
+				self._getDownloadUrl = [options['getDownloadUrl'], self._getDownloadUrl].pick();
+				self._getMetadata = [options['getMetadata'], self._getMetadata].pick();
 			}
 
 			// click event bindings
@@ -1470,7 +1470,7 @@
 
 			// add thumbnails
 			dialog.addThumbs($$(self._anchors.map(function (anchor) {
-				var image = $pick(anchor.retrieve('thumb'), anchor.getElement('img'));  // use thumbnail associated with anchor (via element storage) or find an image child
+				var image = [anchor.retrieve('thumb'), anchor.getElement('img')].pick();  // use thumbnail associated with anchor (via element storage) or find an image child
 				if (image) {
 					// thumbnail image source, inspecting all candidate attributes
 					var attrthumb = image.get('data-thumb');
@@ -1702,7 +1702,7 @@
 	});
 
 	// create constructor and add static methods
-	$extend(window['boxplus'] = boxplus, {
+	Object.append(window['boxplus'] = boxplus, {
 		/**
 		* List of custom URL parser functions.
 		*/

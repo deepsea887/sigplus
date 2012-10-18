@@ -26,7 +26,7 @@
 		return rgba;
 	}
 
-	$extend(Element['NativeEvents'], {
+	Object.append(Element['NativeEvents'], {
 		'dragstart': 2  // listen to browser-native drag-and-drop events
 	});
 

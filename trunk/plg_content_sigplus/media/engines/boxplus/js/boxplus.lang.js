@@ -217,7 +217,7 @@
 			unknownType: ''
 		};
 		if (code) {
-			$extend(localization, localizations[code])
+			Object.append(localization, localizations[code])
 		}
 
 		// maps possibly minified property names to their expanded (true) name
@@ -239,7 +239,7 @@
 		};
 
 		// apply language strings
-		$each(localization, function (value, key) {
+		Object.each(localization, function (value, key) {
 			var name = mapping[key];
 			$$('div.boxplus-' + name).set('title', value);
 			$$('a.boxplus-' + name).set('html', value);
