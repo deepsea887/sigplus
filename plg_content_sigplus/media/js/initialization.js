@@ -82,7 +82,7 @@ function __sigplusCaption(id, titletemplate, summarytemplate) {
 		};
 
 		function _subs(template, text) {
-			return template.substitute($merge({'text': text || ''}, replacement), /\\?\{\$([^{}]+)\}/g);
+			return template.substitute(Object.merge({'text': text || ''}, replacement), /\\?\{\$([^{}]+)\}/g);
 		}
 		
 		function _subsattr(elem, attr, template) {

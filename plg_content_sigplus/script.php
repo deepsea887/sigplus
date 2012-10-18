@@ -175,16 +175,22 @@ class plgContentSIGPlusInstallerScript {
 	* Drops and re-creates all tables in the database.
 	*/
 	private static function updateDatabase() {
+		self::executeQueryInFile(dirname(__FILE__).DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'uninstall'.DIRECTORY_SEPARATOR.'mysql.sql');
+		self::executeQueryInFile(dirname(__FILE__).DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'install'.DIRECTORY_SEPARATOR.'mysql.sql');
+	}
+
+	private static function executeQueryInFile($file) {
 		$db = JFactory::getDBO();
-		$uninstall = file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'uninstall'.DIRECTORY_SEPARATOR.'mysql.sql');
-		if ($uninstall !== false) {
-			$db->setQuery($uninstall);
-			$db->queryBatch();
-		}
-		$install = file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.'install'.DIRECTORY_SEPARATOR.'mysql.sql');
-		if ($install !== false) {
-			$db->setQuery($install);
-			$db->queryBatch();
+		$contents = file_get_contents($file);
+		if ($contents !== false) {
+			$queries = $db->splitSql($contents);
+			foreach ($queries as $query) {
+				$query = trim($query);
+				if ($query) {  // skip empty queries
+					$db->setQuery($query);
+					$db->execute();
+				}
+			}
 		}
 	}
 
@@ -194,9 +200,9 @@ class plgContentSIGPlusInstallerScript {
 			$item = '('.$db->quote($item).')';  // e.g. ('Title')
 		}
 		$db->setQuery('INSERT INTO '.$db->quoteName($table).' ('.$db->quoteName($field).') VALUES '.implode(',', $values));
-		$db->query();
+		$db->execute();
 	}
-	
+
 	/**
 	* Populates the database.
 	*/
@@ -236,9 +242,9 @@ class plgContentSIGPlusInstallerScript {
 
 		// discard existing metadata
 		$db->setQuery('DELETE FROM '.$db->quoteName('#__sigplus_data'));
-		$db->query();
+		$db->execute();
 		$db->setQuery('DELETE FROM '.$db->quoteName('#__sigplus_property'));
-		$db->query();
+		$db->execute();
 		$db->setQuery('ALTER TABLE '.$db->quoteName('#__sigplus_property').' AUTO_INCREMENT = 1');
 
 		// populate metadata store with properties

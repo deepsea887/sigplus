@@ -339,7 +339,7 @@ class SIGPlusDatabase {
 		if (($statement = self::getInsertBatchStatement($table, $cols, $rows, $keys, $constants)) !== false) {
 			$db = JFactory::getDbo();
 			$db->setQuery($statement);
-			$db->query();  // execute query
+			$db->execute();
 		}
 	}
 
@@ -378,7 +378,7 @@ class SIGPlusDatabase {
 			'VALUES '.$values.PHP_EOL.
 			'ON DUPLICATE KEY UPDATE '.implode(', ',$update)
 		);
-		$db->query();
+		$db->execute();
 		if (isset($lastkey)) {
 			$db->setQuery('SELECT LAST_INSERT_ID()');
 			return (int) $db->loadResult();
@@ -399,15 +399,21 @@ class SIGPlusDatabase {
 			'REPLACE INTO '.$db->quoteName($table).' ('.implode(',',$cols).')'.PHP_EOL.
 			'VALUES '.$values
 		);
-		$db->query();
+		$db->execute();
 		$db->setQuery('SELECT LAST_INSERT_ID()');
 		return (int) $db->loadResult();
 	}
 
 	public static function executeAll(array $queries) {
 		$db = JFactory::getDbo();
-		$db->setQuery(implode('; ', $queries));
-		$db->queryBatch(true, true);  // execute as one transaction
+		
+		// execute as one transaction
+		$db->transactionStart();
+		foreach ($queries as $query) {
+			$db->setQuery($query);
+			$db->execute();
+		}
+		$db->transactionCommit();
 	}
 }
 
@@ -922,7 +928,7 @@ abstract class SIGPlusGalleryBase {
 				'WHERE'.PHP_EOL.
 					$db->quoteName('imageid').' = '.$imageid.$cond
 			);
-			$db->query();
+			$db->execute();
 		}
 	}
 
@@ -961,7 +967,7 @@ abstract class SIGPlusGalleryBase {
 					'DELETE FROM '.$db->quoteName('#__sigplus_image').PHP_EOL.
 					'WHERE '.$db->quoteName('imageid').' IN ('.implode(',',$missing).')'
 				);
-				$db->query();
+				$db->execute();
 			}
 		}
 
@@ -1024,7 +1030,7 @@ abstract class SIGPlusGalleryBase {
 				$db->quoteName('thumb_fileurl').' LIKE '.$thumb_pattern.' OR '.
 				$db->quoteName('preview_fileurl').' LIKE '.$preview_pattern
 		);
-		$db->query();
+		$db->execute();
 	}
 }
 
@@ -2334,7 +2340,7 @@ class SIGPlusCore {
 			'ORDER BY '.$sortorder
 		;
 		$db->setQuery($query);
-		$db->query();
+		$db->execute();
 		$total = $db->getNumRows();  // get number of images in gallery
 		$rows = $db->loadRowList();
 
@@ -2448,6 +2454,7 @@ class SIGPlusCore {
 			$curparams = $this->paramstack->top();  // current gallery parameters
 
 			$instance = SIGPlusEngineServices::instance();
+			$instance->addMooTools();
 			$instance->addScript('/media/sigplus/js/initialization.js');  // unwrap all galleries from protective <noscript> container
 
 			if (SIGPLUS_CAPTION_CLIENT) {  // client-side template replacement
