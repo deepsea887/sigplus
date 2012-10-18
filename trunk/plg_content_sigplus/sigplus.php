@@ -52,7 +52,7 @@ if (!defined('SIGPLUS_LOGGING')) {
 // import library dependencies
 jimport('joomla.event.plugin');
 
-require_once dirname(__FILE__).DS.'core'.DS.'core.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'core.php';
 
 /**
 * sigplus Image Gallery Plus plug-in.

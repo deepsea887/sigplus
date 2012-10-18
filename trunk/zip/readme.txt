@@ -1,7 +1,7 @@
 
 sigplus: an image gallery distribution for Joomla
 
-Copyright 2009-2011 Levente Hunyadi
+Copyright 2009-2012 Levente Hunyadi
 http://hunyadi.info.hu/projects/sigplus
 
 

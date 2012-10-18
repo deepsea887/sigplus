@@ -783,7 +783,7 @@
 				};
 
 				// set image
-				self.viewerimage.set('src', $(image).get('src')).removeClass(BOXPLUS_UNAVAILABLE);
+				self.viewerimage.set('src', image.src).set(self._imagedims).removeClass(BOXPLUS_UNAVAILABLE);
 
 				// set download availability
 				self._url = url;

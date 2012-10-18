@@ -154,9 +154,11 @@
 				<field name="sort_criterion" type="list" default="labels-filename" label="SIGPLUS_SORT_CRITERION" description="SIGPLUS_SORT_CRITERION_DESCRIPTION">
 					<option value="labels-filename">SIGPLUS_SORT_CRITERION_LABELS_FILENAME</option>
 					<option value="labels-mtime">SIGPLUS_SORT_CRITERION_LABELS_MTIME</option>
+					<option value="labels-filesize">SIGPLUS_SORT_CRITERION_LABELS_FILESIZE</option>
 					<option value="labels-random">SIGPLUS_SORT_CRITERION_LABELS_RANDOM</option>
 					<option value="filename">SIGPLUS_SORT_CRITERION_FILENAME</option>
 					<option value="mtime">SIGPLUS_SORT_CRITERION_MTIME</option>
+					<option value="filesize">SIGPLUS_SORT_CRITERION_FILESIZE</option>
 					<option value="random">SIGPLUS_SORT_CRITERION_RANDOM</option>
 				</field>
 				<field name="sort_order" type="list" default="0" label="SIGPLUS_SORT_ORDER" description="SIGPLUS_SORT_ORDER_DESCRIPTION">
@@ -234,6 +236,8 @@
 				<field name="quality" type="text" default="85" label="SIGPLUS_IMAGE_QUALITY" description="SIGPLUS_IMAGE_QUALITY_DESCRIPTION" />
 				<field type="spacer" hr="true" />
 				<field name="id" type="text" label="SIGPLUS_IDENTIFIER" description="SIGPLUS_IDENTIFIER_DESCRIPTION" />
+				<field type="spacer" hr="true" />
+				<field name="settings_exporter" type="exporter" label="SIGPLUS_SETTINGS_MIGRATE" description="SIGPLUS_SETTINGS_MIGRATE_DESCRIPTION" />
 			</fieldset>
 		</fields>
 	</config>

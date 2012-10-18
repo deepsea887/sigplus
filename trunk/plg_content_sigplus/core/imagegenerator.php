@@ -30,7 +30,7 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-require_once dirname(__FILE__).DS.'librarian.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'librarian.php';
 
 class SIGPlusImageLibrary {
 	/**

@@ -32,7 +32,7 @@ defined('JPATH_BASE') or die();
 
 jimport('joomla.form.formfield');
 
-require_once JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'core'.DS.'librarian.php';
+require_once JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'librarian.php';
 
 /**
 * Renders a control that lists all supported image processing libraries.
@@ -70,13 +70,13 @@ class JFormFieldImageLibraryList extends JFormField {
 	}
 
 	public function getInput() {
-		$class = ( $this->element->getAttribute('class') ? 'class="'.$this->element->getAttribute('class').'"' : 'class="inputbox"' );
+		$class = ( isset($this->element['class']) ? 'class="'.(string)$this->element['class'].'"' : 'class="inputbox"' );
 
 		// user-friendly names for image processing libraries
 		$items = array();
 		foreach ($this->element->option as $o) {
-			$val = $o->getAttribute('value');
-			$textkey = $o->data();
+			$val = (string)$o['value'];  // attribute "value"
+			$textkey = (string)$o;  // element text content
 			$items[$val] = $textkey;
 		}
 

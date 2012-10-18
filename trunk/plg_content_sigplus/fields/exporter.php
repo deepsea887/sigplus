@@ -42,10 +42,10 @@ class JFormFieldExporter extends JFormField {
 	public function getInput() {
 		$html = '';
 
-		$scriptpath = JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'fields';
-		if (file_exists($scriptpath.DS.'js'.DS.'exporter.min.js') || file_exists($scriptpath.DS.'js'.DS.'exporter.js')) {
+		$scriptpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'fields';
+		if (file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.min.js') || file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.js')) {
 			// get identifiers
-			$class = ( $this->element->getAttribute('class') ? $this->element->getAttribute('class') : 'inputbox' );
+			$class = ( isset($this->element['class']) ? (string)$this->element['class'] : 'inputbox' );
 			$ctrlid = str_replace(array('][','[',']'), array('_','_',''), $this->name);
 			$exportctrlid = $ctrlid.'-export';
 			$importctrlid = $ctrlid.'-import';
@@ -59,7 +59,7 @@ class JFormFieldExporter extends JFormField {
 			// add script declaration to header
 			JHTML::_('behavior.framework', false);  // include MooTools Core
 			$document = JFactory::getDocument();
-			if (file_exists($scriptpath.DS.'js'.DS.'exporter.min.js') && filemtime($scriptpath.DS.'js'.DS.'exporter.min.js') >= filemtime($scriptpath.DS.'js'.DS.'exporter.js')) {
+			if (file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.min.js') && filemtime($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.min.js') >= filemtime($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.js')) {
 				$document->addScript(JURI::root(true).'/plugins/content/sigplus/fields/js/exporter.min.js');
 			} else {
 				$document->addScript(JURI::root(true).'/plugins/content/sigplus/fields/js/exporter.js');

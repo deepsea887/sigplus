@@ -30,8 +30,8 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-require_once dirname(__FILE__).DS.'filesystem.php';
-require_once dirname(__FILE__).DS.'useragent.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'filesystem.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'useragent.php';
 
 define('SIGPLUS_SORT_LABELS', 1);
 
@@ -634,11 +634,11 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 	private function checkFolders() {
 		// determine if image base folder is absolute or relative
 		if (preg_match('#^(?:[a-zA-Z]+:)?[/\\\\]#', $this->base_folder)) {  // an absolute path, which starts with a leading slash (UNIX) or a drive letter designation and a backslash (Windows)
-			$folder = rtrim(str_replace('/', DS, $this->base_folder), DS);  // remove leading and trailing slashes
+			$folder = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $this->base_folder), DIRECTORY_SEPARATOR);  // remove leading and trailing slashes
 			$path = $folder;
 		} else {  // a path relative to the Joomla root
-			$folder = rtrim(str_replace('/', DS, $this->base_folder), DS);  // remove leading and trailing slashes
-			$path = JPATH_ROOT.DS.$folder;
+			$folder = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $this->base_folder), DIRECTORY_SEPARATOR);  // remove leading and trailing slashes
+			$path = JPATH_ROOT.DIRECTORY_SEPARATOR.$folder;
 		}
 
 		// verify validity of path
@@ -649,8 +649,8 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 		$this->base_folder = $path;
 
 		// deduce base URL from base folder if not set
-		if ($this->base_url === false && strpos($path, JPATH_ROOT.DS) === 0) {  // starts with Joomla root folder
-			$this->base_url = JURI::base(true).str_replace(DS, '/', substr($path, strlen(JPATH_ROOT)));  // build path relative to Joomla root
+		if ($this->base_url === false && strpos($path, JPATH_ROOT.DIRECTORY_SEPARATOR) === 0) {  // starts with Joomla root folder
+			$this->base_url = JURI::base(true).str_replace(DIRECTORY_SEPARATOR, '/', substr($path, strlen(JPATH_ROOT)));  // build path relative to Joomla root
 		}
 
 		// verify presence of base URL

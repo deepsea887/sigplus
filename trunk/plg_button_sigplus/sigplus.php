@@ -74,8 +74,8 @@ class plgButtonSIGPlus extends JPlugin {
 			$lang = JFactory::getLanguage();
 			$lang->load('plg_content_sigplus', JPATH_ADMINISTRATOR);
 
-			$xmlfile = JPATH_ROOT.DS.'plugins'.DS.'content'.DS.'sigplus'.DS.'sigplus.xml';
-			$htmlfile = JPATH_ROOT.DS.'media'.DS.'plg_button_sigplus'.DS.'button.'.$lang->getTag().'.html';
+			$xmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'sigplus.xml';
+			$htmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'plg_button_sigplus'.DIRECTORY_SEPARATOR.'button.'.$lang->getTag().'.html';
 			
 			// check for existence of content plug-in XML configuration file
 			if (!file_exists($xmlfile)) {
