@@ -339,7 +339,11 @@ class SIGPlusDatabase {
 		if (($statement = self::getInsertBatchStatement($table, $cols, $rows, $keys, $constants)) !== false) {
 			$db = JFactory::getDbo();
 			$db->setQuery($statement);
-			$db->execute();
+			if (version_compare(JVERSION, '3.0') >= 0) {
+				$db->execute();
+			} else {
+				$db->query();
+			}
 		}
 	}
 
@@ -378,7 +382,11 @@ class SIGPlusDatabase {
 			'VALUES '.$values.PHP_EOL.
 			'ON DUPLICATE KEY UPDATE '.implode(', ',$update)
 		);
-		$db->execute();
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			$db->execute();
+		} else {
+			$db->query();
+		}
 		if (isset($lastkey)) {
 			$db->setQuery('SELECT LAST_INSERT_ID()');
 			return (int) $db->loadResult();
@@ -399,7 +407,11 @@ class SIGPlusDatabase {
 			'REPLACE INTO '.$db->quoteName($table).' ('.implode(',',$cols).')'.PHP_EOL.
 			'VALUES '.$values
 		);
-		$db->execute();
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			$db->execute();
+		} else {
+			$db->query();
+		}
 		$db->setQuery('SELECT LAST_INSERT_ID()');
 		return (int) $db->loadResult();
 	}
@@ -411,7 +423,11 @@ class SIGPlusDatabase {
 		$db->transactionStart();
 		foreach ($queries as $query) {
 			$db->setQuery($query);
-			$db->execute();
+			if (version_compare(JVERSION, '3.0') >= 0) {
+				$db->execute();
+			} else {
+				$db->query();
+			}
 		}
 		$db->transactionCommit();
 	}
@@ -928,7 +944,11 @@ abstract class SIGPlusGalleryBase {
 				'WHERE'.PHP_EOL.
 					$db->quoteName('imageid').' = '.$imageid.$cond
 			);
-			$db->execute();
+			if (version_compare(JVERSION, '3.0') >= 0) {
+				$db->execute();
+			} else {
+				$db->query();
+			}
 		}
 	}
 
@@ -967,7 +987,11 @@ abstract class SIGPlusGalleryBase {
 					'DELETE FROM '.$db->quoteName('#__sigplus_image').PHP_EOL.
 					'WHERE '.$db->quoteName('imageid').' IN ('.implode(',',$missing).')'
 				);
-				$db->execute();
+				if (version_compare(JVERSION, '3.0') >= 0) {
+					$db->execute();
+				} else {
+					$db->query();
+				}
 			}
 		}
 
@@ -1030,7 +1054,11 @@ abstract class SIGPlusGalleryBase {
 				$db->quoteName('thumb_fileurl').' LIKE '.$thumb_pattern.' OR '.
 				$db->quoteName('preview_fileurl').' LIKE '.$preview_pattern
 		);
-		$db->execute();
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			$db->execute();
+		} else {
+			$db->query();
+		}
 	}
 }
 
@@ -2340,12 +2368,21 @@ class SIGPlusCore {
 			'ORDER BY '.$sortorder
 		;
 		$db->setQuery($query);
-		$db->execute();
-		$total = $db->getNumRows();  // get number of images in gallery
-		$rows = $db->loadRowList();
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			$cursor = $db->execute();
+		} else {
+			$cursor = $db->query();
+		}
+		if ($cursor) {
+			$total = $db->getNumRows();  // get number of images in gallery
+		} else {
+			$total = 0;
+		}
 
 		// generate HTML code for each image
 		if ($total > 0) {
+			$rows = $db->loadRowList();
+			
 			ob_start();  // start output buffering
 			//print '<!--[if gte IE 9]><!--><noscript class="sigplus-gallery"><!--<![endif]-->';  // downlevel-hidden conditional comment, browsers below IE9 ignore HTML inside, all other browsers interpret it
 			print '<div>';  // HTML tag <noscript> is unreliable on mobile platforms

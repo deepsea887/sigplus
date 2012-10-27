@@ -69,12 +69,11 @@ class SIGPlusEngineServices {
 		if ($this->mootools) {
 			return;
 		}
-		switch ($this->jsapi) {
-			case 'none':
-				break;
-			default:
-				JHTML::_('behavior.framework');  // MooTools is native to Joomla, modify Joomla if you wish to load it from a CDN
+		
+		if ($this->jsapi !== false && $this->jsapi != 'none') {
+			JHTML::_('behavior.framework');  // MooTools is native to Joomla, modify Joomla if you wish to load it from a CDN
 		}
+		
 		$this->mootools = true;
 	}
 
@@ -86,53 +85,56 @@ class SIGPlusEngineServices {
 			return;
 		}
 
-		$document = JFactory::getDocument();
-		$uri = JFactory::getURI();
-		$scheme = $uri->isSSL() ? 'https://' : 'http://';  // check for HTTPS
+		if ($this->jsapi !== false && $this->jsapi != 'none') {  // not loading jQuery is recommended when you have another extension (e.g. a system plug-in) that loads it
+			if (version_compare(JVERSION, '3.0') >= 0) {  // jQuery is native to Joomla 3.0 and later
+				JHTML::_('jquery.framework');
+			} else {
+				$document = JFactory::getDocument();
+				$uri = JFactory::getURI();
+				$scheme = $uri->isSSL() ? 'https://' : 'http://';  // check for HTTPS
 
-		switch ($this->jsapi) {
-			case 'none':  // do not load jQuery, recommended when you have another extension (e.g. a system plug-in) that loads jQuery
-				break;
-			case 'local':  // use local copy of jQuery, recommended only for intranet sites
-				if ($this->debug) {
-					$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.js');
-				} else {
-					$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.min.js');
+				switch ($this->jsapi) {
+					case 'local':  // use local copy of jQuery, recommended only for intranet sites
+						if ($this->debug) {
+							$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.js');
+						} else {
+							$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.min.js');
+						}
+						break;
+					case 'cdn-google':  // use jQuery from Google AJAX library
+						if ($this->debug) {
+							$document->addScript($scheme.'ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.js');
+						} else {
+							$document->addScript($scheme.'ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js');
+						}
+						break;
+					case 'cdn-microsoft':  // use jQuery from Microsoft Ajax Content Delivery Network
+						if ($this->debug) {
+							$document->addScript($scheme.'ajax.microsoft.com/ajax/jQuery/jquery-1.4.4.js');
+						} else {
+							$document->addScript($scheme.'ajax.microsoft.com/ajax/jQuery/jquery-1.4.4.min.js');
+						}
+						break;
+					case 'cdn':
+					case 'cdn-jquery':
+						if ($this->debug) {
+							$document->addScript('http://code.jquery.com/jquery-1.4.4.js');
+						} else {
+							$document->addScript('http://code.jquery.com/jquery-1.4.4.min.js');
+						}
+						break;
+					default:  // use jQuery from Google AJAX library with on-demand inclusion
+						$document->addScript($scheme.'www.google.com/jsapi');
+						if ($this->debug) {
+							$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.jsapi.debug.js');
+						} else {
+							$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.jsapi.min.js');
+						}
 				}
-				break;
-			case 'cdn-google':  // use jQuery from Google AJAX library
-				if ($this->debug) {
-					$document->addScript($scheme.'ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.js');
-				} else {
-					$document->addScript($scheme.'ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js');
-				}
-				break;
-			case 'cdn-microsoft':  // use jQuery from Microsoft Ajax Content Delivery Network
-				if ($this->debug) {
-					$document->addScript($scheme.'ajax.microsoft.com/ajax/jQuery/jquery-1.4.4.js');
-				} else {
-					$document->addScript($scheme.'ajax.microsoft.com/ajax/jQuery/jquery-1.4.4.min.js');
-				}
-				break;
-			case 'cdn':
-			case 'cdn-jquery':
-				if ($this->debug) {
-					$document->addScript('http://code.jquery.com/jquery-1.4.4.js');
-				} else {
-					$document->addScript('http://code.jquery.com/jquery-1.4.4.min.js');
-				}
-				break;
-			default:  // use jQuery from Google AJAX library with on-demand inclusion
-				$document->addScript($scheme.'www.google.com/jsapi');
-				if ($this->debug) {
-					$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.jsapi.debug.js');
-				} else {
-					$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.jsapi.min.js');
-				}
+				$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.noconflict.js');
+			}
 		}
-		if ($this->jsapi != 'none') {
-			$document->addScript(JURI::base(true).'/media/sigplus/js/jquery.noconflict.js');
-		}
+
 		$this->jquery = true;
 	}
 

@@ -16,6 +16,13 @@
 		* @param {Element} elem
 		*/
 		'initialize': function (elem) {
+			// element existence test to ensure element is within DOM, some content management
+			// systems may call the script even if the associated content is not on the page,
+			// which is the case e.g. with Joomla category list layout or multi-page layout
+			if (!elem) {
+				return;
+			}
+		
 			var list = elem.getElement('ul,ol');
 			if (!list) {
 				return;

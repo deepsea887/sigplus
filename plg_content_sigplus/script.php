@@ -45,11 +45,11 @@ class plgContentSIGPlusInstallerScript {
 		switch ($type) {
 			case 'install':
 			case 'discover_install':
+			case 'update':
 				$message = 'This version of the sigplus extension is experimental, contains only a subset of the features a future stable release will, and is strictly for evaluation purposes only, no backward or forward compatibility with previous versions or the future stable release is guaranteed. Consequently, using this version on production sites is <b>NOT recommended</b>, install one of the stable versions from <a href="http://joomlacode.org/gf/project/sigplus/frs/">JoomlaCode</a> instead. If you run into any problems with this distribution or would like to make a feature request, do not contact the developer directly but <a href="http://code.google.com/p/sigplus/issues/list">submit an issue report</a>. You find preliminary documentation on the project <a href="http://code.google.com/p/sigplus/w/list">wiki pages</a>.';
 				$app = JFactory::getApplication();
 				$app->enqueueMessage($message, 'warning');
-				break;
-			case 'update':
+
 				$required = '1.5';  // minimum version required for upgrade installation to succeed
 				if ((include_once JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'version.php') !== false) {  // available since 1.5.0
 					$current = SIGPLUS_VERSION;  // version number of installed plug-in
@@ -188,7 +188,11 @@ class plgContentSIGPlusInstallerScript {
 				$query = trim($query);
 				if ($query) {  // skip empty queries
 					$db->setQuery($query);
-					$db->execute();
+					if (version_compare(JVERSION, '3.0') >= 0) {
+						$db->execute();
+					} else {
+						$db->query();
+					}
 				}
 			}
 		}
@@ -200,7 +204,11 @@ class plgContentSIGPlusInstallerScript {
 			$item = '('.$db->quote($item).')';  // e.g. ('Title')
 		}
 		$db->setQuery('INSERT INTO '.$db->quoteName($table).' ('.$db->quoteName($field).') VALUES '.implode(',', $values));
-		$db->execute();
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			$db->execute();
+		} else {
+			$db->query();
+		}
 	}
 
 	/**
@@ -242,9 +250,17 @@ class plgContentSIGPlusInstallerScript {
 
 		// discard existing metadata
 		$db->setQuery('DELETE FROM '.$db->quoteName('#__sigplus_data'));
-		$db->execute();
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			$db->execute();
+		} else {
+			$db->query();
+		}
 		$db->setQuery('DELETE FROM '.$db->quoteName('#__sigplus_property'));
-		$db->execute();
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			$db->execute();
+		} else {
+			$db->query();
+		}
 		$db->setQuery('ALTER TABLE '.$db->quoteName('#__sigplus_property').' AUTO_INCREMENT = 1');
 
 		// populate metadata store with properties

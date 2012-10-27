@@ -273,6 +273,13 @@
 		*        The engine must support the events "open" or "show", and the "close" or "hide".
 		*/
 		'initialize': function (elem, options, lightbox) {
+			// element existence test to ensure element is within DOM, some content management
+			// systems may call the script even if the associated content is not on the page,
+			// which is the case e.g. with Joomla category list layout or multi-page layout
+			if (!elem) {
+				return;
+			}
+
 			var self = this;
 			self['setOptions'](options);
 			options = self.options;
@@ -287,14 +294,19 @@
 			var ancestorshidden = list.getParents().filter(function (elem) {
 				return elem.getStyle('display') == 'none';
 			});
-			
+
 			// show hidden ancestors temporarily to obtain valid values for width, height, padding, border and margin
 			ancestorshidden.setStyle('display', 'block');
-			
+
 			// select and save list items
 			var listitems = self._allitems = list.getChildren('li');
 			if (options['random']) {  // randomize order of elements in the list
 				listitems.sort(function () { return Math.random() - 0.5; });
+			}
+
+			// disable looping if not meaningful
+			if (listitems.length < 2) {
+				options['loop'] = false;
 			}
 
 			// create a nesting <div><div class="slideplus"><ul>...</ul></div></div>
@@ -440,7 +452,7 @@
 			}
 
 			// setup navigation bar controls
-			if (barnavigation.length) {
+			if (barnavigation.length && listitems.length > 1) {
 				_addNavigation('prev', '&lt;');  // '\u21E6' or 'Previous'
 				_addNavigation('next', '&gt;');  // '\u21E8' or 'Next'
 
@@ -649,7 +661,13 @@
 			var rows = options['size']['rows'];
 			var cols = options['size']['cols'];
 			var length = self._allitems.length;
-			return length > (options['step'] == 'page' ? 3 : 1) * rows*cols;
+			return length >= rows*cols + 2 * (options['step'] == 'page'  // reserve for both forward and backward movement
+				? (rows*cols)  // slider moves by an entire page, reserve a spare page
+				: (options['orientation'] == 'vertical'  // reserve a row/column depending on orientation
+					? cols  // slider moves by a single row vertically, reserve as many slots as columns
+					: rows  // slider moves by a single column horizontally, reserve as many slots as rows
+				)
+			);
 		},
 
 		/**
@@ -769,14 +787,19 @@
 			self._buttons('next').toggleClass(_class(['hidden']), !options['loop'] && self._index >= length - (pagestep ? 1 : rows*cols));
 
 			// update current page
-			self._paging.each(function (paging) {
+			self._paging.each(function (paging) {  // iterate over paging controls (e.g. upper and lower)
 				// remove and set active page marker (if paging controls are present)
-				var activeitem = paging.getChildren().removeClass(_class(['active']))['at'](self._index / (pagestep ? rows*cols : 1)).addClass(_class(['active']));
+				var activeitem = paging.getChildren().removeClass(_class(['active']))['at'](self._index / (pagestep ? rows*cols : 1));
 
-				// scroll active page into view
-				var position_x = activeitem.getPosition(paging).x;  // ranges between 0 and container width if left edge is in view
-				if (position_x + activeitem.getSize().x > paging.getSize().x || position_x < 0) {
-					paging.scrollTo(paging.getScroll().x + position_x, 0);  // align left edge with container left edge
+				if (activeitem) {
+					// make page active
+					activeitem.addClass(_class(['active']));
+
+					// scroll active page into view
+					var position_x = activeitem.getPosition(paging).x;  // ranges between 0 and container width if left edge is in view
+					if (position_x + activeitem.getSize().x > paging.getSize().x || position_x < 0) {
+						paging.scrollTo(paging.getScroll().x + position_x, 0);  // align left edge with container left edge
+					}
 				}
 			});
 
