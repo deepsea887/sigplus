@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension version="1.6" type="plugin" group="editors-xtd" method="upgrade">
+<extension version="2.5" type="plugin" group="editors-xtd" method="upgrade">
 	<name>plg_editors-xtd_sigplus</name>
 	<author>Levente Hunyadi</author>
 	<creationDate>$__DATE__$</creationDate>
