@@ -262,9 +262,10 @@
 				<field name="caption_title_template" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_TEMPLATE" description="SIGPLUS_CAPTION_TITLE_TEMPLATE_DESCRIPTION" />
 				<field name="caption_summary_template" type="textarea" cols="40" default="{$text} ({$current}/{$total})" label="SIGPLUS_CAPTION_SUMMARY_TEMPLATE" description="SIGPLUS_CAPTION_SUMMARY_TEMPLATE_DESCRIPTION" />
 				<field type="spacer" hr="true" />
-				<field name="cache_image" type="radio" default="1" label="SIGPLUS_CACHE_IMAGE" description="SIGPLUS_CACHE_IMAGE_DESCRIPTION">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
+				<field name="cache_image" type="radio" default="cache" label="SIGPLUS_CACHE_IMAGE" description="SIGPLUS_CACHE_IMAGE_DESCRIPTION">
+					<option value="cache">SIGPLUS_CACHE_JOOMLA_CACHE_FOLDER</option>
+					<option value="media">SIGPLUS_CACHE_JOOMLA_MEDIA_FOLDER</option>
+					<option value="source">SIGPLUS_CACHE_IMAGE_SOURCE_FOLDER</option>
 				</field>
 				<field name="folder_thumb" type="text" default="thumb" label="SIGPLUS_FOLDER_THUMB" description="SIGPLUS_FOLDER_THUMB_DESCRIPTION" />
 				<field name="folder_preview" type="text" default="preview" label="SIGPLUS_FOLDER_PREVIEW" description="SIGPLUS_FOLDER_PREVIEW_DESCRIPTION" />

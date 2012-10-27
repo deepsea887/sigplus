@@ -290,14 +290,6 @@
 				return;
 			}
 
-			// select node ancestors that have their CSS display attribute set to "none"
-			var ancestorshidden = list.getParents().filter(function (elem) {
-				return elem.getStyle('display') == 'none';
-			});
-
-			// show hidden ancestors temporarily to obtain valid values for width, height, padding, border and margin
-			ancestorshidden.setStyle('display', 'block');
-
 			// select and save list items
 			var listitems = self._allitems = list.getChildren('li');
 			if (options['random']) {  // randomize order of elements in the list
@@ -320,7 +312,9 @@
 			if (rows > 0 && cols > 0) {
 				// get maximum width and height of image slider items
 				function _getMaxSize(items, dim) {
-					return Math.max.attempt(items.getSize().map(function (item) {
+					return Math.max.attempt(items.measure(function () {  // show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
+						return this.getSize();
+					}).map(function (item) {
 						return item[dim];
 					}));
 				}
@@ -594,9 +588,6 @@
 					});
 				}
 			}
-
-			// hide ancestors initially hidden and shown temporarily
-			ancestorshidden.setStyle('display', 'none');
 		},
 
 		'prev': function () {

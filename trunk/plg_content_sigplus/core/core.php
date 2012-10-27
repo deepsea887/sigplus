@@ -1030,7 +1030,7 @@ abstract class SIGPlusGalleryBase {
 	* Remove image views that have been persisted in the cache but removed manually.
 	*/
 	protected function purgeCache() {
-		if (!$this->config->service->cache_image) {
+		if ($this->config->service->cache_image != 'cache') {
 			return;  // images are not set to be generated in cache folder
 		}
 
@@ -1179,16 +1179,23 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* @return {bool|string} The path to the generated image, or false if it does not exist.
 	*/
 	private function getGeneratedImagePath($generatedfolder, $imagepath, SIGPlusImageParameters $params, $action = SIGPLUS_TEST) {
-		if ($this->config->service->cache_image) {  // images are set to be generated in cache folder
-			$directory = JPATH_CACHE.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
-			$path = $directory.DIRECTORY_SEPARATOR.$params->getHash($imagepath);  // hash original image file paths to avoid name conflicts
-		} else {  // images are set to be generated inside folders within the directory where the images are
-			$directory = dirname($imagepath).DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
-			$subfolder = $params->getNamingPrefix();
-			if ($subfolder) {
-				$directory .= DIRECTORY_SEPARATOR.$subfolder;
-			}
-			$path = $directory.DIRECTORY_SEPARATOR.basename($imagepath);
+		switch ($this->config->service->cache_image) {
+			case 'cache':  // images are set to be generated in the Joomla cache folder
+				$directory = JPATH_CACHE.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
+				$path = $directory.DIRECTORY_SEPARATOR.$params->getHash($imagepath);  // hash original image file paths to avoid name conflicts
+				break;
+			case 'media':  // images are set to be generated in the Joomla media folder
+				$directory = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
+				$path = $directory.DIRECTORY_SEPARATOR.$params->getHash($imagepath);  // hash original image file paths to avoid name conflicts
+				break;
+			case 'source':  // images are set to be generated inside folders within the directory where the images are
+				$directory = dirname($imagepath).DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
+				$subfolder = $params->getNamingPrefix();
+				if ($subfolder) {
+					$directory .= DIRECTORY_SEPARATOR.$subfolder;
+				}
+				$path = $directory.DIRECTORY_SEPARATOR.basename($imagepath);
+				break;
 		}
 		switch ($action) {
 			case SIGPLUS_TEST:
@@ -1979,6 +1986,9 @@ class SIGPlusCore {
 			if (strpos($url, JPATH_CACHE.DIRECTORY_SEPARATOR) === 0) {  // file is inside cache folder
 				$path = substr($url, strlen(JPATH_CACHE.DIRECTORY_SEPARATOR));
 				$url = JURI::base(true).'/cache/'.pathurlencode($path);
+			} elseif (strpos($url, JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR) === 0) {  // file is inside media folder
+				$path = substr($url, strlen(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR));
+				$url = JURI::base(true).'/media/sigplus/'.pathurlencode($path);
 			} elseif (strpos($url, $this->config->base_folder.DIRECTORY_SEPARATOR) === 0) {  // file is inside base folder
 				$path = substr($url, strlen($this->config->base_folder.DIRECTORY_SEPARATOR));
 				$url = $this->config->base_url.'/'.pathurlencode($path);

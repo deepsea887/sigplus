@@ -256,8 +256,13 @@ class SIGPlusImageParameters {
 	public function getHash($imageref) {
 		if (is_url_http($imageref)) {
 			$imagepath = parse_url($imageref, PHP_URL_PATH);
+			$imagehashbase = $imageref;
+		} elseif (strpos($imageref, JPATH_ROOT.DIRECTORY_SEPARATOR) === 0) {  // file is inside Joomla root folder
+			$imagepath = $imageref;
+			$imagehashbase = '@root/'.str_replace(DIRECTORY_SEPARATOR, '/', substr($imageref, strlen(JPATH_ROOT.DIRECTORY_SEPARATOR)));
 		} else {
 			$imagepath = $imageref;
+			$imagehashbase = str_replace(DIRECTORY_SEPARATOR, '/', $imageref);
 		}
 
 		$extension = pathinfo($imagepath, PATHINFO_EXTENSION);
@@ -271,7 +276,7 @@ class SIGPlusImageParameters {
 			default:
 				$quality = '';
 		}
-		$hashbase = 'sigplus_'.$this->getNamingPrefix().$quality.'_'.$imageref;
+		$hashbase = 'sigplus_'.$this->getNamingPrefix().$quality.'_'.$imagehashbase;
 		return md5($hashbase).$extension;
 	}
 }
@@ -577,10 +582,10 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 	/** Subdirectory for external script files. */
 	public $folder_script = 'script';
 	/**
-	* Whether to use Joomla cache folder for storing generated images.
-	* @type {bool}
+	* Whether to use Joomla cache folder, the Joomla media folder or the image source folder for storing generated images.
+	* @type {bool|'cache'|'media'|'source'}
 	*/
-	public $cache_image = false;
+	public $cache_image = 'cache';
 	/**
 	* Whether to use Joomla cache folder for storing temporary generated content.
 	* @type {bool}
@@ -603,7 +608,21 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 
 	public function validate() {
 		$this->multilingual = (bool) $this->multilingual;
-		$this->cache_image = (bool) $this->cache_image;
+		$this->cache_image = (string) $this->cache_image;
+		switch ($this->cache_image) {
+			case 'cache':
+			case 'media':
+			case 'source':
+				break;
+			case '0':
+				$this->cache_image = 'source';
+				break;
+			case '1':
+			default:
+				$this->cache_image = 'cache';
+				break;
+		}
+		
 		$this->cache_content = (bool) $this->cache_content;
 		switch ($this->library_image) {
 			case 'gd':
