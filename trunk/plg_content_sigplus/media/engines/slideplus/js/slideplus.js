@@ -6,6 +6,65 @@
  **/
 
 ;
+(function () {
+	var isVisible = function (el) {
+		return !!(!el || el.offsetHeight || el.offsetWidth);
+	};
+
+	if (!Element.measure) {
+		Element.implement({
+			measure: function (fn) {
+				if (isVisible(this)) {
+					return fn.call(this);
+				}
+
+				var parent = this.getParent();
+				var toMeasure = [];
+				while (!isVisible(parent) && parent != document.body) {
+					toMeasure.push(parent.expose());
+					parent = parent.getParent();
+				}
+				var restore = this.expose();
+				var result = fn.call(this);
+				restore();
+				toMeasure.each(function (restore){
+					restore();
+				});
+				return result;
+			},
+
+			expose: function (){
+				if (this.getStyle('display') != 'none') {
+					return function () { };
+				}
+				var before = this.style.cssText;
+				this.setStyles({
+					display: 'block',
+					position: 'absolute',
+					visibility: 'hidden'
+				});
+				return function () {
+					this.style.cssText = before;
+				}.bind(this);
+			},
+
+			getDimensions: function (){
+				var dim = {x: 0, y: 0};
+
+				var parent = this.getParent('body');
+
+				if (parent && this.getStyle('display') == 'none'){
+					dim = this.measure(function () {
+						return this.getSize();
+					});
+				}
+
+				return dim;
+			}
+		});
+	}
+})();
+
 (function ($) {
 	/**
 	* Effective background color.
@@ -312,9 +371,8 @@
 			if (rows > 0 && cols > 0) {
 				// get maximum width and height of image slider items
 				function _getMaxSize(items, dim) {
-					return Math.max.attempt(items.measure(function () {  // show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
-						return this.getSize();
-					}).map(function (item) {
+					// show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
+					return Math.max.attempt(items.getDimensions().map(function (item) {
 						return item[dim];
 					}));
 				}

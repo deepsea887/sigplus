@@ -950,6 +950,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $caption_summary_template = null;
 	/**
 	* Access level required to download original image.
+	* @example <kbd>{gallery download="Registered"}myfolder{/gallery}</kbd> makes the gallery accessible to registered users only (on a standard Joomla installation).
 	*/
 	public $download = false;
 	/**
