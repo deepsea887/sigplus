@@ -1895,6 +1895,21 @@ class SIGPlusCore {
 			return $root;
 		}
 	}
+	
+	private function getFilterExpression(SIGPlusFilter $filter) {
+		$db = JFactory::getDbo();
+		$expr = array();
+		foreach ($filter->items as $item) {
+			if ($item instanceof SIGPlusFilter && !$item->is_empty()) {
+				// add filter subexpression, e.g. "b or c" in "a and (b or c)"
+				$expr[] = self::getFilterExpression($item);
+			} elseif (is_string($item)) {
+				// add a simple filter, e.g. "b" in "a and b and c"
+				$expr[] = $db->quoteName('filename').' LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($item));
+			}
+		}
+		return '('.implode(' '.$filter->rel.' ', $expr).')';
+	}
 
 	/**
 	* Get an image label with placeholder and default value substitutions.
@@ -2174,9 +2189,11 @@ class SIGPlusCore {
 
 			// parse wildcard patterns in file name component
 			if (strpos($source, '*') !== false || strpos($source, '?') !== false) {  // contains wildcard character
-				// replace "*" and "?" with LIKE expression equivalents "%" and "_" in file name component of path
-				$curparams->filter_include = array( basename($source) );
-				$curparams->filter_exclude = false;
+				// add implicit include filter on file name component of path
+				$filter = $curparams->filter_include;  // save current filter
+				$curparams->filter_include = new SIGPlusFilter('and');
+				$curparams->filter_include->items[] = basename($source);  // add wildcard name to include filter
+				$curparams->filter_include->items[] = $filter;  // add current filter as sub-filter
 
 				// remove file name component of path
 				$source = dirname($source);
@@ -2190,10 +2207,16 @@ class SIGPlusCore {
 				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from folder: <code>'.$source.'</code>');
 				$generator = new SIGPlusLocalGallery($config);
 			} elseif (is_file($source)) {
-				$curparams->filter_include = array( basename($source) );
-				$curparams->filter_exclude = false;
+				// set implicit filter to filter exact file name
+				$filter = $curparams->filter_include;  // save current filter
+				$curparams->filter_include = new SIGPlusFilter('and');
+				$curparams->filter_include->items[] = basename($source);
+				$curparams->filter_include->items[] = $filter;  // add current filter as sub-filter
+
+				// activate single image mode
 				$curparams->maxcount = 1;
 
+				// remove file name component of path
 				$source = dirname($source);
 
 				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from file: <code>'.$source.'</code>');
@@ -2301,19 +2324,11 @@ class SIGPlusCore {
 
 		// build SQL condition for file match pattern
 		$patterncond = '';
-		if (is_array($curparams->filter_include)) {
-			$subcond = array();
-			foreach ($curparams->filter_include as $expr) {
-				$subcond[] = $db->quoteName('filename').' LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
-			}
-			$patterncond .= ' AND ('.implode(' OR ', $subcond).')';
+		if (!$curparams->filter_include->is_empty()) {
+			$patterncond .= ' AND '.self::getFilterExpression($curparams->filter_include);
 		}
-		if (is_array($curparams->filter_exclude)) {
-			$subcond = array();
-			foreach ($curparams->filter_exclude as $expr) {
-				$subcond[] = $db->quoteName('filename').' NOT LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($expr));
-			}
-			$patterncond .= ' AND ('.implode(' AND ', $subcond).')';
+		if (!$curparams->filter_exclude->is_empty()) {
+			$patterncond .= ' AND NOT '.self::getFilterExpression($curparams->filter_exclude);
 		}
 
 		// build and execute SQL query

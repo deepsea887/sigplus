@@ -33,7 +33,7 @@
 				return result;
 			},
 
-			expose: function (){
+			expose: function () {
 				if (this.getStyle('display') != 'none') {
 					return function () { };
 				}
@@ -48,15 +48,16 @@
 				}.bind(this);
 			},
 
-			getDimensions: function (){
+			getDimensions: function () {
 				var dim = {x: 0, y: 0};
 
 				var parent = this.getParent('body');
-
 				if (parent && this.getStyle('display') == 'none'){
 					dim = this.measure(function () {
 						return this.getSize();
 					});
+				} else if (parent) {
+					dim = this.getSize();
 				}
 
 				return dim;
@@ -349,6 +350,14 @@
 				return;
 			}
 
+			// force width and height for images (browser rendering workaround)
+			elem.getElements('img').each(function (image) {
+				image.setStyles({
+					width: image.getProperty('width') + 'px',
+					height: image.getProperty('height') + 'px'
+				});
+			});
+			
 			// select and save list items
 			var listitems = self._allitems = list.getChildren('li');
 			if (options['random']) {  // randomize order of elements in the list
