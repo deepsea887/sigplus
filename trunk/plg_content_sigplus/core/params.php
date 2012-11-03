@@ -216,6 +216,22 @@ class SIGPlusColors {
 	}
 }
 
+class SIGPlusFilter {
+	/** Relationship between items. */
+	public $rel;
+	/** An array of items to combine. */
+	public $items;
+	
+	public function __construct($rel = 'and') {
+		$this->rel = $rel;
+		$this->items = array();
+	}
+	
+	public function is_empty() {
+		return empty($this->items);
+	}
+}
+
 class SIGPlusFolderParameters {
 	public $id;
 	public $time;
@@ -544,12 +560,19 @@ class SIGPlusConfigurationBase {
 	}
 
 	protected static function as_filter($expression) {
-		if (is_array($expression)) {
+		if ($expression instanceof SIGPlusFilter) {
 			return $expression;
 		} elseif (is_string($expression)) {
-			return explode(';', $expression);
+			$filter = new SIGPlusFilter('or');
+			$disjunction = explode(';', $expression);  // a;b;c --> a or b or c
+			foreach ($disjunction as $subexpression) {
+				$subfilter = new SIGPlusFilter('and');
+				$subfilter->items = explode(',', $subexpression);  // a,b,c --> a and b and c
+				$filter->items[] = $subfilter;
+			}
+			return $filter;
 		} else {
-			return false;
+			return new SIGPlusFilter('and');  // empty filter
 		}
 	}
 
