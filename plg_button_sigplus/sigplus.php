@@ -77,6 +77,7 @@ class plgButtonSIGPlus extends JPlugin {
 
 			$xmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'sigplus.xml';
 			$htmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'plg_button_sigplus'.DIRECTORY_SEPARATOR.'button.'.$lang->getTag().'.html';
+			$jsdir = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'plg_button_sigplus'.DIRECTORY_SEPARATOR.'js';
 			
 			// check for existence of content plug-in XML configuration file
 			if (!file_exists($xmlfile)) {
@@ -103,7 +104,12 @@ class plgButtonSIGPlus extends JPlugin {
 				print '<meta http-equiv="content-type" content="text/html; charset=utf-8" />';
 				print '<link rel="stylesheet" href="css/button.css" type="text/css" />';
 				print '<script type="text/javascript" src="'.$mootools.'"></script>';
-				print '<script type="text/javascript" src="js/button.js"></script>';
+				if (file_exists($jsdir.DIRECTORY_SEPARATOR.'button.min.js')) {
+					$jsfile = 'button.min.js';
+				} else {
+					$jsfile = 'button.js';
+				}
+				print '<script type="text/javascript" src="js/'.$jsfile.'"></script>';
 				print '</head>';
 				print '<body>';
 				print '<form id="sigplus-settings-form">';
@@ -179,7 +185,11 @@ class plgButtonSIGPlus extends JPlugin {
 				$button->set('link', 'media/plg_button_sigplus/button.'.$lang->getTag().'.html');
 			}
 			$button->set('text', 'sigplus');
-			$button->set('name', 'image');
+			if (version_compare(JVERSION, '3.0') >= 0) {
+				$button->set('name', 'picture');
+			} else {
+				$button->set('name', 'image');
+			}
 			//$button->set('options', "{handler: 'adopt', size: {x: 500, y: 400}, onClose: function () { document.id('sigplus-settings-container').adopt('sigplus-settings-form'); }}");
 			$button->set('options', "{handler: 'iframe', size: {x: 500, y: 400}}");
 			return $button;
