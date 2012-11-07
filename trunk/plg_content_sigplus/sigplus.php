@@ -73,6 +73,10 @@ class plgContentSIGPlus extends JPlugin {
 		if (is_string($tag_gallery) && ctype_alnum($tag_gallery)) {
 			$this->tag_gallery = $tag_gallery;
 		}
+		$tag_lightbox = $this->params->get('tag_lightbox', $this->tag_lightbox);
+		if (is_string($tag_lightbox) && ctype_alnum($tag_lightbox)) {
+			$this->tag_lightbox = $tag_lightbox;
+		}
 	}
 
 	/**
@@ -118,7 +122,7 @@ class plgContentSIGPlus extends JPlugin {
 	}
 
 	private function parseContent(&$article) {
-		if (strpos($article->text, '{'.$this->tag_gallery) === false) {
+		if (strpos($article->text, '{'.$this->tag_gallery) === false && strpos($article->text, '{'.$this->tag_lightbox) === false) {
 			return false;  // short-circuit plugin activation, no replacements made
 		}
 

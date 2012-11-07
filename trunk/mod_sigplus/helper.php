@@ -96,7 +96,7 @@ class SIGPlusModuleHelper {
 
 		// load sigplus content plug-in parameters
 		$plugin = JPluginHelper::getPlugin('content', 'sigplus');
-		$params = new JParameter($plugin->params);
+		$params = json_decode($plugin->params);
 
 		// create configuration parameter objects
 		$configuration = new SIGPlusConfigurationParameters();
