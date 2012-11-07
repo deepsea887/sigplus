@@ -9,6 +9,25 @@
 window.addEvent('domready', function () {
 	var form = document.id('sigplus-settings-form');  // get form
 	var ctrls = form.getElements('input[type=text],input[type=radio],select');  // enumerate form controls in order of appearance
+
+	// set initial values
+	if (window.parent.sigplus) {
+		ctrls.each(function (ctrl) {
+			var name = ctrl.get('name');
+			var matches = name.match(/^params\[(.*)\]$/);
+			if (matches) {
+				name = matches[1];
+			}
+			var value = window.parent.sigplus[name];
+			if (value) {
+				if (ctrl.get('type') != 'radio') {
+					ctrl.set('value', value);
+				} else if (ctrl.get('value') == value) {  // omit unrelated radio buttons
+					ctrl.set('checked', true);
+				}
+			}
+		});
+	}	
 	
 	document.id('sigplus-settings-submit').addEvent('click', function () {
 		var params = '';

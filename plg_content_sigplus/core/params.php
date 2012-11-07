@@ -324,16 +324,30 @@ class SIGPlusThumbParameters extends SIGPlusImageParameters {
 */
 class SIGPlusConfigurationBase {
 	/**
-	* Set parameters based on Joomla JRegistry object.
+	* Set parameters from a JRegistry or a JSON object (typically synthesized from a JSON string).
+	* @param $params A value of a type such as boolean or stdClass.
 	*/
-	public function setParameters(JRegistry $params) {
-		foreach (get_object_vars($this) as $name => $value) {  // enumerate properties in class
-			$paramvalue = $params->get($name);
-			if (isset($paramvalue)) {
-				$this->$name = $paramvalue;
+	public function setParameters($params) {
+		if (isset($params)) {
+			if ($params instanceof stdClass) {
+				foreach (get_object_vars($this) as $name => $value) {  // enumerate properties in class
+					if (isset($params->$name)) {
+						$this->$name = $params->$name;
+					}
+				}
+			} else if ($params instanceof JRegistry) {  // Joomla 2.5 and earlier
+				foreach (get_object_vars($this) as $name => $value) {  // enumerate properties in class
+					$paramvalue = $params->get($name);
+					if (isset($paramvalue)) {
+						$this->$name = $paramvalue;
+					}
+				}
 			}
+			$this->validate();
+			return true;
+		} else {
+			return false;
 		}
-		$this->validate();
 	}
 
 	/**
@@ -1329,7 +1343,10 @@ class SIGPlusParameterStack {
 		return array_pop($this->stack);
 	}
 
-	public function setObject(JRegistry $object) {
+	/**
+	* Set parameters from a JRegistry or a JSON object (typically synthesized from a JSON string).
+	*/
+	public function setObject($object) {
 		$this->dup();
 		$param = $this->top();
 		$param->setParameters($object);

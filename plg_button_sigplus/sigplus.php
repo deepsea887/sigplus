@@ -67,6 +67,8 @@ class plgButtonSIGPlus extends JPlugin {
 			if (!JPluginHelper::importPlugin('content', 'sigplus')) {
 				throw new SIGPlusEditorDependencyException();
 			}
+
+			// load sigplus content plug-in parameters
 			$plugin = JPluginHelper::getPlugin('content', 'sigplus');
 
 			// load language file for internationalized labels
@@ -141,7 +143,7 @@ class plgButtonSIGPlus extends JPlugin {
 							print $field->input;
 							print '</li>';
 						} else {
-							$hidden_fields.= $field->input;
+							$hidden_fields .= $field->input;
 						}
 					}
 					print '</ul>';
@@ -160,8 +162,8 @@ class plgButtonSIGPlus extends JPlugin {
 
 			// add javascript declaration
 			$doc = JFactory::getDocument();
-			$params = json_decode($plugin->params);
 			$activationtag = isset($params->tag_gallery) ? $params->tag_gallery : 'gallery';
+			$doc->addScriptDeclaration('window.sigplus = '.$plugin->params.';');
 			$doc->addScriptDeclaration('function sigplusOnInsertTag(params) { SqueezeBox.close(); jInsertEditorText("{'.$activationtag.'" + params + "}myfolder{/'.$activationtag.'}", "'.$editorname.'"); }');
 
 			// add modal window

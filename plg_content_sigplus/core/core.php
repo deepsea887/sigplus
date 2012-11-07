@@ -2574,7 +2574,7 @@ class SIGPlusCore {
 		}
 	}
 
-	public function setParameterObject(JRegistry $object) {
+	public function setParameterObject($object) {
 		$this->paramstack->setObject($object);
 	}
 
