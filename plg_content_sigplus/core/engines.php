@@ -169,7 +169,9 @@ class SIGPlusEngineServices {
 
 		if (!in_array($tag, $customtags)) {
 			$document = JFactory::getDocument();
-			$document->addCustomTag($tag);
+			if ($document->getType() == 'html') {  // custom tags are supported by HTML document type only
+				$document->addCustomTag($tag);
+			}
 			$customtags[] = $tag;
 		}
 	}
@@ -321,16 +323,16 @@ class SIGPlusEngineServices {
 	
 	/**
 	* Adds JavaScript code subscribed to an anchor click event to programmatically activate a gallery.
-	* @param {int} $index The index of the image within the gallery to show.
+	* @param {int} $index The (one-based) index of the image within the gallery to show.
 	* @see self::storeLightbox
 	*/
-	public function activateLightbox($linkid, $selector, $index = 0) {
+	public function activateLightbox($linkid, $selector, $index = 1) {
 		$this->addMooTools();
 		$script =
 			'document.id("'.$linkid.'").addEvent("click", function () {'.PHP_EOL.
 			'	var lightbox;'.PHP_EOL.
 			'	if (lightbox = document.id(document.body).retrieve("'.$selector.'")) {'.PHP_EOL.
-			'		lightbox.show && lightbox.show(document.getElement("'.$selector.':nth('.$index.')"));'.PHP_EOL.
+			'		lightbox.show && lightbox.show(document.getElements("'.$selector.'")['.($index - 1).']);'.PHP_EOL.
 			'	}'.PHP_EOL.
 			'});';
 		$instance = SIGPlusEngineServices::instance();

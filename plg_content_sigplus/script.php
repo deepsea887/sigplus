@@ -101,25 +101,32 @@ class plgContentSIGPlusInstallerScript {
 		if (!is_xml_supported()) {
 			$app->enqueueMessage(JText::_('SIGPLUS_INSTALLER_LIBRARY_XML'), 'warning');
 		}
+		if (!ini_get('allow_url_fopen')) {
+			$app->enqueueMessage(JText::_('SIGPLUS_INSTALLER_PHP_URL_FOPEN'), 'warning');
+		}
 	}
 
 	private static function copyScriptLibrary() {
-		$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'jquery.js';
-		$sourcepaths = array(
-			'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js',
-			'http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js',
-			'http://code.jquery.com/jquery-1.4.4.min.js'
-		);
-		foreach ($sourcepaths as $sourcepath) {
-			if (copy($sourcepath, $targetpath)) {
-				return true;  // jQuery library successfully copied from a CDN source
+		if (version_compare(JVERSION, '3.0') >= 0) {
+			return true;  // jQuery is native to Joomla 3.0 and later
+		} else {
+			$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'jquery.js';
+			$sourcepaths = array(
+				'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js',
+				'http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js',
+				'http://code.jquery.com/jquery-1.4.4.min.js'
+			);
+			foreach ($sourcepaths as $sourcepath) {
+				if (copy($sourcepath, $targetpath)) {
+					return true;  // jQuery library successfully copied from a CDN source
+				}
 			}
-		}
 
-		// jQuery library not copied from any CDN source
-		$app = JFactory::getApplication();
-		$app->enqueueMessage(sprintf(JText::_('SIGPLUS_INSTALLER_JQUERY'), '<pre>'.implode("\n", $sourcepaths).'</pre>', '<kbd>'.dirname($targetpath).'</kbd>'), 'warning');
-		return false;
+			// jQuery library not copied from any CDN source
+			$app = JFactory::getApplication();
+			$app->enqueueMessage(sprintf(JText::_('SIGPLUS_INSTALLER_JQUERY'), '<pre>'.implode("\n", $sourcepaths).'</pre>', '<kbd>'.dirname($targetpath).'</kbd>'), 'warning');
+			return false;
+		} 	
 	}
 
 	/**

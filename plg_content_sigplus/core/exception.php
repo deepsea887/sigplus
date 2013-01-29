@@ -121,11 +121,29 @@ class SIGPlusXMLFormatException extends SIGPlusException {
 }
 
 /**
+* Triggered when the source specified for a gallery is HTML code rather than plain text.
+*/
+class SIGPlusHTMLCodeException extends SIGPlusInvalidValueException {
+	public function __construct($source) {
+		parent::__construct('SIGPLUS_EXCEPTION_HTML', $source);
+	}
+}
+
+/**
 * Triggered when the source specified for a gallery is not valid.
 */
 class SIGPlusImageSourceException extends SIGPlusInvalidValueException {
 	public function __construct($source) {
 		parent::__construct('SIGPLUS_EXCEPTION_SOURCE', $source);
+	}
+}
+
+/**
+* Triggered when the source specified for a gallery is not valid.
+*/
+class SIGPlusFeedURLException extends SIGPlusInvalidValueException {
+	public function __construct($source) {
+		parent::__construct('SIGPLUS_EXCEPTION_FEED', $source);
 	}
 }
 
@@ -144,6 +162,24 @@ class SIGPlusAccessException extends SIGPlusFileSystemException {
 class SIGPlusFolderCreateException extends SIGPlusFileSystemException {
 	public function __construct($folder) {
 		parent::__construct('SIGPLUS_EXCEPTION_CREATE', $folder);
+	}
+}
+
+/**
+* Triggered when a file or folder does not exist or is inaccessible.
+*/
+class SIGPlusImageFormatException extends SIGPlusFileSystemException {
+	public function __construct($file) {
+		parent::__construct('SIGPLUS_EXCEPTION_IMAGE', $file);
+	}
+}
+
+/**
+* Thrown when the extension cannot access a document at a remote location
+*/
+class SIGPlusRemoteException extends SIGPlusInvalidValueException {
+	public function __construct($folder) {
+		parent::__construct('SIGPLUS_EXCEPTION_REMOTE', $folder);
 	}
 }
 
