@@ -221,12 +221,12 @@ class SIGPlusFilter {
 	public $rel;
 	/** An array of items to combine. */
 	public $items;
-	
+
 	public function __construct($rel = 'and') {
 		$this->rel = $rel;
 		$this->items = array();
 	}
-	
+
 	public function is_empty() {
 		return empty($this->items);
 	}
@@ -375,8 +375,8 @@ class SIGPlusConfigurationBase {
 			} elseif (strpos($key, ':') !== false) {  // contains special instruction for pop-up window or rotator engine
 				list($engine, $key) = explode(':', $key, 2);
 				$property = $engine.'_params';  // e.g. 'mobile_params', 'lightbox_params', 'rotator_params' or 'caption_params'
-				if (property_exists($this, $property) && is_array($this->$property)) {
-					$this->$property[$key] = $exactvalue;
+				if (property_exists($this, $property) && is_array($this->{$property})) {
+					$this->{$property}[$key] = $exactvalue;
 				}
 			}
 		}
@@ -531,7 +531,7 @@ class SIGPlusConfigurationBase {
 			return false;
 		} elseif (is_numeric($value)) {
 			return $value.'px';
-		} elseif (preg_match('#^(?:[1-9][0-9]*(?:[.][0-9]+)?(?:%|in|cm|mm|e[mx]|p[tcx])\\b\\s*){1,4}$#', $value)) {  // "1px" or "1px 2em" or "1px 2em 3pt" or "1px 2em 3pt 4cm"
+		} elseif (preg_match('#^(?:(?:(?:0|[1-9][0-9]*)(?:[.][0-9]+)?(?:%|in|[cm]m|e[mx]|p[tcx])|0)\\b\\s*){1,4}$#', $value)) {  // "1px" or "1px 2em" or "1px 2em 3pt" or "1px 2em 3pt 4cm" or "1px 0 0 4cm"
 			return $value;
 		} else {
 			return 0;
@@ -659,7 +659,7 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 				$this->cache_image = 'cache';
 				break;
 		}
-		
+
 		$this->cache_content = (bool) $this->cache_content;
 		switch ($this->library_image) {
 			case 'gd':
@@ -1090,7 +1090,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 				$this->$key = $value;  // override values set for desktop computers
 			}
 		}
-		
+
 		// force type for gallery identifier
 		$this->id = !empty($this->id) ? (string) $this->id : null;
 

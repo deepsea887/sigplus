@@ -1611,8 +1611,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		$urlpath = $urlparts['path'];
 		$match = array();
 		if (!preg_match('"^/data/feed/(?:api|base)/user/([^/?#]+)/albumid/([^/?#]+)"', $urlpath, $match)) {
-			SIGPlusLogging::appendError('Invalid Picasa Web Album feed URL <code>'.$url.'</code>.');
-			return false;
+			throw new SIGPlusFeedURLException($url);
 		}
 		$userid = $match[1];
 		$albumid = $match[2];
@@ -1786,8 +1785,17 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 		if ($imagedata === true) {  // not modified since specified date
 			SIGPlusLogging::appendStatus('<a href="'.$url.'">Remote image</a> not modified since <code>'.$folderparams->time.'</code>.');
 
-			$viewid = $this->getView($folderparams->id);
-			return $viewid;
+			if ($viewid = $this->getView($folderparams->id)) {  // preview image is available for remote image
+				return $viewid;
+			}
+			
+			// preview image not available, retrieve image from remote server
+			$imagedata = http_get_modified($url);
+			if ($imagedata === true || $imagedata === false) {  // unexpected response or retrieval failure
+				throw new SIGPlusRemoteException($url);
+			}
+
+			SIGPlusLogging::appendStatus('<a href="'.$url.'">Remote image</a> retrieved again as gallery parameters had changed.');
 		} elseif ($imagedata === false) {  // retrieval failure
 			throw new SIGPlusRemoteException($url);
 		}
@@ -1815,6 +1823,9 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 				if ($imagedims !== false) {
 					$width = $imagedims[0];
 					$height = $imagedims[1];
+					SIGPlusLogging::appendStatus('<a href="'.$url.'">Remote image</a> has MIME type '.$imagedims['mime'].' and dimensions '.$width.'x'.$height.'.');
+				} else {
+					throw new SIGPlusImageFormatException($url);
 				}
 			}
 			unlink($imagepath);  // "tempnam", if succeeds, always creates the file
@@ -2169,10 +2180,12 @@ class SIGPlusCore {
 
 		// instantiate image generator
 		$generator = null;
-		if (is_url_http($imagesource) ) {  // test for Picasa galleries
+		if (strip_tags($imagesource) != $imagesource) {
+			throw new SIGPlusHTMLCodeException($imagesource);
+		} else if (is_url_http($imagesource) ) {  // test for Picasa galleries
 			$source = $imagesource;
 			SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from URL: <code>'.$source.'</code>');
-			if (preg_match('"^https?://picasaweb.google.com/data/feed/(?:api|base)/user/([^/?#]+)/albumid/([^/?#]+)"', $source)) {
+			if (preg_match('"^https?://picasaweb.google.com/"', $source)) {
 				$generator = new SIGPlusPicasaGallery($config);
 			} elseif (preg_match('"^http://api.flickr.com/services/feeds/photos_public.gne"', $source)) {
 				$generator = new SIGPlusFlickrGallery($config);
@@ -2554,6 +2567,7 @@ class SIGPlusCore {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 		$instance = SIGPlusEngineServices::instance();
 		$instance->activateLightbox($linkid, '#'.$galleryid.' a.sigplus-image', $curparams->index);  // selector should be same as above
+		$instance->addOnReadyEvent();
 	}
 
 	/**

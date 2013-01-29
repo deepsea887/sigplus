@@ -50,6 +50,14 @@ padding:2px !important;
 line-height:0;
 }
 
+.sigplus-gallery ul > li {
+overflow:visible !important;
+}
+
+.sigplus-gallery ul > li:before {
+content:none !important;  /* remove list bullet images inserted by some templates */
+}
+
 .sigplus-gallery ul > li > a,
 .sigplus-gallery ul > li > div > a,
 .sigplus-gallery ul > li > div > .captionplus > a {

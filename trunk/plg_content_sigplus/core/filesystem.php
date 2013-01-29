@@ -31,6 +31,8 @@
 * UTF-8 file system compatibility layer
 *****************************************************************************/
 
+if (!interface_exists('fsx_functions') && !class_exists('fsx')) {
+
 /**
 * UTF-8 compatibility layer for filesystem functions.
 *
@@ -384,9 +386,13 @@ class fsx {
 
 fsx::initialize();
 
+}  // if (!interface_exists('fsx_functions') && !class_exists('fsx'))
+
 /*****************************************************************************
 * Directory listing
 *****************************************************************************/
+
+if (!function_exists('walkdir')) {
 
 /**
 * List files and directories inside the specified path recursively.
@@ -439,6 +445,8 @@ function walkdir($path, array $exclude = array(), $depth = 0, $callback = null, 
 		}
 	}
 }
+
+}  // if (!function_exists('walkdir'))
 
 /*****************************************************************************
 * Miscellaneous file system management.
@@ -603,7 +611,9 @@ function http_get_modified($url, &$lastmod = null, &$etag = null, $method = 'GET
 	}
 
 	// test for HTTP ETag match, $http_response_header is a predefined PHP variable
-	if (!preg_match('#^HTTP/[\d.]+\s+(\d+)#S', $http_response_header[0], $matches) || $matches[1] != '304') {  // HTTP 304 "Not modified" indicates ETag match
+	if (!isset($http_response_header)) {  // HTTP wrappers are disabled
+		$data = false;  // cannot access resource
+	} elseif (!preg_match('#^HTTP/[\d.]+\s+(\d+)#S', $http_response_header[0], $matches) || $matches[1] != '304') {  // HTTP 304 "Not modified" indicates ETag match
 		foreach ($http_response_header as $header) {  // go through header lines, looking for HTTP ETag
 			if (preg_match('#^ETag:\s+(\S+)#iS', $header, $matches)) {  // locate ETag header
 				$etag = $matches[1];  // extract and update ETag value
