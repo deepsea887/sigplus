@@ -358,7 +358,7 @@ abstract class SIGPlusEngine {
 
 		// add right-to-left reading order stylesheet (if available)
 		$language = JFactory::getLanguage();
-		if ($language->isRTL() && file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'engines'.DIRECTORY_SEPARATOR.$this->getIdentifier().DIRECTORY_SEPARATOR.'css'.$this->getIdentifier().'.rtl.css')) {
+		if ($language->isRTL() && file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'engines'.DIRECTORY_SEPARATOR.$this->getIdentifier().DIRECTORY_SEPARATOR.'css'.DIRECTORY_SEPARATOR.$this->getIdentifier().'.rtl.css')) {
 			$instance->addStylesheet('/media/sigplus/engines/'.$this->getIdentifier().'/css/'.$this->getIdentifier().'.rtl.css');
 		}
 	}
