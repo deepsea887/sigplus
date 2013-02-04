@@ -36,6 +36,8 @@ class SIGPlusBoxPlusLightboxEngine extends SIGPlusLightboxEngine {
 
 	/**
 	* Adds style sheet references to the HTML head element.
+	* @param {string} $selector A CSS selector.
+	* @param $params Gallery parameters.
 	*/
 	public function addStyles($selector, SIGPlusGalleryParameters $params) {
 		// add main stylesheet
