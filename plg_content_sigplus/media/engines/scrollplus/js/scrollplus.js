@@ -7,6 +7,8 @@
 
 ;
 (function ($) {
+	'use strict';
+
 	function _class(cls) {
 		return 'scrollplus-' + cls;
 	}
@@ -22,7 +24,7 @@
 			if (!elem) {
 				return;
 			}
-		
+
 			var list = elem.getElement('ul,ol');
 			if (!list) {
 				return;
@@ -50,7 +52,7 @@
 			window.addEvent('resize', function() {
 				// set slider value based on new scroll position of sliding gallery
 				slider.set(100 * list.getScroll().x / (list.getScrollSize().x - list.getSize().x));
-				
+
 				// re-adjust slider dimensions and knob position
 				slider.autosize();
 			});

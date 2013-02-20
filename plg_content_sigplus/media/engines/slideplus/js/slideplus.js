@@ -7,6 +7,8 @@
 
 ;
 (function () {
+	'use strict';
+
 	var isVisible = function (el) {
 		return !!(!el || el.offsetHeight || el.offsetWidth);
 	};
@@ -52,12 +54,10 @@
 				var dim = {x: 0, y: 0};
 
 				var parent = this.getParent('body');
-				if (parent && this.getStyle('display') == 'none'){
+				if (parent) {
 					dim = this.measure(function () {
 						return this.getSize();
 					});
-				} else if (parent) {
-					dim = this.getSize();
 				}
 
 				return dim;
@@ -67,6 +67,8 @@
 })();
 
 (function ($) {
+	'use strict';
+
 	/**
 	* Effective background color.
 	* Skips transparent backgrounds until it encounters an element with background color set.
@@ -84,6 +86,20 @@
 			elem = elem.getParent();
 		} while (elem && rgba[3] == 0);  // loop while background color is transparent
 		return rgba;
+	}
+
+	/**
+	* @param {Array.<string>} cls An array of class name suffixes.
+	* @return {string} A class annotation to be used as an Element "class" attribute value.
+	*/
+	function _class(cls) {
+		return cls.map(function (item) {
+			return 'slideplus-' + item;
+		}).join(' ');
+	}
+
+	function _dotclass(cls) {
+		return '.slideplus-' + cls;
 	}
 
 	Object.append(Element['NativeEvents'], {
@@ -163,38 +179,24 @@
 
 			// associate preloader with container element
 			self._images.each(function (image) {
+				function _preloaded() {  // triggered when the image has been preloaded
+					// add "src" attribute, the image will display immediately as data has already been transferred
+					image.removeProperty('data-src').setProperty('src', src).setStyle('visibility','visible');
+
+					// check if there are further images in the container pending
+					if (!self._images.erase(image).pick()) {  // no more images to load
+						// remove animated loader icon
+						self._icon.destroy();
+					}
+				}
+
 				var src = image.getProperty('data-src');
 				if (src) {
-					function _preloaded() {  // triggered when the image has been preloaded
-						// add "src" attribute, the image will display immediately as data has already been transferred
-						image.removeProperty('data-src').setProperty('src', src).setStyle('visibility','visible');
-
-						// check if there are further images in the container pending
-						if (!self._images.erase(image).pick()) {  // no more images to load
-							// remove animated loader icon
-							self._icon.destroy();
-						}
-					}
-
 					$(new Image).addEvent('load', _preloaded).set('src', src);
 				}
 			});
 		}
 	});
-
-	/**
-	* @param {Array.<string>} cls An array of class name suffixes.
-	* @return {string} A class annotation to be used as an Element "class" attribute value.
-	*/
-	function _class(cls) {
-		return cls.map(function (item) {
-			return 'slideplus-' + item;
-		}).join(' ');
-	}
-
-	function _dotclass(cls) {
-		return '.slideplus-' + cls;
-	}
 
 	/**
 	* Time between successive scroll animations [ms].
@@ -333,6 +335,56 @@
 		*        The engine must support the events "open" or "show", and the "close" or "hide".
 		*/
 		'initialize': function (elem, options, lightbox) {
+			/**
+			* A width or height that fits all elements in a collection.
+			* @param {Elements} items The collection of elements.
+			* @param {string} dim 'x' for width and 'y' for height.
+			*/
+			function get_maximum_size(items, dim) {
+				// show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
+				return Math.max.attempt(items.getDimensions().map(function (item) {
+					return item[dim];
+				}));
+			}
+
+			/**
+			* Converts an [r,g,b,a] color array to an "rgba(r,g,b,a)" CSS color definition.
+			* @param {Array.<number>} color A color with red, green, blue and transparency components.
+			* @return {string} A color expression with the rgba CSS function.
+			*/
+			function color2rgba(color) {
+				return 'rgba(' + color.join(',') + ')';
+			}
+
+			/**
+			* Converts an [r,g,b,a] color array to an "#AARRGGBB" hex string.
+			* @param {Array.<number>} color A color with red, green, blue and transparency components.
+			* @return {string} A hexadecimal color expression.
+			*/
+			function color2ahex(color) {
+				function hex(x) {
+					return ("0" + x.toString(16)).slice(-2);
+				}
+				return "#" + hex(Math.floor(255*color[3])) + hex(color[0]) + hex(color[1]) + hex(color[2]);
+			}
+
+			/**
+			* Adds buttons "Previous" and "Next" to a set of navigation bars.
+			* @param {Elements} navbars A collection of navigation bar elements.
+			* @param {string} dir A direction link such as 'prev', 'next', 'first' or last.
+			* @param {string} text The link caption.
+			*/
+			function _addNavigation(navbars, dir, text) {
+				navbars.each(function (bar) {
+					bar.adopt(
+						new Element('span', {
+							'class': _class(['navbutton', dir]),
+							'html': text
+						})
+					);
+				});
+			}
+
 			// element existence test to ensure element is within DOM, some content management
 			// systems may call the script even if the associated content is not on the page,
 			// which is the case e.g. with Joomla category list layout or multi-page layout
@@ -357,7 +409,7 @@
 					height: image.getProperty('height') + 'px'
 				});
 			});
-			
+
 			// select and save list items
 			var listitems = self._allitems = list.getChildren('li');
 			if (options['random']) {  // randomize order of elements in the list
@@ -379,16 +431,9 @@
 			var cols = options['size']['cols'];
 			if (rows > 0 && cols > 0) {
 				// get maximum width and height of image slider items
-				function _getMaxSize(items, dim) {
-					// show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
-					return Math.max.attempt(items.getDimensions().map(function (item) {
-						return item[dim];
-					}));
-				}
-
 				$$(list, viewer).setStyles({
-					'width': cols * (self._maxwidth = _getMaxSize(listitems, 'x')),
-					'height': rows * (self._maxheight = _getMaxSize(listitems, 'y'))
+					'width': cols * (self._maxwidth = get_maximum_size(listitems, 'x')),
+					'height': rows * (self._maxheight = get_maximum_size(listitems, 'y'))
 				});
 				listitems.setStyles({
 					'width': self._maxwidth,
@@ -431,27 +476,6 @@
 						'class': _class(['edge','edge-end',options['orientation']])
 					})
 				);
-
-				/**
-				* Converts an [r,g,b,a] color array to an "rgba(r,g,b,a)" CSS color definition.
-				* @param {Array.<number>} color A color with red, green, blue and transparency components.
-				* @return {string} A color expression with the rgba CSS function.
-				*/
-				function color2rgba(color) {
-					return 'rgba(' + color.join(',') + ')';
-				}
-
-				/**
-				* Converts an [r,g,b,a] color array to an "#AARRGGBB" hex string.
-				* @param {Array.<number>} color A color with red, green, blue and transparency components.
-				* @return {string} A hexadecimal color expression.
-				*/
-				function color2ahex(color) {
-					function hex(x) {
-						return ("0" + x.toString(16)).slice(-2);
-					}
-					return "#" + hex(Math.floor(255*color[3])) + hex(color[0]) + hex(color[1]) + hex(color[2]);
-				}
 
 				// set gradient color
 				var colorSolid = effectiveBackgroundColor(elem);
@@ -498,29 +522,15 @@
 				);
 			}
 
-			/**
-			* Adds buttons "Previous" and "Next" to navigation bar.
-			*/
-			function _addNavigation(dir,text) {
-				quickaccess.each(function (bar) {
-					bar.adopt(
-						new Element('span', {
-							'class': _class(['navbutton',dir]),
-							'html': text
-						})
-					);
-				});
-			}
-
 			// setup navigation bar controls
 			if (barnavigation.length && listitems.length > 1) {
-				_addNavigation('prev', '&lt;');  // '\u21E6' or 'Previous'
-				_addNavigation('next', '&gt;');  // '\u21E8' or 'Next'
+				_addNavigation(quickaccess, 'prev', '&lt;');  // '\u21E6' or 'Previous'
+				_addNavigation(quickaccess, 'next', '&gt;');  // '\u21E8' or 'Next'
 
 				// enable first and last if there is a sufficient number of images
 				if (rows > 0 && cols > 0 && rows*cols > 2*listitems.length) {
-					_addNavigation('first', '|&lt;');
-					_addNavigation('last', '&gt;|');
+					_addNavigation(quickaccess, 'first', '|&lt;');
+					_addNavigation(quickaccess, 'last', '&gt;|');
 				}
 			}
 
@@ -574,10 +584,6 @@
 			self._advance(0);
 
 			// scroll actions
-			function _bindClickAction(elem, fun) {
-				elem.addEvent('click', fun.bind(self));
-			}
-
 			var prevbuttons = self._buttons('prev');
 			var nextbuttons = self._buttons('next');
 			if (options['trigger'] == 'mouseover') {
@@ -607,24 +613,21 @@
 					}
 				});
 			} else {
-				_bindClickAction(prevbuttons, self['prev']);
-				_bindClickAction(nextbuttons, self['next']);
+				prevbuttons.addEvent('click', self['prev'].bind(self));
+				nextbuttons.addEvent('click', self['next'].bind(self));
 			}
-			_bindClickAction(self._buttons('first'), self['first']);
-			_bindClickAction(self._buttons('last'), self['last']);
+			self._buttons('first').addEvent('click', self['first'].bind(self));
+			self._buttons('last').addEvent('click', self['last'].bind(self));
 
 			// suppress context menu and drag-and-drop
 			if (options['protection']) {
-				/**
-				* Conditionally suppresses an event.
-				*/
-				function _uiProhibitedAction(event) {
-					return !list.contains(event.target);
-				}
-
 				document.addEvents({  // subscribe to protected events
-					'contextmenu': _uiProhibitedAction,  // prevent right-click on image
-					'dragstart': _uiProhibitedAction     // prevent drag-and-drop of image
+					'contextmenu': function (event) {  // prevent right-click on image
+						return !list.contains(event.target);
+					},
+					'dragstart': function (event) {  // prevent drag-and-drop of image
+						return !list.contains(event.target);
+					}
 				});
 			}
 
@@ -732,6 +735,20 @@
 		* Arrange items on sliding image strip.
 		*/
 		_layout: function () {
+			/**
+			* Copies a set of events from an element and all of its descendants to another element.
+			* @param {Element} to The element to copy events to.
+			* @param {Element} from The element to copy events from.
+			* @param {string} type The event to copy, e.g. "click".
+			*/
+			function _cloneEventsDeep(to, from, type) {
+				var toChildren = to.cloneEvents(from, type).getChildren();
+				var fromChildren = from.getChildren();
+				for (var k = 0; k < toChildren.length; k++) {
+					_cloneEventsDeep(toChildren[k], fromChildren[k], type);
+				}
+			}
+
 			var self = this;
 			var options = self['options'];
 			var rows = options['size']['rows'];
@@ -765,20 +782,6 @@
 				if (self._populous()) {  // sufficient number of images available to fill each position
 					listitems.push(listitem);
 				} else {  // not enough images to occupy each position, create duplicates (might be unsafe with other script libraries, e.g. jQuery)
-					/**
-					* Copies a set of events from an element and all of its descendants to another element.
-					* @param {Element} to The element to copy events to.
-					* @param {Element} from The element to copy events from.
-					* @param {string} type The event to copy, e.g. "click".
-					*/
-					function _cloneEventsDeep(to, from, type) {
-						var toChildren = to.cloneEvents(from, type).getChildren();
-						var fromChildren = from.getChildren();
-						for (var k = 0; k < toChildren.length; k++) {
-							_cloneEventsDeep(toChildren[k], fromChildren[k], type);
-						}
-					}
-
 					var cloneitem = listitem.clone();
 					_cloneEventsDeep(cloneitem, listitem);
 					listitems.push(cloneitem);

@@ -71,7 +71,7 @@ class SIGPlusEngineServices {
 		}
 		
 		if ($this->jsapi !== false && $this->jsapi != 'none') {
-			JHTML::_('behavior.framework');        // MooTools Core is native to Joomla, modify Joomla if you wish to load it from a CDN
+			JHTML::_('behavior.framework');  // MooTools Core is native to Joomla, modify Joomla if you wish to load it from a CDN
 		}
 		
 		$this->mootools = true;

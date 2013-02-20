@@ -6,6 +6,8 @@
  **/
 
 (function ($) {
+	'use strict';
+
 	/**
 	* @param {Array.<string>} cls An array of class name suffixes.
 	* @return {string} A class annotation to be used as an Element "class" attribute value.
@@ -86,7 +88,7 @@
 			}
 		}
 	});
-
+	
 	captionplus['bind'] = function (elem, options) {
 		// element existence test to ensure element is within DOM, some content management
 		// systems may call the script even if the associated content is not on the page,

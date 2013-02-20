@@ -6,6 +6,8 @@
  **/
 
 (function ($) {
+	'use strict';
+
 	function _class(cls) {
 		return 'hoverplus-' + cls;
 	}
