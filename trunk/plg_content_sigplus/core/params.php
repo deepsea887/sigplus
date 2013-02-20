@@ -440,8 +440,16 @@ class SIGPlusConfigurationBase {
 	protected static function as_boolean($value) {
 		if (is_string($value)) {
 			switch ($value) {
-				case 'true': case 'on': case 'yes': case '1':
+				case 'true':
+				case 'on':
+				case 'yes':
+				case '1':
 					return true;
+				case 'false':
+				case 'off':
+				case 'no':
+				case '0':
+					return false;
 			}
 			return false;
 		} else {
@@ -885,6 +893,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $lightbox_slideshow = 0;
 	/**
 	* Whether to automatically activate slideshow mode when the lightbox opens.
+	* @example <kbd>{gallery lightbox-slideshow=4000 lightbox-autostart=1}fruit{/gallery}</kbd> triggers a slideshow when the pop-up window appears, automatically showing the next image after 4 seconds of delay.
 	* @type {boolean}
 	*/
 	public $lightbox_autostart = false;
@@ -1010,7 +1019,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	public $preview_border_style = false;
 	/**
 	* Border color as a hexadecimal value in between 000000 or ffffff inclusive, or false for default.
-	* @example <kbd>{gallery preview-border-width=1 preview-border-style=dotted preview-border-color=000000}myfolder{/gallery}</kbd> adds a black dotted border of a single pixel width around each image in the gallery.
+	* @example <kbd>{gallery preview-border-width=1 preview-border-style=dotted preview-border-color="000000"}myfolder{/gallery}</kbd> adds a black dotted border of a single pixel width around each image in the gallery.
 	*/
 	public $preview_border_color = false;
 	/** Padding [px] (with or without unit), or false for default (inherit from sigplus.css). */

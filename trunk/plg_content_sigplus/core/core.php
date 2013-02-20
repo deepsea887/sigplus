@@ -1078,12 +1078,16 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		$imagelibrary = SIGPlusImageLibrary::instantiate($this->config->service->library_image);
 
 		// create watermarked image
-		if ($this->config->gallery->watermark_position !== false && ($watermarkpath = $this->getWatermarkPath($imagepath)) !== false) {
+		if ($this->config->gallery->watermark_position !== false && ($watermarkpath = $this->getWatermarkPath(dirname($imagepath))) !== false) {
 			$watermarkedpath = $this->getWatermarkedPath($imagepath, SIGPLUS_TEST);
 			if ($watermarkedpath === false || !(fsx::filemtime($watermarkedpath) >= fsx::filemtime($imagepath))) {  // watermarked image does not yet exist
 				$watermarkedpath = $this->getWatermarkedPath($imagepath, SIGPLUS_CREATE);
-				$watermarkparams = $this->config->gallery->watermark_params;
-				$watermarkparams['quality'] = $previewparams->quality;  // GD cannot extract quality parameter from stored image, use quality set by user
+				$watermarkparams = array(
+					'position' => $this->config->gallery->watermark_position,
+					'x' => $this->config->gallery->watermark_x,
+					'y' => $this->config->gallery->watermark_y,
+					'quality' => $previewparams->quality  // GD cannot extract quality parameter from stored image, use quality set by user
+				);
 				$result = $imagelibrary->createWatermarked($imagepath, $watermarkpath, $watermarkedpath, $watermarkparams);
 				if ($result) {
 					SIGPlusLogging::appendStatus('Saved watermarked image to <code>'.$watermarkedpath.'</code>.');
@@ -1158,7 +1162,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		// look inside image gallery folder (e.g. "images/stories/myfolder")
 		$watermark_in_gallery = $imagedirectory.DIRECTORY_SEPARATOR.$watermark_image;
 		// look inside watermark subfolder of image gallery folder (e.g. "images/stories/myfolder/watermark")
-		$watermark_in_subfolder = $imagedirectory.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $this->config->service->folder_watermark).DIRECTORY_SEPARATOR.$watermark_image;
+		$watermark_in_subfolder = $imagedirectory.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $this->config->service->folder_watermarked).DIRECTORY_SEPARATOR.$watermark_image;
 		// look inside base path (e.g. "images/stories")
 		$watermark_in_base = $this->config->service->base_folder.DIRECTORY_SEPARATOR.$watermark_image;
 
@@ -1250,6 +1254,11 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		$filetime = fsx::filemdate($imagepath);
 		if ($time == $filetime) {
 			SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> has <em>not</em> changed.');
+			return false;
+		}
+		
+		if ($this->config->gallery->watermark_position !== false && $this->config->gallery->watermark_source == basename($imagepath)) {
+			SIGPlusLogging::appendStatus('Skipping image <code>'.$imagepath.'</code>, which acts as a watermark image.');
 			return false;
 		}
 

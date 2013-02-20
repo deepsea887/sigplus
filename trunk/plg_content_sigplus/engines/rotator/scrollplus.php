@@ -33,9 +33,14 @@ class SIGPlusScrollPlusRotatorEngine extends SIGPlusRotatorEngine {
 		// add main script
 		parent::addScripts($selector, $params);
 
+		// get engine helper
+		$instance = SIGPlusEngineServices::instance();
+		
+		// add dependent MooTools framework script
+		$instance->addScript('/media/sigplus/engines/'.$this->getIdentifier().'/js/mootools-more-1.4.0.1.js');
+
 		// add document loaded event script
 		$script = 'new scrollplus(document.getElement("'.$selector.'"));';
-		$instance = SIGPlusEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}
 }
