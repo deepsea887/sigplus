@@ -1186,6 +1186,18 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 				$this->preview_width = 100;
 			}
 		}
+		if ($this->thumb_crop) {  // cropping enabled, both width and height are required
+			if ($this->thumb_width == 0) {
+				$this->thumb_width = 100;
+			}
+			if ($this->thumb_height == 0) {
+				$this->thumb_height = 100;
+			}
+		} else {  // cropping disabled, at least width or height is required
+			if ($this->thumb_width == 0 && $this->thumb_height == 0) {  // both width and height is set to be determined automatically
+				$this->thumb_width = 100;
+			}
+		}
 
 		// lightbox properties
 		$this->lightbox_autocenter = self::as_boolean($this->lightbox_autocenter);

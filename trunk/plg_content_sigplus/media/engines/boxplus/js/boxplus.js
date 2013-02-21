@@ -198,7 +198,17 @@
 			* Default height if no height is specified or can be derived.
 			* @type {number}
 			*/
-			'height': 600
+			'height': 600,
+			/**
+			* Default thumbnail width if no width is specified or can be derived.
+			* @type {number}
+			*/
+			'thumb_width': 60,
+			/**
+			* Default thumbnail height if no height is specified or can be derived.
+			* @type {number}
+			*/
+			'thumb_height': 60
 		},
 
 		// --- END OF DEFAULT OPTIONS --- //
@@ -537,14 +547,14 @@
 			self['setOptions'](options);  // prevent minification of "setOptions"
 
 			// enable associated theme (if any) and disable other themes that might be linked to the page
-			var theme = self['options']['theme'];
+			var theme = options['theme'];
 			if (theme) {
 				// disable unused themes and enable selected theme
 				$$('link[rel=stylesheet][title^=boxplus]').set('disabled', true).filter('[title="boxplus-' + theme + '"]').set('disabled', false);
 			}
 
 			// toggle navigation buttons
-			self.setEnabled(['prev','next','start','stop'], self['options']['navigation']);
+			self.setEnabled(['prev','next','start','stop'], options['navigation']);
 
 			// show visuals
 			self.setVisible('bottom', false);    // will be shown when resizing terminates
@@ -553,6 +563,20 @@
 			$$([self.shadedbackground, self.popup]).removeClass(BOXPLUS_HIDDEN);
 			self.shadedbackground.fade('hide').fade('in');
 
+			// update thumbnail and thumbnail ribbon size
+			self._getElements('thumbs').each(function (item) {
+				var ribbon = item.getElement('ul');
+				ribbon.getElements('li > img').setStyles({
+					'max-width': options['thumb_width'],
+					'max-height': options['thumb_height']
+				});
+				
+				// measure thumbnail ribbon height
+				ribbon.setStyle('position', 'static');
+				item.setStyle('height', item.getSize().y);  // save thumbnail ribbon computed height
+				ribbon.setStyle('position', '');  // clear CSS "position" set to "static"
+			});
+			
 			// register events
 			self._bindEvents({
 				'contextmenu': self._onProhibitedUIAction,
@@ -820,8 +844,8 @@
 			self.viewercontent.adopt(elem.clone()).removeClass(BOXPLUS_UNAVAILABLE).removeClass(BOXPLUS_HIDDEN);
 
 			self._imagedims = {
-				width: self.options.width,
-				height: self.options.height
+				width: self['options']['width'],
+				height: self['options']['height']
 			};
 		},
 
@@ -832,8 +856,8 @@
 		setDimensions: function (anchor) {
 			var dims = fromQueryString(anchor.search);
 			dims = {
-				width: dims.width ? dims.width.toInt() : this.options.width,
-				height: dims.height ? dims.height.toInt() : this.options.height
+				width: dims.width ? dims.width.toInt() : this['options']['width'],
+				height: dims.height ? dims.height.toInt() : this['options']['height']
 			};
 			this._imagedims = dims;
 		},
@@ -1014,11 +1038,12 @@
 		addThumbs: function (images) {
 			var self = this;
 			self._getElements('thumbs').each(function (item) {
+				var ribbon = item.getElement('ul');
 				images.each(function (image) {
 					new Element('li').adopt(image.clone().addEvent('click', function () {
 						var item = $(this).getParent();
 						self._fireEvent('change', item.getParent().getChildren().indexOf(item));
-					})).inject(item.getElement('ul'));
+					})).inject(ribbon);
 				});
 			});
 			self.setAvailable('thumbs', images.length > 1);
@@ -1065,7 +1090,7 @@
 			var self = this;
 			self.center(self.popupclone);
 			self.popup.set('morph', {
-				duration: self.options.duration,
+				duration: self['options']['duration'],
 				link: 'cancel'
 			}).morph(self.popupclone.getStyles(['left','top']));
 		},
@@ -1474,9 +1499,19 @@
 				if (image) {
 					// thumbnail image source, inspecting all candidate attributes
 					var attrthumb = image.get('data-thumb');
-					return new Element('img', {
-						'src': attrthumb ? attrthumb : image.get('src')
-					});
+					var properties;
+					if (attrthumb) {  // special attribute "data-thumb" on a (full-size) image
+						properties = {
+							'src': attrthumb
+						};
+					} else {  // the image itself
+						properties = {
+							'src': image.get('src'),
+							'width': image.get('width'),
+							'height': image.get('height')
+						};
+					}
+					return new Element('img', properties);
 				} else {
 					return null;
 				}

@@ -845,7 +845,10 @@ abstract class SIGPlusGalleryBase {
 		return md5(
 			$folderid.' '.
 			$this->config->gallery->preview_width . ($this->config->gallery->preview_crop ? 'x' : 's') . $this->config->gallery->preview_height . ' ' .
-			$this->config->gallery->watermark_x . ($this->config->gallery->watermark_position !== false ? $this->config->gallery->watermark_position : '@') . $this->config->gallery->watermark_y,
+			( $this->config->gallery->watermark_position !== false
+			? $this->config->gallery->watermark_x . $this->config->gallery->watermark_position . $this->config->gallery->watermark_y . '@' . $this->config->gallery->watermark_source
+			: ''
+			),
 			true
 		);
 	}

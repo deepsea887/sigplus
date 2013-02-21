@@ -68,9 +68,12 @@ class SIGPlusBoxPlusLightboxEngine extends SIGPlusLightboxEngine {
 
 		// build lightbox engine options
 		$jsparams = $params->lightbox_params;
+		$jsparams['theme'] = $this->theme;
 		$jsparams['autocenter'] = $params->lightbox_autocenter;
 		$jsparams['autofit'] = $params->lightbox_autofit;
 		$jsparams['thumbs'] = $params->lightbox_thumbs;
+		$jsparams['thumb_width'] = $params->thumb_width;
+		$jsparams['thumb_height'] = $params->thumb_height;
 		$jsparams['slideshow'] = $params->lightbox_slideshow;
 		$jsparams['autostart'] = $params->lightbox_autostart;
 		$jsparams['transition'] = $params->lightbox_transition;

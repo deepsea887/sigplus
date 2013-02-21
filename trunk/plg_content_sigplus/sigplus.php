@@ -360,6 +360,7 @@ class plgContentSIGPlus extends JPlugin {
 	private static function strip_html($html) {
 		$text = html_entity_decode($html, ENT_QUOTES, 'utf-8');  // translate HTML entities to regular characters
 		$text = str_replace("\xc2\xa0", ' ', $text);  // translate non-breaking space to regular space
+		$text = strip_tags($text);  // remove HTML tags
 		return $text;
 	}
 }
