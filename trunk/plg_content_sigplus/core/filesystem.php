@@ -583,8 +583,6 @@ function get_folder_last_modified($dir, $depth = 0) {
 * @param {string} $etag A (weak) entity tag.
 */
 function http_get_modified($url, &$lastmod = null, &$etag = null, $method = 'GET', $headers = array()) {
-	$data = false;
-
 	// add If-Modified-Since header
 	if (!empty($lastmod)) {
 		$date = DateTime::createFromFormat('Y-m-d H:i:s', $lastmod, new DateTimeZone('UTC'));
@@ -593,66 +591,106 @@ function http_get_modified($url, &$lastmod = null, &$etag = null, $method = 'GET
 
 	// add HTTP ETag
 	if (!empty($etag)) {
-		$headers[] = 'If-None-Match: '.$etag;
+		$headers[] = 'If-None-Match: '.$etag;  // test for HTTP ETag match
 	}
 
-	// create stream context
-	if (!empty($headers)) {
-		$options = array(
-			'http' => array(
-				'method' => $method,
-				'header' => implode("\r\n", $headers)."\r\n"
-			)
-		);
-		$context = stream_context_create($options);
-		$stream = @fopen($url, 'r', false, $context);
+	// fetch remote content
+	if (function_exists("curl_init") && function_exists("curl_setopt") && function_exists("curl_exec") && function_exists("curl_close")) {
+		// cURL support is available
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_HEADER, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
+		switch ($method) {
+			case 'POST':
+				curl_setopt($ch, CURLOPT_POST, true); break;
+			case 'GET':
+			default:
+				curl_setopt($ch, CURLOPT_HTTPGET, true); break;
+		}
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		$response = curl_exec($ch);
+		$header_length = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+		$content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+		curl_close($ch);
+
+		$header_array = explode("\r\n", substr($response, 0, $header_length));
+		$data = substr($response, $header_length);
 	} else {
-		$stream = @fopen($url, 'r');
-	}
-
-	// test for HTTP ETag match, $http_response_header is a predefined PHP variable
-	if (!isset($http_response_header)) {  // HTTP wrappers are disabled
-		$data = false;  // cannot access resource
-	} elseif (!preg_match('#^HTTP/[\d.]+\s+(\d+)#S', $http_response_header[0], $matches) || $matches[1] != '304') {  // HTTP 304 "Not modified" indicates ETag match
-		foreach ($http_response_header as $header) {  // go through header lines, looking for HTTP ETag
-			if (preg_match('#^ETag:\s+(\S+)#iS', $header, $matches)) {  // locate ETag header
-				$etag = $matches[1];  // extract and update ETag value
-				break;
-			} elseif (preg_match('#^Last-Modified:\s+(.+)$#iS', $header, $matches)) {
-				$timestring = $matches[1];
-				if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
-					$date = DateTime::createFromFormat('D, d M Y H:i:s T', $timestring);  // parse HTTP date format (RFC 822, updated by RFC 1123)
-				} else {
-					$unixtime = strtotime($timestring);
-					if ($unixtime !== false && $unixtime !== -1) {
-						$date = new DateTime('@'.$unixtime);
-					} else {
-						$date = false;
-					}
-				}
-
-				if ($date !== false) {
-					$lastmod = $date->format('Y-m-d H:i:s');  // generate database date format
-				} else {
-					$lastmod = false;
-				}
-			}
+		// explicit cURL support is not available, create stream context
+		if (!empty($headers)) {
+			$options = array(
+				'http' => array(
+					'method' => $method,
+					'header' => implode("\r\n", $headers)."\r\n"
+				)
+			);
+			$context = stream_context_create($options);
+			$stream = @fopen($url, 'r', false, $context);
+		} else {
+			$stream = @fopen($url, 'r');
 		}
 
+		// read data to force (in-built) cURL to fetch HTTP headers
+		// if HTTP ETag matches, there is no payload to be read
 		if ($stream !== false) {
-			// read data if HTTP ETag does not match
 			$data = stream_get_contents($stream);
 		} else {
-			$data = false;  // cannot access resource
+			$data = false;
 		}
-	} else {
-		$data = true;  // resource not modified
+
+		if (isset($http_response_header)) {
+			// $http_response_header is a predefined PHP local variable if HTTP wrapper is supported
+			$header_array = $http_response_header;
+		} else {
+			$header_array = null;
+		}
+		
+		// close stream
+		if ($stream !== false) {
+			fclose($stream);
+		}
 	}
 
-	// close stream
-	if ($stream !== false) {
-		fclose($stream);
+	// process response HTTP headers and payload
+	if (!isset($header_array) || empty($header_array)) {  // HTTP wrappers are disabled
+		$data = false;  // cannot access resource
+	} elseif (preg_match('#^HTTP/[\d.]+\s+(\d+)#S', $header_array[0], $matches)) {
+		$statuscode = $matches[1];
+		if ($statuscode == '304') {  // HTTP 304 "Not modified" indicates ETag match
+			$data = true;  // resource not modified
+		} elseif ($statuscode == '200') {
+			foreach ($header_array as $header) {  // go through header lines, looking for HTTP ETag
+				if (preg_match('#^ETag:\s+(\S+)#iS', $header, $matches)) {  // locate ETag header
+					$etag = $matches[1];  // extract and update ETag value
+					break;
+				} elseif (preg_match('#^Last-Modified:\s+(.+)$#iS', $header, $matches)) {
+					$timestring = $matches[1];
+					if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
+						$date = DateTime::createFromFormat('D, d M Y H:i:s T', $timestring);  // parse HTTP date format (RFC 822, updated by RFC 1123)
+					} else {
+						$unixtime = strtotime($timestring);
+						if ($unixtime !== false && $unixtime !== -1) {
+							$date = new DateTime('@'.$unixtime);
+						} else {
+							$date = false;
+						}
+					}
+
+					if ($date !== false) {
+						$lastmod = $date->format('Y-m-d H:i:s');  // generate database date format
+					} else {
+						$lastmod = false;
+					}
+				}
+			}
+		} else {
+			$data = false;  // unrecognized HTTP status code
+		}
+	} else {
+		$data = false;  // invalid response
 	}
+
 	return $data;
 }
 
