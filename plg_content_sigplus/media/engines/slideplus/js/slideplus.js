@@ -763,8 +763,10 @@
 
 			// extract part of array with loop semantics
 			var listitems = self._curitems = $$([]);
-			var lowest = self._index - (pagestep ? rows*cols : 1);  // start index
-			var highest = self._index + rows*cols + (pagestep ? rows*cols : 1);  // end index
+			var isvertical = options['orientation'] == 'vertical';
+			var stepincrement = isvertical ? rows : cols;
+			var lowest = self._index - (pagestep ? rows*cols : stepincrement);  // start index
+			var highest = self._index + rows*cols + (pagestep ? rows*cols : stepincrement);  // end index
 			if (!options['loop']) {
 				highest = highest.min(length);
 			}
@@ -800,7 +802,7 @@
 			// add new items displayed
 			listitems.each(function (listitem, index) {
 				// determine layout order
-				var rowmajor = options['orientation'] == 'vertical';  // initialize with layout that fits orientation model (row-major for vertical and column-major for horizontal)
+				var rowmajor = isvertical;  // initialize with layout that fits orientation model (row-major for vertical and column-major for horizontal)
 				var layout = options['layout'];
 				if (layout == 'row') {
 					rowmajor = true;  // force row-major layout
@@ -913,6 +915,7 @@
 
 			// launch animation
 			var effect = new Fx.Morph(self._list, {
+				'link': 'ignore',
 				'duration': options['duration'],
 				'transition': options['transition'],
 				'onComplete': function () {

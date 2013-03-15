@@ -1594,7 +1594,7 @@ class SIGPlusFlickrGallery extends SIGPlusAtomFeedGallery {
 
 		// build URL to fetch list of photos in album
 		$uri = JFactory::getURI();
-		$feedurl = 'http://api.flickr.com/services/feeds/photos_public.gne?'.http_build_query($feedquery);
+		$feedurl = 'http://api.flickr.com/services/feeds/photos_public.gne?'.http_build_query($feedquery, '', '&');
 
 		// send request
 		if (($sxml = $this->requestFolder($feedurl, $folderparams, $url, $viewid)) === false) {  // has not changed
@@ -1686,7 +1686,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		// build URL to fetch list of photos in album
 		$uri = JFactory::getURI();
 		$scheme = $uri->isSSL() ? 'https:' : 'http:';
-		$feedurl = $scheme.'//picasaweb.google.com/data/feed/api/user/'.$userid.'/albumid/'.$albumid.'?'.http_build_query($feedquery);
+		$feedurl = $scheme.'//picasaweb.google.com/data/feed/api/user/'.$userid.'/albumid/'.$albumid.'?'.http_build_query($feedquery, '', '&');
 
 		// send request
 		if (($sxml = $this->requestFolder($feedurl, $folderparams, $url, $viewid)) === false) {  // has not changed

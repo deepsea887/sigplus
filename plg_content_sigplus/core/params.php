@@ -1186,6 +1186,9 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 				$this->preview_width = 100;
 			}
 		}
+		$this->thumb_width = self::as_nonnegative_integer($this->thumb_width, 0);
+		$this->thumb_height = self::as_nonnegative_integer($this->thumb_height, 0);
+		$this->thumb_crop = self::as_boolean($this->thumb_crop);
 		if ($this->thumb_crop) {  // cropping enabled, both width and height are required
 			if ($this->thumb_width == 0) {
 				$this->thumb_width = 100;

@@ -175,12 +175,16 @@ class SIGPlusMetadataServices {
 		}
 		switch ($key) {
 			case 'Coded Character Set':
-				switch ($value) {
+				switch ($value) {  // see International Register of Coded Character Sets to be used with escape sequences
 					case "\x1b%G": $value = 'utf-8'; break;
 					case "\x1b.A": $value = 'iso-8859-1'; break;
 					case "\x1b.B": $value = 'iso-8859-2'; break;
 					case "\x1b.C": $value = 'iso-8859-3'; break;
 					case "\x1b.D": $value = 'iso-8859-4'; break;
+					case "\x1b.@": $value = 'iso-8859-5'; break;
+					case "\x1b.F": $value = 'iso-8859-7'; break;
+					case "\x1b.G": $value = 'iso-8859-6'; break;
+					case "\x1b.H": $value = 'iso-8859-8'; break;
 					default: $value = 'ascii';  // assume ASCII for unrecognized escape sequences
 				}
 				break;

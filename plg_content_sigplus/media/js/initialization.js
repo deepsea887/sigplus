@@ -9,6 +9,8 @@
 */
 
 window.addEvent('domready', function () {
+	'use strict';
+
 	var $ = document.id;
 
 	// unwrap galleries from <noscript> elements
@@ -70,17 +72,12 @@ window.addEvent('domready', function () {
 
 // apply template to caption text
 function __sigplusCaption(id, titletemplate, summarytemplate) {
+	'use strict';
+
 	var anchors = document.getElements('#' + id + ' a.sigplus-image');
 	titletemplate = titletemplate || '{$text}';
 	summarytemplate = summarytemplate || '{$text}';
 	anchors.each(function (anchor, index) {
-		anchor = $(anchor);  // $(...) for Internet Explorer 8 and earlier compatibility
-		var replacement = {  // template replacement rules
-			filename: (anchor.pathname || '').match(/([^\/]*)$/)[1],  // keep only file name component from path
-			current: index + 1,  // index is zero-based but user interface needs one-based counter
-			total: anchors.length
-		};
-
 		function _subs(template, text) {
 			return template.substitute(Object.merge({'text': text || ''}, replacement), /\\?\{\$([^{}]+)\}/g);
 		}
@@ -92,6 +89,13 @@ function __sigplusCaption(id, titletemplate, summarytemplate) {
 		function _subsstore(elem, key, template) {
 			elem.store(key, _subs(template, elem.retrieve(key)));
 		}
+
+		anchor = $(anchor);  // $(...) for Internet Explorer 8 and earlier compatibility
+		var replacement = {  // template replacement rules
+			filename: (anchor.pathname || '').match(/([^\/]*)$/)[1],  // keep only file name component from path
+			current: index + 1,  // index is zero-based but user interface needs one-based counter
+			total: anchors.length
+		};
 
 		// apply template to element store data
 		_subsstore(anchor, 'title', titletemplate);
