@@ -545,6 +545,7 @@
 		show: function (options) {
 			var self = this;
 			self['setOptions'](options);  // prevent minification of "setOptions"
+			options = self['options'];
 
 			// enable associated theme (if any) and disable other themes that might be linked to the page
 			var theme = options['theme'];

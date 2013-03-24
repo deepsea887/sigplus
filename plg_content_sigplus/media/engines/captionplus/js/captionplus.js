@@ -42,7 +42,7 @@
 		'initialize': function (elem, options) {
 			var self = this;
 			self['setOptions'](options);
-			options = self.options;
+			options = self['options'];
 
 			var image = elem.getElement('img');
 			var anchor = elem.getElement('a');

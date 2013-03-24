@@ -69,6 +69,10 @@
 (function ($) {
 	'use strict';
 
+	function isVisible(el) {
+		return !!(!el || el.offsetHeight || el.offsetWidth);
+	};
+
 	/**
 	* Effective background color.
 	* Skips transparent backgrounds until it encounters an element with background color set.
@@ -394,7 +398,7 @@
 
 			var self = this;
 			self['setOptions'](options);
-			options = self.options;
+			options = self['options'];
 
 			// save list of items
 			var list = self._list = (self._gallery = elem).getElement('ul,ol');
@@ -541,14 +545,22 @@
 						'class': _class(['paging'])
 					});
 
-					var pagecount = options['step'] == 'page' ? ((listitems.length - 1) / (rows*cols)).floor() + 1 : listitems.length;
+					var stepincrement = options['orientation'] == 'vertical' ? cols : rows;
+					var itemcount = listitems.length;
+					var pagecount = options['step'] == 'page' ? ((itemcount - 1) / (rows*cols)).floor() + 1 : itemcount;
 					pagecount > 1 && pagecount.times(function (index) {  // do not create paging controls for a single page
 						paging.adopt(
 							new Element('span', {
 								'html': index + 1,
 								'events': {
 									'click': function () {
-										self._index = index * (options['step'] == 'page' ? rows*cols : 1);
+										self._index =
+											( options['step'] == 'page'
+											// jump to indexed page
+											? index*rows*cols
+											// jump to image whose index starts the very last (full or partially full) page
+											: index.min(itemcount - (itemcount%stepincrement > 0 ? itemcount%stepincrement : stepincrement) - (rows*cols - stepincrement))
+											);
 										self._layout();
 									}
 								}
@@ -633,26 +645,26 @@
 
 			// slider animation
 			if (options['delay']) {
-				var stopAnimation = false;  // whether to suppress animation even if mouse is not over rotator
+				var suppressAnimation = false;  // whether to suppress animation even if mouse is not over rotator
 
 				// stop animation when mouse mover over an image
 				viewer.addEvents({
 					'mouseover': function () {
-						stopAnimation || self._clearTimeout();  // do not keep animating if lightbox pop-up window is open
+						self._clearTimeout();
 					},
 					'mouseout': function () {
-						stopAnimation || self._setTimeout();
+						suppressAnimation || self._setTimeout();  // do not keep animating if lightbox pop-up window is open
 					}
 				});
 
 				if (lightbox) {
 					lightbox.addEvents({
 						'open': function () {
-							stopAnimation = true;
+							suppressAnimation = true;
 							self._clearTimeout();
 						},
 						'close': function () {
-							stopAnimation = false;
+							suppressAnimation = false;
 							self._setTimeout();
 						}
 					});
@@ -693,7 +705,11 @@
 			if (delay && !self._intervalID) {  // start timer
 				self._intervalID = window.setTimeout(function () {
 					self._intervalID = false;
-					self._slide(1);
+					if (isVisible(self._gallery)) {  // if gallery is visible, begin sliding
+						self._slide(1);
+					} else {  // if gallery is not visible, wait for the next opportunity
+						self._setTimeout();
+					}
 				}, delay);
 			}
 		},
@@ -764,7 +780,7 @@
 			// extract part of array with loop semantics
 			var listitems = self._curitems = $$([]);
 			var isvertical = options['orientation'] == 'vertical';
-			var stepincrement = isvertical ? rows : cols;
+			var stepincrement = isvertical ? cols : rows;
 			var lowest = self._index - (pagestep ? rows*cols : stepincrement);  // start index
 			var highest = self._index + rows*cols + (pagestep ? rows*cols : stepincrement);  // end index
 			if (!options['loop']) {
@@ -784,8 +800,14 @@
 				if (self._populous()) {  // sufficient number of images available to fill each position
 					listitems.push(listitem);
 				} else {  // not enough images to occupy each position, create duplicates (might be unsafe with other script libraries, e.g. jQuery)
-					var cloneitem = listitem.clone();
-					_cloneEventsDeep(cloneitem, listitem);
+					var cloneitem;
+					var $j = window['jQuery'];
+					if ($j) {
+						cloneitem = $($j(listitem).clone(true)[0]);  // use jQuery to make a deep copy with jQuery events duplicated
+					} else {
+						cloneitem = listitem.clone();  // use MooTools to make a deep copy
+					}
+					_cloneEventsDeep(cloneitem, listitem);  // duplicate MooTools events
 					listitems.push(cloneitem);
 				}
 			}
@@ -803,12 +825,14 @@
 			listitems.each(function (listitem, index) {
 				// determine layout order
 				var rowmajor = isvertical;  // initialize with layout that fits orientation model (row-major for vertical and column-major for horizontal)
-				var layout = options['layout'];
-				if (layout == 'row') {
-					rowmajor = true;  // force row-major layout
-				}
-				if (layout == 'column') {
-					rowmajor = false;  // force column-major layout
+				if (pagestep) {  // row-major and column-major layout make sense only for sliding by a whole page
+					var layout = options['layout'];
+					if (layout == 'row') {
+						rowmajor = true;  // force row-major layout
+					}
+					if (layout == 'column') {
+						rowmajor = false;  // force column-major layout
+					}
 				}
 
 				// arrange list items on sliding canvas
