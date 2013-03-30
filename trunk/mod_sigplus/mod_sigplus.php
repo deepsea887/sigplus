@@ -50,11 +50,20 @@ try {
 		$core->setParameterObject($params);  // get parameters from the module's configuration
 
 		try {
-			$imagesource = $params->get('source');
-		
+			if ($params instanceof stdClass) {
+				$imagesource = $params->source;
+			} else if ($params instanceof JRegistry) {  // Joomla 2.5 and earlier
+				$imagesource = $params->get('source');
+			}
+
 			// download image
-			if ($core->downloadImage($imagesource)) {  // an image has been requested for download
-				jexit();  // do not produce a page
+			try {
+				if ($core->downloadImage($imagesource)) {  // an image has been requested for download
+					jexit();  // do not produce a page
+				}
+			} catch (SIGPlusImageDownloadAccessException $e) {  // signal download errors but do not stop page processing
+				$app = JFactory::getApplication();
+				$app->enqueueMessage($e->getMessage(), 'error');
 			}
 
 			// generate image gallery

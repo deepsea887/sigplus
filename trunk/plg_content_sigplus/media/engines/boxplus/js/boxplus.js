@@ -497,6 +497,9 @@
 		_getClonedElements: function (cls) {
 			return this.popupclone.getElements(this._class(cls));
 		},
+		_getAllElements: function (cls) {
+			return this._getElements(cls).concat(this._getClonedElements(cls));
+		},
 		_toggle: function (cls, clstoggle, state) {
 			this._getElements(cls)[state ? 'addClass' : 'removeClass'](clstoggle);
 		},
@@ -558,26 +561,13 @@
 			self.setEnabled(['prev','next','start','stop'], options['navigation']);
 
 			// show visuals
+			self.setVisible('controls', false);
 			self.setVisible('bottom', false);    // will be shown when resizing terminates
 			self.setVisible('sideways', false);  // will be shown when resizing terminates
 			self.center(self.popup);
 			$$([self.shadedbackground, self.popup]).removeClass(BOXPLUS_HIDDEN);
 			self.shadedbackground.fade('hide').fade('in');
 
-			// update thumbnail and thumbnail ribbon size
-			self._getElements('thumbs').each(function (item) {
-				var ribbon = item.getElement('ul');
-				ribbon.getElements('li > img').setStyles({
-					'max-width': options['thumb_width'],
-					'max-height': options['thumb_height']
-				});
-				
-				// measure thumbnail ribbon height
-				ribbon.setStyle('position', 'static');
-				item.setStyle('height', item.getSize().y);  // save thumbnail ribbon computed height
-				ribbon.setStyle('position', '');  // clear CSS "position" set to "static"
-			});
-			
 			// register events
 			self._bindEvents({
 				'contextmenu': self._onProhibitedUIAction,
@@ -992,10 +982,8 @@
 		*/
 		setCaption: function (title, text) {
 			var self = this;
-			self._getElements('title').set('html', title);
-			self._getElements('text').set('html', text);
-			self._getClonedElements('title').set('html', title);
-			self._getClonedElements('text').set('html', text);
+			self._getAllElements('title').set('html', title);
+			self._getAllElements('text').set('html', text);
 			self.setAllAvailable('title', title);
 			self.setAllAvailable('text', text);
 			self.setAllAvailable('caption', title || text);
@@ -1038,16 +1026,21 @@
 		*/
 		addThumbs: function (images) {
 			var self = this;
-			self._getElements('thumbs').each(function (item) {
+			var maxwidth = [self['options']['thumb_width'], 'auto'].pick();
+			var maxheight = [self['options']['thumb_height'], 'auto'].pick();
+			self._getAllElements('thumbs').each(function (item) {
 				var ribbon = item.getElement('ul');
 				images.each(function (image) {
-					new Element('li').adopt(image.clone().addEvent('click', function () {
+					new Element('li').adopt(image.clone().setStyles({
+						'max-width': maxwidth,
+						'max-height': maxheight
+					}).addEvent('click', function () {
 						var item = $(this).getParent();
 						self._fireEvent('change', item.getParent().getChildren().indexOf(item));
 					})).inject(ribbon);
 				});
 			});
-			self.setAvailable('thumbs', images.length > 1);
+			self.setAllAvailable('thumbs', images.length > 1);
 		},
 
 		/**
@@ -1135,6 +1128,7 @@
 			self.resizing = true;
 
 			// hide bottom and sideways caption area temporarily while resizing
+			self.setVisible('controls', false);
 			self.setVisible('bottom', false);
 			self.setVisible('sideways', false);
 
@@ -1254,6 +1248,7 @@
 							self.setAvailable('sideways', true);
 
 							// show bottom and sideways caption area temporarily hidden
+							self.setVisible('controls', true);
 							self.setVisible('bottom', true);
 							self.setVisible('sideways', true);
 

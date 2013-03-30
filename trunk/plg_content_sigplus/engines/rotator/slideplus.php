@@ -34,8 +34,13 @@ class SIGPlusSlidePlusRotatorEngine extends SIGPlusRotatorEngine {
 		// add main script
 		parent::addScripts($selector, $params);
 
-		// add localization
+		// get engine helper
 		$instance = SIGPlusEngineServices::instance();
+		
+		// add dependent MooTools framework script
+		$instance->addScript('/media/sigplus/engines/'.$this->getIdentifier().'/js/mootools-more-1.4.0.1.js');
+		
+		// add localization
 		$language = JFactory::getLanguage();
 		list($lang, $country) = explode('-', $language->getTag());
 		//$instance->addScript('/media/sigplus/engines/'.$this->getIdentifier().'/js/'.$this->getIdentifier().'.lang?lang='.$lang.'-'.$country.'.js');

@@ -73,7 +73,7 @@ class SIGPlusFileSystemException extends SIGPlusException {
 	protected $file;
 
 	public function __construct($key, $file) {
-		$this->file = str_replace(array(JPATH_ROOT,DIRECTORY_SEPARATOR), array('<em>'.JText::_('SIGPLUS_ROOT').'</em>','/'), $file);
+		$this->file = str_replace(array(JPATH_ROOT,DIRECTORY_SEPARATOR), array(JText::_('SIGPLUS_ROOT'),'/'), $file);
 		parent::__construct($key);
 	}
 }
@@ -106,7 +106,7 @@ class SIGPlusTextFormatException extends SIGPlusException {
 	protected $textfile;
 
 	public function __construct($textfile) {
-		$this->textfile = str_replace(array(JPATH_ROOT,DIRECTORY_SEPARATOR), array('<em>root</em>','/'), $textfile);
+		$this->textfile = str_replace(array(JPATH_ROOT,DIRECTORY_SEPARATOR), array(JText::_('SIGPLUS_ROOT'),'/'), $textfile);
 		parent::__construct('SIGPLUS_EXCEPTION_TEXTFORMAT');
 	}
 }
@@ -278,5 +278,23 @@ class SIGPlusLoginRequiredException extends SIGPlusException {
 class SIGPlusTimeoutException extends SIGPlusException {
 	public function __construct() {
 		parent::__construct('SIGPLUS_EXCEPTION_TIMEOUT');
+	}
+}
+
+/**
+* Triggered when an image cannot be downloaded due to access restrictions.
+*/
+class SIGPlusImageDownloadAccessException extends SIGPlusException {
+	public function __construct() {
+		parent::__construct('SIGPLUS_EXCEPTION_DOWNLOAD_ACCESS');
+	}
+}
+
+/**
+* Triggered when an image cannot be downloaded due to HTTP-related issues.
+*/
+class SIGPlusImageDownloadHeadersSentException extends SIGPlusFileSystemException {
+	public function __construct($file) {
+		parent::__construct('SIGPLUS_EXCEPTION_DOWNLOAD_HEADERS', $file);
 	}
 }

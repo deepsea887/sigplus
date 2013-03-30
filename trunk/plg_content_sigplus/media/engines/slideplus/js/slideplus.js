@@ -6,66 +6,6 @@
  **/
 
 ;
-(function () {
-	'use strict';
-
-	var isVisible = function (el) {
-		return !!(!el || el.offsetHeight || el.offsetWidth);
-	};
-
-	if (!Element.measure) {
-		Element.implement({
-			measure: function (fn) {
-				if (isVisible(this)) {
-					return fn.call(this);
-				}
-
-				var parent = this.getParent();
-				var toMeasure = [];
-				while (!isVisible(parent) && parent != document.body) {
-					toMeasure.push(parent.expose());
-					parent = parent.getParent();
-				}
-				var restore = this.expose();
-				var result = fn.call(this);
-				restore();
-				toMeasure.each(function (restore){
-					restore();
-				});
-				return result;
-			},
-
-			expose: function () {
-				if (this.getStyle('display') != 'none') {
-					return function () { };
-				}
-				var before = this.style.cssText;
-				this.setStyles({
-					display: 'block',
-					position: 'absolute',
-					visibility: 'hidden'
-				});
-				return function () {
-					this.style.cssText = before;
-				}.bind(this);
-			},
-
-			getDimensions: function () {
-				var dim = {x: 0, y: 0};
-
-				var parent = this.getParent('body');
-				if (parent) {
-					dim = this.measure(function () {
-						return this.getSize();
-					});
-				}
-
-				return dim;
-			}
-		});
-	}
-})();
-
 (function ($) {
 	'use strict';
 
@@ -340,18 +280,6 @@
 		*/
 		'initialize': function (elem, options, lightbox) {
 			/**
-			* A width or height that fits all elements in a collection.
-			* @param {Elements} items The collection of elements.
-			* @param {string} dim 'x' for width and 'y' for height.
-			*/
-			function get_maximum_size(items, dim) {
-				// show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
-				return Math.max.attempt(items.getDimensions().map(function (item) {
-					return item[dim];
-				}));
-			}
-
-			/**
 			* Converts an [r,g,b,a] color array to an "rgba(r,g,b,a)" CSS color definition.
 			* @param {Array.<number>} color A color with red, green, blue and transparency components.
 			* @return {string} A color expression with the rgba CSS function.
@@ -407,7 +335,8 @@
 			}
 
 			// force width and height for images (browser rendering workaround)
-			elem.getElements('img').each(function (image) {
+			var images = elem.getElements('img');
+			images.each(function (image) {
 				image.setStyles({
 					width: image.getProperty('width') + 'px',
 					height: image.getProperty('height') + 'px'
@@ -430,24 +359,6 @@
 				'class': 'slideplus'
 			}).inject(elem).grab(list.removeClass('slideplus'));  // ensure there is no "slideplus" CSS class on <ul>
 
-			// set viewpane size
-			var rows = options['size']['rows'];
-			var cols = options['size']['cols'];
-			if (rows > 0 && cols > 0) {
-				// get maximum width and height of image slider items
-				$$(list, viewer).setStyles({
-					'width': cols * (self._maxwidth = get_maximum_size(listitems, 'x')),
-					'height': rows * (self._maxheight = get_maximum_size(listitems, 'y'))
-				});
-				listitems.setStyles({
-					'width': self._maxwidth,
-					'height': self._maxheight
-				});
-			} else {
-				// resolve parameter incompatibilities
-				options['counter'] = false;
-			}
-
 			listitems.each(function (listitem) {
 				// add current item selection
 				listitem.addEvent('click', function () {
@@ -469,6 +380,34 @@
 					}).adopt(listitem.getChildren())
 				);
 			});
+			
+			// set viewpane size
+			var rows = options['size']['rows'];
+			var cols = options['size']['cols'];
+			if (rows > 0 && cols > 0) {
+				// compute the width and height that fits all elements in the collection
+				// show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
+				var maxwidth = 0;
+				var maxheight = 0;
+				images.each(function (image) {
+					var itemdims = image.getDimensions({'computeSize': true, 'styles': ['margin','border','padding']});
+					maxwidth = Math.max(maxwidth, itemdims['totalWidth']);
+					maxheight = Math.max(maxheight, itemdims['totalHeight']);
+				});
+				
+				// get maximum width and height of image slider items
+				$$(list, viewer).setStyles({
+					'width': cols * (self._maxwidth = maxwidth),
+					'height': rows * (self._maxheight = maxheight)
+				});
+				listitems.setStyles({
+					'width': maxwidth,
+					'height': maxheight
+				});
+			} else {
+				// resolve parameter incompatibilities
+				options['counter'] = false;
+			}
 
 			if (options['edges'] == 'fade') {
 				// fading edges

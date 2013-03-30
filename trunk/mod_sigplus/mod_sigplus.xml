@@ -8,7 +8,7 @@
 	<authorUrl>http://hunyadi.info.hu/projects/sigplus</authorUrl>
 	<version>$__VERSION_NUMBER__$</version>
 	<downloadUrl>http://joomlacode.org/gf/project/sigplus/frs/</downloadUrl>
-	<description>SIGPLUS_DESCRIPTION</description>
+	<description>MOD_SIGPLUS_DESCRIPTION</description>
 	<files>
 		<filename module="mod_sigplus">mod_sigplus.php</filename>
 		<filename>index.html</filename>
@@ -22,7 +22,7 @@
 	<config>
 		<fields name="params">
 			<fieldset name="basic" label="SIGPLUS_FIELDSET_BASIC">
-				<field name="source" type="text" default="images" label="SIGPLUS_SOURCE" description="SIGPLUS_SOURCE_DESCRIPTION" />
+				<field name="source" type="text" default="sampledata/parks/landscape" label="SIGPLUS_SOURCE" description="SIGPLUS_SOURCE_DESCRIPTION" />
 				<field type="spacer" label="SIGPLUS_CATEGORY_LAYOUT" />
 				<field name="layout" type="list" default="fixed" label="SIGPLUS_LAYOUT" description="SIGPLUS_LAYOUT_DESCRIPTION">
 					<option value="fixed">SIGPLUS_LAYOUT_FIXED</option>
@@ -123,8 +123,8 @@
 					<option value="below">SIGPLUS_CAPTION_BELOW</option>
 					<option value="above">SIGPLUS_CAPTION_ABOVE</option>
 				</field>
-				<field name="caption_title" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_DEFAULT" description="SIGPLUS_CAPTION_TITLE_DEFAULT_DESCRIPTION" />
-				<field name="caption_summary" type="textarea" cols="40" label="SIGPLUS_CAPTION_SUMMARY_DEFAULT" description="SIGPLUS_CAPTION_SUMMARY_DEFAULT_DESCRIPTION" />
+				<field name="caption_title" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_DEFAULT" description="SIGPLUS_CAPTION_TITLE_DEFAULT_DESCRIPTION" filter="raw" />
+				<field name="caption_summary" type="textarea" cols="40" label="SIGPLUS_CAPTION_SUMMARY_DEFAULT" description="SIGPLUS_CAPTION_SUMMARY_DEFAULT_DESCRIPTION" filter="raw" />
 			</fieldset>
 			<fieldset name="advanced" label="SIGPLUS_FIELDSET_ADVANCED" addfieldpath="modules/mod_sigplus/fields/">
 				<field type="spacer" label="SIGPLUS_CATEGORY_DOWNLOAD" />
@@ -230,8 +230,8 @@
 					<option value="elastic">SIGPLUS_TRANSITION_ELASTIC</option>
 				</field>
 				<field type="spacer" label="SIGPLUS_CATEGORY_CAPTION_TEMPLATE" />
-				<field name="caption_title_template" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_TEMPLATE" description="SIGPLUS_CAPTION_TITLE_TEMPLATE_DESCRIPTION" />
-				<field name="caption_summary_template" type="textarea" cols="40" default="{$text} ({$current}/{$total})" label="SIGPLUS_CAPTION_SUMMARY_TEMPLATE" description="SIGPLUS_CAPTION_SUMMARY_TEMPLATE_DESCRIPTION" />
+				<field name="caption_title_template" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_TEMPLATE" description="SIGPLUS_CAPTION_TITLE_TEMPLATE_DESCRIPTION" filter="raw" />
+				<field name="caption_summary_template" type="textarea" cols="40" default="{$text} ({$current}/{$total})" label="SIGPLUS_CAPTION_SUMMARY_TEMPLATE" description="SIGPLUS_CAPTION_SUMMARY_TEMPLATE_DESCRIPTION" filter="raw" />
 				<field type="spacer" label="SIGPLUS_CATEGORY_FOLDER" />
 				<field name="caption_source" type="text" default="labels.txt" label="SIGPLUS_CAPTION_SOURCE" description="SIGPLUS_CAPTION_SOURCE_DESCRIPTION" />
 				<field name="quality" type="text" default="85" label="SIGPLUS_IMAGE_QUALITY" description="SIGPLUS_IMAGE_QUALITY_DESCRIPTION" />

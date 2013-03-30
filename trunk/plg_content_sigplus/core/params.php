@@ -521,11 +521,13 @@ class SIGPlusConfigurationBase {
 	*/
 	protected static function as_color($value) {
 		if (is_string($value)) {
-			if (preg_match('/^#?[0-9A-Fa-f]{6}$/', $value)) {  // a hexadecimal color code
+			if (preg_match('/^#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/', $value)) {  // a hexadecimal color code
 				return '#'.ltrim($value, '#');
 			} else {  //  a color name
 				return SIGPlusColors::translate($value);
 			}
+		} elseif (is_int($value)) {
+			return sprintf('#%06x', $value);  // convert integer into hexadecimal digits
 		} else {
 			return false;
 		}
@@ -713,6 +715,9 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 		$this->base_folder = $path;
 
 		// deduce base URL from base folder if not set
+		if ($this->base_url === '') {
+			$this->base_url = false;
+		}
 		if ($this->base_url === false && strpos($path, JPATH_ROOT.DIRECTORY_SEPARATOR) === 0) {  // starts with Joomla root folder
 			$this->base_url = JURI::base(true).str_replace(DIRECTORY_SEPARATOR, '/', substr($path, strlen(JPATH_ROOT)));  // build path relative to Joomla root
 		}
@@ -1018,8 +1023,8 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	/** Border style, or false for default (inherit from sigplus.css). */
 	public $preview_border_style = false;
 	/**
-	* Border color as a hexadecimal value in between 000000 or ffffff inclusive, or false for default.
-	* @example <kbd>{gallery preview-border-width=1 preview-border-style=dotted preview-border-color="000000"}myfolder{/gallery}</kbd> adds a black dotted border of a single pixel width around each image in the gallery.
+	* Border color as a hexadecimal value in between "#000000" and "#ffffff" inclusive, a standard color name, or false for default (inherit from sigplus.css).
+	* @example <kbd>{gallery preview-border-width=1 preview-border-style=dotted preview-border-color="#000000"}myfolder{/gallery}</kbd> adds a black dotted border of a single pixel width around each image in the gallery.
 	*/
 	public $preview_border_color = false;
 	/** Padding [px] (with or without unit), or false for default (inherit from sigplus.css). */

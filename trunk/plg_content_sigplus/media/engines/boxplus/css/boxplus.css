@@ -187,7 +187,6 @@ visibility:hidden !important;
 
 #boxplus .boxplus-bottom > .boxplus-thumbs, #boxplus .boxplus-sideways > .boxplus-thumbs {
 position:relative;
-height:80px;
 }
 
 #boxplus .boxplus-thumbs > * {
@@ -198,7 +197,8 @@ background:transparent none no-repeat scroll 0 center;
 position:absolute;
 width:22px;
 left:0;
-height:100%;
+top:0;
+bottom:0;
 /*background-image:url(button-prev.png);*/
 }
 
@@ -206,13 +206,14 @@ height:100%;
 position:absolute;
 width:22px;
 right:0;
-height:100%;
+top:0;
+bottom:0;
 /*background-image:url(button-next.png);*/
 }
 
 #boxplus .boxplus-thumbs > ul {
-display:table-row;
-position:absolute;
+display:inline-block;
+position:relative;
 bottom:0;
 margin:0;
 border:0 none transparent;

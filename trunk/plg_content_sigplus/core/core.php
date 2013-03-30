@@ -2073,7 +2073,7 @@ class SIGPlusCore {
 		// test user access level
 		if (!$this->getDownloadAuthorization()) {  // authorization is required
 			SIGPlusLogging::appendStatus('User is not authorized to download image.');
-			return false;
+			throw new SIGPlusImageDownloadAccessException();
 		}
 
 		// translate image source into full source specification
@@ -2112,29 +2112,33 @@ class SIGPlusCore {
 				'AND '.$db->quoteName('imageid').' = '.$imageid.$depthcond
 		);
 		$row = $db->loadRow();
-		if ($row) {
-			list($fileurl, $filename) = $row;
-			if (is_absolute_path($fileurl)) {
-				// return image as HTTP payload
-				$size = getimagesize($fileurl);
-				if ($size !== false) {
-					header('Content-Type: '.$size['mime']);
-				}
-				$filesize = fsx::filesize($fileurl);
-				if ($filesize !== false) {
-					header('Content-Length: '.$filesize);
-				}
-				header('Content-Disposition: attachment; filename="'.$filename.'"');
-				@fsx::readfile($fileurl);
-			} else {
-				// redirect to image URL
-				header('Location: '.$fileurl);
-			}
-			return true;
-		} else {
+		if (!$row) {
 			SIGPlusLogging::appendStatus('Image to download is not found in gallery database.');
 			return false;
 		}
+		
+		list($fileurl, $filename) = $row;
+		if (headers_sent($file, $line)) {
+			SIGPlusLogging::appendStatus('Unable to make browser download image, HTTP headers have already been sent in file "'.$file.'" line '.$line.'.');
+			throw new SIGPlusImageDownloadHeadersSentException($fileurl);
+		}
+		if (is_absolute_path($fileurl)) {
+			// return image as HTTP payload
+			$size = getimagesize($fileurl);
+			if ($size !== false) {
+				header('Content-Type: '.$size['mime']);
+			}
+			$filesize = fsx::filesize($fileurl);
+			if ($filesize !== false) {
+				header('Content-Length: '.$filesize);
+			}
+			header('Content-Disposition: attachment; filename="'.$filename.'"');
+			@fsx::readfile($fileurl);
+		} else {
+			// redirect to image URL
+			header('Location: '.$fileurl);
+		}
+		return true;
 	}
 
 	/**
