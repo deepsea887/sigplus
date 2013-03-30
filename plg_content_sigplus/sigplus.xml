@@ -154,8 +154,8 @@
 					<option value="below">SIGPLUS_CAPTION_BELOW</option>
 					<option value="above">SIGPLUS_CAPTION_ABOVE</option>
 				</field>
-				<field name="caption_title" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_DEFAULT" description="SIGPLUS_CAPTION_TITLE_DEFAULT_DESCRIPTION" />
-				<field name="caption_summary" type="textarea" cols="40" label="SIGPLUS_CAPTION_SUMMARY_DEFAULT" description="SIGPLUS_CAPTION_SUMMARY_DEFAULT_DESCRIPTION" />
+				<field name="caption_title" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_DEFAULT" description="SIGPLUS_CAPTION_TITLE_DEFAULT_DESCRIPTION" filter="raw" />
+				<field name="caption_summary" type="textarea" cols="40" label="SIGPLUS_CAPTION_SUMMARY_DEFAULT" description="SIGPLUS_CAPTION_SUMMARY_DEFAULT_DESCRIPTION" filter="raw" />
 			</fieldset>
 			<fieldset name="advanced" label="SIGPLUS_FIELDSET_ADVANCED" addfieldpath="plugins/content/sigplus/fields/">
 				<field type="spacer" label="SIGPLUS_CATEGORY_DOWNLOAD" />
@@ -261,8 +261,8 @@
 					<option value="elastic">SIGPLUS_TRANSITION_ELASTIC</option>
 				</field>
 				<field type="spacer" label="SIGPLUS_CATEGORY_CAPTION_TEMPLATE" />
-				<field name="caption_title_template" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_TEMPLATE" description="SIGPLUS_CAPTION_TITLE_TEMPLATE_DESCRIPTION" />
-				<field name="caption_summary_template" type="textarea" cols="40" default="{$text} ({$current}/{$total})" label="SIGPLUS_CAPTION_SUMMARY_TEMPLATE" description="SIGPLUS_CAPTION_SUMMARY_TEMPLATE_DESCRIPTION" />
+				<field name="caption_title_template" type="textarea" cols="40" label="SIGPLUS_CAPTION_TITLE_TEMPLATE" description="SIGPLUS_CAPTION_TITLE_TEMPLATE_DESCRIPTION" filter="raw" />
+				<field name="caption_summary_template" type="textarea" cols="40" default="{$text} ({$current}/{$total})" label="SIGPLUS_CAPTION_SUMMARY_TEMPLATE" description="SIGPLUS_CAPTION_SUMMARY_TEMPLATE_DESCRIPTION" filter="raw" />
 				<field type="spacer" label="SIGPLUS_CATEGORY_FOLDER" />
 				<field name="cache_image" type="radio" default="cache" label="SIGPLUS_CACHE_IMAGE" description="SIGPLUS_CACHE_IMAGE_DESCRIPTION">
 					<option value="cache">SIGPLUS_CACHE_JOOMLA_CACHE_FOLDER</option>

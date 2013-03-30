@@ -256,8 +256,13 @@ class plgContentSIGPlus extends JPlugin {
 			}
 
 			// download image
-			if ($this->core->downloadImage($imagereference)) {  // an image has been requested for download
-				jexit();  // do not produce a page
+			try {
+				if ($this->core->downloadImage($imagereference)) {  // an image has been requested for download
+					jexit();  // do not produce a page
+				}
+			} catch (SIGPlusImageDownloadAccessException $e) {  // signal download errors but do not stop page processing
+				$app = JFactory::getApplication();
+				$app->enqueueMessage($e->getMessage(), 'error');
 			}
 
 			// generate image gallery
