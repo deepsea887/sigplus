@@ -418,7 +418,7 @@ class SIGPlusDatabase {
 
 	public static function executeAll(array $queries) {
 		$db = JFactory::getDbo();
-		
+
 		// execute as one transaction
 		$db->transactionStart();
 		foreach ($queries as $query) {
@@ -730,12 +730,13 @@ class SIGPlusImageMetadata {
 			$entries = array();
 
 			foreach ($this->metadata as $key => $metavalue) {
+				$keyid = SIGPlusMetadataServices::getPropertyNumericKey($key);
 				if (is_array($metavalue)) {
 					$value = implode(';', $metavalue);
 				} else {
 					$value = (string) $metavalue;
 				}
-				$entries[] = array($key, $value);
+				$entries[] = array($keyid, $value);
 			}
 
 			SIGPlusDatabase::insertBatch(
@@ -1259,7 +1260,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 			SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> has <em>not</em> changed.');
 			return false;
 		}
-		
+
 		if ($this->config->gallery->watermark_position !== false && $this->config->gallery->watermark_source == basename($imagepath)) {
 			SIGPlusLogging::appendStatus('Skipping image <code>'.$imagepath.'</code>, which acts as a watermark image.');
 			return false;
@@ -1800,7 +1801,7 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 			if ($viewid = $this->getView($folderparams->id)) {  // preview image is available for remote image
 				return $viewid;
 			}
-			
+
 			// preview image not available, retrieve image from remote server
 			$imagedata = http_get_modified($url);
 			if ($imagedata === true || $imagedata === false) {  // unexpected response or retrieval failure
@@ -1918,7 +1919,7 @@ class SIGPlusCore {
 			return $root;
 		}
 	}
-	
+
 	private function getFilterExpression(SIGPlusFilter $filter) {
 		$db = JFactory::getDbo();
 		$expr = array();
@@ -2116,12 +2117,19 @@ class SIGPlusCore {
 			SIGPlusLogging::appendStatus('Image to download is not found in gallery database.');
 			return false;
 		}
-		
+
 		list($fileurl, $filename) = $row;
 		if (headers_sent($file, $line)) {
 			SIGPlusLogging::appendStatus('Unable to make browser download image, HTTP headers have already been sent in file "'.$file.'" line '.$line.'.');
 			throw new SIGPlusImageDownloadHeadersSentException($fileurl);
 		}
+
+		// produce HTTP response
+		header('Content-Description: File Transfer');
+		header('Content-Transfer-Encoding: binary');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
 		if (is_absolute_path($fileurl)) {
 			// return image as HTTP payload
 			$size = getimagesize($fileurl);
@@ -2133,10 +2141,19 @@ class SIGPlusCore {
 				header('Content-Length: '.$filesize);
 			}
 			header('Content-Disposition: attachment; filename="'.$filename.'"');
+			
+			// discard internal buffer content used for output buffering
+			ob_clean();
+			flush();
+			
 			@fsx::readfile($fileurl);
 		} else {
 			// redirect to image URL
 			header('Location: '.$fileurl);
+			
+			// discard internal buffer content used for output buffering
+			ob_clean();
+			flush();
 		}
 		return true;
 	}
@@ -2436,7 +2453,7 @@ class SIGPlusCore {
 		// generate HTML code for each image
 		if ($total > 0) {
 			$rows = $db->loadRowList();
-			
+
 			ob_start();  // start output buffering
 			//print '<!--[if gte IE 9]><!--><noscript class="sigplus-gallery"><!--<![endif]-->';  // downlevel-hidden conditional comment, browsers below IE9 ignore HTML inside, all other browsers interpret it
 			print '<div>';  // HTML tag <noscript> is unreliable on mobile platforms
