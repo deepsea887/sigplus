@@ -81,6 +81,11 @@
 	*/
 	var BOXPLUS_UNAVAILABLE = 'boxplus-unavailable';
 	/**
+	* @type {string}
+	* @const
+	*/
+	var BOXPLUS_ACTIVE = 'boxplus-active';
+	/**
 	* Time between successive scroll animations [ms].
 	* @type {number}
 	* @const
@@ -1052,6 +1057,22 @@
 			});
 		},
 
+		/**
+		* Sets the active thumbnail.
+		* @param {number} index
+		*/
+		setActiveThumb: function (index) {
+			var self = this;
+			self._getAllElements('thumbs').each(function (item) {
+				var ribbon = item.getElement('ul');
+				var listitems = ribbon.getElements('li');
+				listitems.removeClass(BOXPLUS_ACTIVE);
+				if (index >= 0 && listitems[index]) {
+					$(listitems[index]).addClass(BOXPLUS_ACTIVE);
+				}
+			});
+		},
+
 		isShrunk: function () {
 			var self = this;
 			// resizing videos impacts performance and HTML <object> does not always support dynamic resizing
@@ -1247,6 +1268,9 @@
 							self.setAvailable('bottom', true);
 							self.setAvailable('sideways', true);
 
+							// set thumbail navigation bar maximum width
+							self._getElements('thumbs').setStyle('max-width', viewerdims['width']);
+							
 							// show bottom and sideways caption area temporarily hidden
 							self.setVisible('controls', true);
 							self.setVisible('bottom', true);
@@ -1668,6 +1692,7 @@
 
 			function _showImage(anchor, image) {
 				dialog.setImage(image, self._getDownloadUrl(anchor), self._getMetadata(anchor));
+				dialog.setActiveThumb(self.current);
 				_showCaption(anchor);
 				_show();
 			}

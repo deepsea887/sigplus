@@ -151,16 +151,38 @@ class SIGPlusMetadataServices {
 		29=>'Corel Draw [.CDR]');
 
 	public static function getProperties() {
-		$exiftags[] = array();
-		if (function_exists('exif_tagname')) {
-			for ($k = 1; $k < 0xB000; $k++) {
-				$exiftag = exif_tagname($k);
-				if ($exiftag) {
-					$exiftags[] = $exiftag;
+		static $properties;
+	
+		if (!isset($properties)) {
+			// fetch supported EXIF tags from PHP
+			$exiftags = array();
+			if (function_exists('exif_tagname')) {
+				for ($k = 1; $k < 0xB000; $k++) {
+					$exiftag = exif_tagname($k);
+					if ($exiftag) {
+						$exiftags[] = $exiftag;
+					}
 				}
 			}
+			
+			$properties = array_unique(array_merge(self::$enveloperecord, self::$applicationrecord, $exiftags));
 		}
-		return array_unique(array_merge(self::$enveloperecord, self::$applicationrecord, $exiftags));
+		
+		return $properties;
+	}
+	
+	public static function getPropertyNumericKey($key) {
+		static $propertymap;
+		
+		if (!isset($propertymap)) {
+			$propertymap = array_flip(self::getProperties());
+		}
+		
+		if (isset($propertymap[$key])) {
+			return $propertymap[$key];
+		} else {
+			return false;
+		}
 	}
 		
 	/**

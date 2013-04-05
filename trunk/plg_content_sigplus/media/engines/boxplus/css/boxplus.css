@@ -189,6 +189,10 @@ visibility:hidden !important;
 position:relative;
 }
 
+#boxplus .boxplus-bottom > .boxplus-thumbs {
+max-width:1px;  /* will be overridden */
+}
+
 #boxplus .boxplus-thumbs > * {
 background:transparent none no-repeat scroll 0 center;
 }
