@@ -1,5 +1,7 @@
 #summary Filters on which images in a folder are shown.
 
+Information on this page applies to sigplus 1.5.x and later. For specifics regarding sigplus 1.4.x, the latest production version to date, refer to its [http://hunyadi.info.hu/levente/en/sigplus/settings documentation].
+
 = Include and exclude filters =
 
 Typically, the activation tag specifies a single source folder to take images from, in which case all images in the folder are shown. However, in many cases it might be necessary to show only a subset of the images in the source folder. _Include filters_ provide a mechanism to select a particular set of files for display from the set of all images in the folder, whereas _exclude filters_ discard a subset of the elements selected by the include filters. Both filter types are pattern-based and match the full image file name.

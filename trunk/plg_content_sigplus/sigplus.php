@@ -65,18 +65,32 @@ class plgContentSIGPlus extends JPlugin {
 	/** Core service object. */
 	private $core;
 
-	function __construct(&$subject, $params) {
+	public function __construct(&$subject, $params) {
 		parent::__construct($subject, $params);
 
 		// set activation tag if well-formed
-		$tag_gallery = $this->params->get('tag_gallery', $this->tag_gallery);
+		$tag_gallery = $this->getParameterValue('tag_gallery', $this->tag_gallery);
 		if (is_string($tag_gallery) && ctype_alnum($tag_gallery)) {
 			$this->tag_gallery = $tag_gallery;
 		}
-		$tag_lightbox = $this->params->get('tag_lightbox', $this->tag_lightbox);
+		$tag_lightbox = $this->getParameterValue('tag_lightbox', $this->tag_lightbox);
 		if (is_string($tag_lightbox) && ctype_alnum($tag_lightbox)) {
 			$this->tag_lightbox = $tag_lightbox;
 		}
+	}
+
+	private function getParameterValue($name, $default) {
+		if ($this->params instanceof stdClass) {
+			if (isset($this->params->$name)) {
+				return $this->params->$name;
+			}
+		} else if ($this->params instanceof JRegistry) {  // Joomla 2.5 and earlier
+			$paramvalue = $this->params->get($name);
+			if (isset($paramvalue)) {
+				return $paramvalue;
+			}
+		}
+		return $default;
 	}
 
 	/**
@@ -86,7 +100,7 @@ class plgContentSIGPlus extends JPlugin {
 	* @param $limitstart An integer that determines the "page" of the content that is to be generated.
 	* @param
 	*/
-	function onContentAfterTitle($context, &$article, &$params, $limitstart) {
+	public function onContentAfterTitle($context, &$article, &$params, $limitstart) {
 
 	}
 

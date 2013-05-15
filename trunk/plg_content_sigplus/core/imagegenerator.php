@@ -30,6 +30,7 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'filesystem.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'librarian.php';
 
 class SIGPlusImageLibrary {
@@ -116,7 +117,7 @@ class SIGPlusImageLibrary {
 	protected function checkMemory($imagepath) {
 		$memory_available = self::memory_get_available();
 		if ($memory_available !== false) {
-			$imagedata = getimagesize($imagepath);
+			$imagedata = fsx::getimagesize($imagepath);
 			if ($imagedata === false) {
 				return;
 			}
@@ -129,7 +130,8 @@ class SIGPlusImageLibrary {
 
 			$memory_required = (int)ceil($imagedata[0] * $imagedata[1] * $imagedata['channels'] * $imagedata['bits'] / 8);
 
-			if ($memory_required >= $memory_available) {
+			$safety_factor = 1.8;  // not all available memory can be consumed in order to ensure safe operations, safety factor is an empirical value
+			if ($safety_factor * $memory_required >= $memory_available) {
 				throw new SIGPlusOutOfMemoryException($memory_required, $memory_available, $imagepath);
 			}
 		}
@@ -166,11 +168,11 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 		$ext = strtolower(pathinfo($imagepath, PATHINFO_EXTENSION));
 		switch ($ext) {
 			case 'jpg': case 'jpeg':
-				return @imagecreatefromjpeg($imagepath);
+				return imagecreatefromjpeg($imagepath);
 			case 'gif':
-				return @imagecreatefromgif($imagepath);
+				return imagecreatefromgif($imagepath);
 			case 'png':
-				return @imagecreatefrompng($imagepath);
+				return imagecreatefrompng($imagepath);
 			default:
 				return false;  // missing or unrecognized extension
 		}
@@ -217,7 +219,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				if ($thumb_w == 0 || $thumb_h == 0) {
 					throw new Exception('Both width and height must be specified when images are rescaled with cropping enabled.');
 				}
-				
+
 				$ratio_thumb = $thumb_w/$thumb_h;  // width-to-height ratio of thumbnail image
 				if ($ratio_thumb > $ratio_orig) {  // crop top and bottom
 					$zoom = $orig_w / $thumb_w;  // zoom factor of original image w.r.t. thumbnail
@@ -262,13 +264,13 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				} else {  // use white as transparent background color
 					$transparentrgba = array('red' => 255, 'green' => 255, 'blue' => 255);
 				}
-				
+
 				// fill image with transparent color
 				$transparentcolor = imagecolorallocatealpha($thumb_img, $transparentrgba['red'], $transparentrgba['green'], $transparentrgba['blue'], 127);
 				imagefilledrectangle($thumb_img, 0, 0, $orig_w, $orig_h, $transparentcolor);
 				imagecolordeallocate($thumb_img, $transparentcolor);
 			}
-			
+
 			// resample image into thumbnail size
 			$result = $result && imagecopyresampled($thumb_img, $source_img, 0, 0, $crop_x, $crop_y, $thumb_w, $thumb_h, $crop_w, $crop_h);
 			imagedestroy($source_img);

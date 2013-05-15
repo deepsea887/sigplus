@@ -1,6 +1,8 @@
 #summary Image captions and caption templates.
 #labels Featured
 
+Information on this page applies to sigplus 1.5.x and later. For specifics regarding sigplus 1.4.x, the latest production version to date, refer to its [http://hunyadi.info.hu/levente/en/sigplus/settings documentation].
+
 = Introduction =
 
 A central notion to sigplus is image captions. The term _caption_ may refer to

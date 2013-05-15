@@ -1,5 +1,7 @@
 #summary List of configuration settings specific to a gallery
 
+Information on this page applies to sigplus 1.5.x and later. For specifics regarding sigplus 1.4.x, the latest production version to date, refer to its [http://hunyadi.info.hu/levente/en/sigplus/settings documentation].
+
 = Gallery-specific settings =
 
 In contrast to system-wide configuration settings that apply to sigplus in general, gallery-specific settings are meant to customize the appearance and behavior of galleries and can be configured both globally (in the administration back-end on the plug-in configuration page) and locally (in the article text or on the module instance configuration page). These settings are found on the tabs _Basic settings_ and _Advanced settings_ on the sigplus plug-in or module configuration page: open the _Plug-in Manager_ or the _Module Manager_ in the Joomla administration back-end and click _Content - Image gallery - sigplus_ or one of the modules with type _sigplus_ in the list.

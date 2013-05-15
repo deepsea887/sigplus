@@ -1,5 +1,7 @@
 #summary Customizing gallery appearance with CSS.
 
+Information on this page applies to sigplus 1.5.x and later. For specifics regarding sigplus 1.4.x, the latest production version to date, refer to its [http://hunyadi.info.hu/levente/en/sigplus/settings documentation].
+
 = Custom preview image styling =
 
 If you do not like the way image previews are displayed, you can use CSS styling to customize it. The folder `/media/sigplus/css` contains the stylesheet file `sigplus.css`, which all image galleries use. You can change, among others, image margin (spacing outside border), border and padding (spacing inside border).
