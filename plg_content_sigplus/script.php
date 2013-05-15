@@ -341,6 +341,7 @@ class SIGPlusUriSubstitution {
 * @package Minify
 * @author Stephen Clay <steve@mrclay.org>
 * @author http://code.google.com/u/1stvamp/ (Issue 64 patch)
+* @see https://code.google.com/p/minify/downloads/detail?name=minify-2.1.5.zip
 */
 class Minify_CSS_Compressor {
 

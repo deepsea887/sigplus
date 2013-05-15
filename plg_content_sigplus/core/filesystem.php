@@ -51,6 +51,8 @@ if (!interface_exists('fsx_functions') && !class_exists('fsx')) {
 */
 interface fsx_functions {
 	public function scandir($dir);
+	public function scandir_files($dir);
+	public function scandir_folders($dir);
 	public function scandir_mtime($dir);
 	public function get_files_with_extension($dir, array $ext, $rev = false);
 	public function file_exists($path);
@@ -96,6 +98,32 @@ class fsx_windows implements fsx_functions {
 			}
 			foreach ($fsdir->Files as $fsfile) {
 				$results[] = $fsfile->Name;
+			}
+			unset($fsdir);
+			return $results;
+		} catch (com_exception $e) { }
+		return false;
+	}
+
+	public function scandir_files($dir) {
+		$results = array();
+		try {
+			$fsdir = $this->fs->GetFolder($dir);
+			foreach ($fsdir->Files as $fsfile) {
+				$results[] = $fsfile->Name;
+			}
+			unset($fsdir);
+			return $results;
+		} catch (com_exception $e) { }
+		return false;
+	}
+
+	public function scandir_folders($dir) {
+		$results = array();
+		try {
+			$fsdir = $this->fs->GetFolder($dir);
+			foreach ($fsdir->SubFolders as $fsfolder) {
+				$results[] = $fsfolder->Name;
 			}
 			unset($fsdir);
 			return $results;
@@ -218,13 +246,47 @@ class fsx_windows implements fsx_functions {
 	}
 
 	public function getimagesize($file) {
-		return getimagesize($this->get_short_path($file));
+		if (function_exists('getimagesizefromstring')) {
+			return getimagesizefromstring($this->file_get_contents($file));
+		} else {
+			return getimagesize($this->get_short_path($file));
+		}
 	}
 }
 
 class fsx_unix implements fsx_functions {
 	public function scandir($dir) {
 		return scandir($dir);
+	}
+
+	public function scandir_files($dir) {
+		$entries = scandir($dir);
+		if ($entries !== false) {
+			$results = array();
+			foreach ($entries as $entry) {
+				if (is_file($dir.DIRECTORY_SEPARATOR.$entry)) {
+					$results[] = $entry;
+				}
+			}
+			return $results;
+		} else {
+			return false;
+		}
+	}
+
+	public function scandir_folders($dir) {
+		$entries = scandir($dir);
+		if ($entries !== false) {
+			$results = array();
+			foreach ($entries as $entry) {
+				if (is_dir($dir.DIRECTORY_SEPARATOR.$entry)) {
+					$results[] = $entry;
+				}
+			}
+			return $results;
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -318,6 +380,14 @@ class fsx {
 		return self::$instance->scandir($dir);
 	}
 
+	public static function scandir_files($dir) {
+		return self::$instance->scandir_files($dir);
+	}
+
+	public static function scandir_folders($dir) {
+		return self::$instance->scandir_folders($dir);
+	}
+
 	public static function scandir_mtime($dir) {
 		return self::$instance->scandir_mtime($dir);
 	}
@@ -403,44 +473,48 @@ if (!function_exists('walkdir')) {
 * @param {array} $ancestors Breadcrumbs for current directory ancestors returned by the callback function
 */
 function walkdir($path, array $exclude = array(), $depth = 0, $callback = null, $ancestors = null) {
-	if (($entries = fsx::scandir($path)) !== false) {
-		$folders = array();
-		$files = array();
-		foreach ($entries as $entry) {
-			if ($entry{0} != '.' && !in_array($entry, $exclude)) {  // skip hidden files, special directory entries "." and "..", and excluded entries
-				if (is_file($path.DIRECTORY_SEPARATOR.$entry)) {
-					$files[] = $entry;
-				} elseif (is_dir($path.DIRECTORY_SEPARATOR.$entry)) {
-					$folders[] = $entry;
-				}
-			}
+	$folders = fsx::scandir_folders($path);
+	$files = fsx::scandir_files($path);
+	if ($folders === false || $files === false) {
+		return;
+	}
+
+	foreach ($folders as $key => $folder) {
+		if ($folder == '.' || $folder == '..' || in_array($folder, $exclude)) {  // skip special directory entries "." and "..", as well as excluded entries
+			unset($folders[$key]);
+		}
+	}
+	foreach ($files as $key => $file) {
+		if ($file{0} == '.' && in_array($file, $exclude)) {  // skip hidden files and excluded entries
+			unset($files[$key]);
+		}
+	}
+
+	// invoke callback function
+	if (isset($callback)) {
+		if (is_array($callback)) {
+			$object = $callback[0];
+			$params = $callback[1];
+			$func = array($object, $params);
+		} else {
+			$func = $callback;
 		}
 
-		// invoke callback function
-		if (isset($callback)) {
-			if (is_array($callback)) {
-				$object = $callback[0];
-				$params = $callback[1];
-				$func = array($object, $params);
-			} else {
-				$func = $callback;
-			}
+		if (isset($ancestors)) {
+			$ancestor = call_user_func($func, $path, $files, $folders, $ancestors);
+			array_unshift($ancestors, $ancestor);  // add current folder to list of ancestors
+		} else {
+			call_user_func($func, $path, $files, $folders);
+		}
+	}
+
+	// scan descandant folders
+	if ($depth < 0 || $depth > 0) {
+		foreach ($folders as $folder) {
 			if (isset($ancestors)) {
-				$ancestor = call_user_func($func, $path, $files, $folders, $ancestors);
-				array_unshift($ancestors, $ancestor);  // add current folder to list of ancestors
+				walkdir($path.DIRECTORY_SEPARATOR.$folder, $exclude, $depth - 1, $callback, $ancestors);
 			} else {
-				call_user_func($func, $path, $files, $folders);
-			}
-		}
-
-		// scan descandant folders
-		if ($depth < 0 || $depth > 0) {
-			foreach ($folders as $folder) {
-				if (isset($ancestors)) {
-					walkdir($path.DIRECTORY_SEPARATOR.$folder, $exclude, $depth - 1, $callback, $ancestors);
-				} else {
-					walkdir($path.DIRECTORY_SEPARATOR.$folder, $exclude, $depth - 1, $callback);
-				}
+				walkdir($path.DIRECTORY_SEPARATOR.$folder, $exclude, $depth - 1, $callback);
 			}
 		}
 	}
@@ -583,6 +657,8 @@ function get_folder_last_modified($dir, $depth = 0) {
 * @param {string} $etag A (weak) entity tag.
 */
 function http_get_modified($url, &$lastmod = null, &$etag = null, $method = 'GET', $headers = array()) {
+	$data = false;
+
 	// add If-Modified-Since header
 	if (!empty($lastmod)) {
 		$date = DateTime::createFromFormat('Y-m-d H:i:s', $lastmod, new DateTimeZone('UTC'));
@@ -591,106 +667,66 @@ function http_get_modified($url, &$lastmod = null, &$etag = null, $method = 'GET
 
 	// add HTTP ETag
 	if (!empty($etag)) {
-		$headers[] = 'If-None-Match: '.$etag;  // test for HTTP ETag match
+		$headers[] = 'If-None-Match: '.$etag;
 	}
 
-	// fetch remote content
-	if (function_exists("curl_init") && function_exists("curl_setopt") && function_exists("curl_exec") && function_exists("curl_close")) {
-		// cURL support is available
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_HEADER, true);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
-		switch ($method) {
-			case 'POST':
-				curl_setopt($ch, CURLOPT_POST, true); break;
-			case 'GET':
-			default:
-				curl_setopt($ch, CURLOPT_HTTPGET, true); break;
-		}
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		$response = curl_exec($ch);
-		$header_length = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-		$content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
-		curl_close($ch);
-
-		$header_array = explode("\r\n", substr($response, 0, $header_length));
-		$data = substr($response, $header_length);
+	// create stream context
+	if (!empty($headers)) {
+		$options = array(
+			'http' => array(
+				'method' => $method,
+				'header' => implode("\r\n", $headers)."\r\n"
+			)
+		);
+		$context = stream_context_create($options);
+		$stream = @fopen($url, 'r', false, $context);
 	} else {
-		// explicit cURL support is not available, create stream context
-		if (!empty($headers)) {
-			$options = array(
-				'http' => array(
-					'method' => $method,
-					'header' => implode("\r\n", $headers)."\r\n"
-				)
-			);
-			$context = stream_context_create($options);
-			$stream = @fopen($url, 'r', false, $context);
-		} else {
-			$stream = @fopen($url, 'r');
-		}
-
-		// read data to force (in-built) cURL to fetch HTTP headers
-		// if HTTP ETag matches, there is no payload to be read
-		if ($stream !== false) {
-			$data = stream_get_contents($stream);
-		} else {
-			$data = false;
-		}
-
-		if (isset($http_response_header)) {
-			// $http_response_header is a predefined PHP local variable if HTTP wrapper is supported
-			$header_array = $http_response_header;
-		} else {
-			$header_array = null;
-		}
-		
-		// close stream
-		if ($stream !== false) {
-			fclose($stream);
-		}
+		$stream = @fopen($url, 'r');
 	}
 
-	// process response HTTP headers and payload
-	if (!isset($header_array) || empty($header_array)) {  // HTTP wrappers are disabled
+	// test for HTTP ETag match, $http_response_header is a predefined PHP variable
+	if (!isset($http_response_header)) {  // HTTP wrappers are disabled
 		$data = false;  // cannot access resource
-	} elseif (preg_match('#^HTTP/[\d.]+\s+(\d+)#S', $header_array[0], $matches)) {
-		$statuscode = $matches[1];
-		if ($statuscode == '304') {  // HTTP 304 "Not modified" indicates ETag match
-			$data = true;  // resource not modified
-		} elseif ($statuscode == '200') {
-			foreach ($header_array as $header) {  // go through header lines, looking for HTTP ETag
-				if (preg_match('#^ETag:\s+(\S+)#iS', $header, $matches)) {  // locate ETag header
-					$etag = $matches[1];  // extract and update ETag value
-					break;
-				} elseif (preg_match('#^Last-Modified:\s+(.+)$#iS', $header, $matches)) {
-					$timestring = $matches[1];
-					if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
-						$date = DateTime::createFromFormat('D, d M Y H:i:s T', $timestring);  // parse HTTP date format (RFC 822, updated by RFC 1123)
+	} elseif (!preg_match('#^HTTP/[\d.]+\s+(\d+)#S', $http_response_header[0], $matches) || $matches[1] != '304') {  // HTTP 304 "Not modified" indicates ETag match
+		foreach ($http_response_header as $header) {  // go through header lines, looking for HTTP ETag
+			if (preg_match('#^ETag:\s+(\S+)#iS', $header, $matches)) {  // locate ETag header
+				$etag = $matches[1];  // extract and update ETag value
+				break;
+			} elseif (preg_match('#^Last-Modified:\s+(.+)$#iS', $header, $matches)) {
+				$timestring = $matches[1];
+				if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
+					$date = DateTime::createFromFormat('D, d M Y H:i:s T', $timestring);  // parse HTTP date format (RFC 822, updated by RFC 1123)
+				} else {
+					$unixtime = strtotime($timestring);
+					if ($unixtime !== false && $unixtime !== -1) {
+						$date = new DateTime('@'.$unixtime);
 					} else {
-						$unixtime = strtotime($timestring);
-						if ($unixtime !== false && $unixtime !== -1) {
-							$date = new DateTime('@'.$unixtime);
-						} else {
-							$date = false;
-						}
-					}
-
-					if ($date !== false) {
-						$lastmod = $date->format('Y-m-d H:i:s');  // generate database date format
-					} else {
-						$lastmod = false;
+						$date = false;
 					}
 				}
+
+				if ($date !== false) {
+					$lastmod = $date->format('Y-m-d H:i:s');  // generate database date format
+				} else {
+					$lastmod = false;
+				}
 			}
+		}
+
+		if ($stream !== false) {
+			// read data if HTTP ETag does not match
+			$data = stream_get_contents($stream);
 		} else {
-			$data = false;  // unrecognized HTTP status code
+			$data = false;  // cannot access resource
 		}
 	} else {
-		$data = false;  // invalid response
+		$data = true;  // resource not modified
 	}
 
+	// close stream
+	if ($stream !== false) {
+		fclose($stream);
+	}
 	return $data;
 }
 

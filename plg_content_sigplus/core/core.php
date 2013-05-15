@@ -32,6 +32,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'version.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'exception.php';
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'filesystem.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'params.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'imagegenerator.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'engines.php';
@@ -1272,7 +1273,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		// image size
 		$width = 0;
 		$height = 0;
-		$imagedims = getimagesize($imagepath);
+		$imagedims = fsx::getimagesize($imagepath);
 		if ($imagedims !== false) {
 			$width = $imagedims[0];
 			$height = $imagedims[1];
@@ -1302,7 +1303,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		$height = null;
 		if (isset($path) && $path !== false && file_exists($path)) {
 			$time = fsx::filemdate($path);
-			$imagedims = getimagesize($path);
+			$imagedims = fsx::getimagesize($path);
 			if ($imagedims !== false) {
 				list($width, $height) = $imagedims;
 			}
@@ -1832,7 +1833,7 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 
 				// image file size and dimensions
 				$filesize = fsx::filesize($imagepath);
-				$imagedims = getimagesize($imagepath);
+				$imagedims = fsx::getimagesize($imagepath);
 				if ($imagedims !== false) {
 					$width = $imagedims[0];
 					$height = $imagedims[1];
@@ -2132,7 +2133,7 @@ class SIGPlusCore {
 		header('Pragma: public');
 		if (is_absolute_path($fileurl)) {
 			// return image as HTTP payload
-			$size = getimagesize($fileurl);
+			$size = fsx::getimagesize($fileurl);
 			if ($size !== false) {
 				header('Content-Type: '.$size['mime']);
 			}
@@ -2141,16 +2142,16 @@ class SIGPlusCore {
 				header('Content-Length: '.$filesize);
 			}
 			header('Content-Disposition: attachment; filename="'.$filename.'"');
-			
+
 			// discard internal buffer content used for output buffering
 			ob_clean();
 			flush();
-			
+
 			@fsx::readfile($fileurl);
 		} else {
 			// redirect to image URL
 			header('Location: '.$fileurl);
-			
+
 			// discard internal buffer content used for output buffering
 			ob_clean();
 			flush();

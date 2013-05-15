@@ -30,6 +30,8 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'filesystem.php';
+
 class SIGPlusMetadataServices {
 	private static $enveloperecord = array(
 		0=>'Envelope Record Version',
@@ -152,7 +154,7 @@ class SIGPlusMetadataServices {
 
 	public static function getProperties() {
 		static $properties;
-	
+
 		if (!isset($properties)) {
 			// fetch supported EXIF tags from PHP
 			$exiftags = array();
@@ -164,27 +166,27 @@ class SIGPlusMetadataServices {
 					}
 				}
 			}
-			
+
 			$properties = array_unique(array_merge(self::$enveloperecord, self::$applicationrecord, $exiftags));
 		}
-		
+
 		return $properties;
 	}
-	
+
 	public static function getPropertyNumericKey($key) {
 		static $propertymap;
-		
+
 		if (!isset($propertymap)) {
 			$propertymap = array_flip(self::getProperties());
 		}
-		
+
 		if (isset($propertymap[$key])) {
 			return $propertymap[$key];
 		} else {
 			return false;
 		}
 	}
-		
+
 	/**
 	* Canonicalizes the value of a metadata entry to ensure proper display.
 	*/
@@ -290,7 +292,7 @@ class SIGPlusMetadataServices {
 
 	private static function getIptcData($imagefile) {
 		$info = array();
-		$size = getimagesize($imagefile, $info);
+		$size = fsx::getimagesize($imagefile, $info);
 		if ($size !== false && isset($info["APP13"])) {
 			return self::mapMetadataKeys(iptcparse($info["APP13"]));
 		} else {
@@ -322,7 +324,7 @@ class SIGPlusMetadataServices {
 			if (isset($iso)) {
 				$exifdata['ISOSpeed'] = $iso;
 			}
-			
+
 			// ComponentsConfiguration
 			if (isset($exifdata['ComponentsConfiguration'])) {
 				$value = $exifdata['ComponentsConfiguration'];
@@ -339,17 +341,17 @@ class SIGPlusMetadataServices {
 				}
 				$exifdata['ComponentsConfiguration'] = implode(', ', $components);
 			}
-			
+
 			// FileSource
 			if (isset($exifdata['FileSource']) && ord($exifdata['FileSource']) == 3) {
 				$exifdata['FileSource'] = 'Digital Still Camera';
 			}
-			
+
 			// SceneType
 			if (isset($exifdata['SceneType']) && ord($exifdata['SceneType']) == 1) {
 				$exifdata['SceneType'] = 'Directly photographed image';
 			}
-			
+
 			// remove sections of little interest
 			unset($exifdata['SectionsFound']);
 			unset($exifdata['Exif_IFD_Pointer']);
