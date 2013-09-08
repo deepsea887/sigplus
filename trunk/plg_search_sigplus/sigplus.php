@@ -55,16 +55,19 @@ class plgSearchSIGPlus extends JPlugin {
 	* @param {mixed} $areas An array if the search it to be restricted to areas, null if search all
 	*/
 	public function onContentSearch($text, $phrase = '', $ordering = '', $areas = null) {
+		// skip for empty search phrase
+		if (strlen($text) == 0 || ctype_space($text)) {
+			return array();
+		}
+
+		// skip if not searching inside image metadata
+		if (is_array($areas) && !array_intersect($areas, array_keys(self::onContentSearchAreas()))) {
+			return array();
+		}
+
 		// load language file for internationalized labels and error messages
 		$lang = JFactory::getLanguage();
 		$lang->load('plg_search_sigplus', JPATH_ADMINISTRATOR);
-
-		// skip if not searching inside image metadata
-		if (is_array($areas)) {
-			if (!array_intersect($areas, array_keys(self::onContentSearchAreas()))) {
-				return array();
-			}
-		}
 
 		if (!isset($this->core)) {
 			// load sigplus content plug-in
@@ -94,6 +97,32 @@ class plgSearchSIGPlus extends JPlugin {
 
 		$db = JFactory::getDbo();
 
+		// determine current site language
+		$lang = JFactory::getLanguage();
+		list($language, $country) = explode('-', $lang->getTag());  // site current language
+
+		// get the database identifier that belongs to an ISO language code
+		$db = JFactory::getDbo();
+		$db->setQuery(
+			'SELECT'.PHP_EOL.
+				$db->quoteName('langid').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_language').PHP_EOL.
+			'WHERE'.PHP_EOL.
+				$db->quoteName('lang').' = '.$db->quote($language)
+		);
+		$langid = $db->loadResult();
+
+		// get the database identifier that belongs to an ISO country code
+		$db = JFactory::getDbo();
+		$db->setQuery(
+			'SELECT'.PHP_EOL.
+				$db->quoteName('countryid').PHP_EOL.
+			'FROM '.$db->quoteName('#__sigplus_country').PHP_EOL.
+			'WHERE'.PHP_EOL.
+				$db->quoteName('country').' = '.$db->quote($country)
+		);
+		$countryid = $db->loadResult();
+
 		// build SQL WHERE clause
 		switch ($phrase) {
 			case 'all':
@@ -114,11 +143,16 @@ class plgSearchSIGPlus extends JPlugin {
 					'FROM '.$db->quoteName('#__sigplus_image').' AS wi'.PHP_EOL.
 						'LEFT JOIN '.$db->quoteName('#__sigplus_data').' AS wd'.PHP_EOL.
 						'ON wi.'.$db->quoteName('imageid').' = wd.'.$db->quoteName('imageid').PHP_EOL.
+						'LEFT JOIN '.$db->quoteName('#__sigplus_caption').' AS wc'.PHP_EOL.
+						'ON wi.'.$db->quoteName('imageid').' = wc.'.$db->quoteName('imageid').PHP_EOL.
 					'WHERE'.PHP_EOL.
-						'wi.'.$db->quoteName('filename').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
-						'wi.'.$db->quoteName('title').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
-						'wi.'.$db->quoteName('summary').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).' OR '.
-						'wd.'.$db->quoteName('textvalue').' LIKE '.$db->quote('%'.$db->getEscaped($word, true).'%', false).PHP_EOL.
+						// no caption belongs to image or caption language matches site language
+						'(ISNULL(wc.'.$db->quoteName('langid').') OR wc.'.$db->quoteName('langid').' = '.$langid.') AND '.PHP_EOL.
+						'(ISNULL(wc.'.$db->quoteName('countryid').') OR wc.'.$db->quoteName('countryid').' = '.$countryid.') AND '.PHP_EOL.
+						'(wi.'.$db->quoteName('filename').' LIKE '.$db->quote('%'.$db->escape($word).'%', false).' OR '.
+						' wc.'.$db->quoteName('title').' LIKE '.$db->quote('%'.$db->escape($word).'%', false).' OR '.
+						' wc.'.$db->quoteName('summary').' LIKE '.$db->quote('%'.$db->escape($word).'%', false).' OR '.
+						' wd.'.$db->quoteName('textvalue').' LIKE '.$db->quote('%'.$db->escape($word).'%', false).')'.PHP_EOL.
 				')';
 		}
 		switch ($phrase) {
@@ -159,24 +193,28 @@ class plgSearchSIGPlus extends JPlugin {
 				$db->quoteName('filetime').','.PHP_EOL.
 				$db->quoteName('width').','.PHP_EOL.
 				$db->quoteName('height').','.PHP_EOL.
-				'IFNULL(i.'.$db->quoteName('title').','.PHP_EOL.
+				'IFNULL(c.'.$db->quoteName('title').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT c.'.$db->quoteName('title').PHP_EOL.
-						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'SELECT p.'.$db->quoteName('title').PHP_EOL.
+						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS p'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'i.'.$db->quoteName('filename').' LIKE c.'.$db->quoteName('pattern').' AND '.PHP_EOL.
-							'i.'.$db->quoteName('folderid').' = c.'.$db->quoteName('folderid').PHP_EOL.
-						'ORDER BY c.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
+							'p.'.$db->quoteName('langid').' = '.$langid.' AND '.PHP_EOL.
+							'p.'.$db->quoteName('countryid').' = '.$countryid.' AND '.PHP_EOL.
+							'i.'.$db->quoteName('filename').' LIKE p.'.$db->quoteName('pattern').' AND '.PHP_EOL.
+							'i.'.$db->quoteName('folderid').' = p.'.$db->quoteName('folderid').PHP_EOL.
+						'ORDER BY p.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
 				') AS '.$db->quoteName('title').','.PHP_EOL.
-				'IFNULL(i.'.$db->quoteName('summary').','.PHP_EOL.
+				'IFNULL(c.'.$db->quoteName('summary').','.PHP_EOL.
 					'('.PHP_EOL.
-						'SELECT c.'.$db->quoteName('summary').PHP_EOL.
-						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS c'.PHP_EOL.
+						'SELECT p.'.$db->quoteName('summary').PHP_EOL.
+						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS p'.PHP_EOL.
 						'WHERE'.PHP_EOL.
-							'i.'.$db->quoteName('filename').' LIKE c.'.$db->quoteName('pattern').' AND '.PHP_EOL.
-							'i.'.$db->quoteName('folderid').' = c.'.$db->quoteName('folderid').PHP_EOL.
-						'ORDER BY c.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
+							'p.'.$db->quoteName('langid').' = '.$langid.' AND '.PHP_EOL.
+							'p.'.$db->quoteName('countryid').' = '.$countryid.' AND '.PHP_EOL.
+							'i.'.$db->quoteName('filename').' LIKE p.'.$db->quoteName('pattern').' AND '.PHP_EOL.
+							'i.'.$db->quoteName('folderid').' = p.'.$db->quoteName('folderid').PHP_EOL.
+						'ORDER BY p.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
 				') AS '.$db->quoteName('summary').','.PHP_EOL.
 				$db->quoteName('preview_fileurl').','.PHP_EOL.
@@ -187,9 +225,17 @@ class plgSearchSIGPlus extends JPlugin {
 				'ON i.'.$db->quoteName('folderid').' = f.'.$db->quoteName('folderid').PHP_EOL.
 				'INNER JOIN '.$db->quoteName('#__sigplus_imageview').' AS v'.PHP_EOL.
 				'ON i.'.$db->quoteName('imageid').' = v.'.$db->quoteName('imageid').PHP_EOL.
-			'WHERE '.$where.PHP_EOL.
+				'LEFT JOIN '.$db->quoteName('#__sigplus_caption').' AS c'.PHP_EOL.  // may match multiple preview images
+				'ON i.'.$db->quoteName('imageid').' = c.'.$db->quoteName('imageid').PHP_EOL.
+			'WHERE'.PHP_EOL.
+				// no caption belongs to image or caption language matches site language
+				'(ISNULL(c.'.$db->quoteName('langid').') OR c.'.$db->quoteName('langid').' = '.$langid.') AND '.PHP_EOL.
+				'(ISNULL(c.'.$db->quoteName('countryid').') OR c.'.$db->quoteName('countryid').' = '.$countryid.') AND '.PHP_EOL.
+				$where.PHP_EOL.
+			'GROUP BY i.'.$db->quoteName('imageid').PHP_EOL.  // use only a single preview image even if multiple preview images are available
 			'ORDER BY '.$orderby;
 		$db->setQuery($query, 0, $this->limit);
+
 		$rows = $db->loadAssocList();
 
 		$show_thumbnails = (bool) $this->params->get('search_thumbnail');
@@ -237,6 +283,7 @@ class plgSearchSIGPlus extends JPlugin {
 					$json_params[] = json_encode($this->core->makeURL($row['preview_fileurl']));
 					$json_params[] = (int) $row['preview_width'];
 					$json_params[] = (int) $row['preview_height'];
+					$instance->addMooTools();
 					$instance->addOnReadyScript('__sigplusSearch('.join(',', $json_params).');');
 				}
 			}
