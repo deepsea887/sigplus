@@ -42,7 +42,7 @@ CREATE TABLE `#__sigplus_property` (
 CREATE TABLE `#__sigplus_folder` (
 	`folderid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	-- relative path w.r.t. Joomla root, absolute path, or URL
-	`folderurl` VARCHAR(767) CHARACTER SET ascii NOT NULL,
+	`folderurl` VARCHAR(767) CHARACTER SET binary NOT NULL,
 	-- last modified time for folder
 	`foldertime` DATETIME,
 	-- HTTP ETag
@@ -115,7 +115,7 @@ CREATE TABLE `#__sigplus_view` (
 CREATE TABLE `#__sigplus_image` (
 	`imageid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	`folderid` INT UNSIGNED,
-	`fileurl` VARCHAR(767) CHARACTER SET ascii NOT NULL,
+	`fileurl` VARCHAR(767) CHARACTER SET binary NOT NULL,
 	`filename` VARCHAR(255) NOT NULL,
 	`filetime` DATETIME,
 	`filesize` INT UNSIGNED NOT NULL,
@@ -152,15 +152,15 @@ CREATE TABLE `#__sigplus_caption` (
 CREATE TABLE `#__sigplus_imageview` (
 	`imageid` INT UNSIGNED NOT NULL,
 	`viewid` INT UNSIGNED NOT NULL,
-	`thumb_fileurl` VARCHAR(767) CHARACTER SET ascii NOT NULL,
+	`thumb_fileurl` VARCHAR(767) CHARACTER SET binary NOT NULL,
 	`thumb_filetime` DATETIME,
 	`thumb_width` SMALLINT UNSIGNED NOT NULL,
 	`thumb_height` SMALLINT UNSIGNED NOT NULL,
-	`preview_fileurl` VARCHAR(767) CHARACTER SET ascii NOT NULL,
+	`preview_fileurl` VARCHAR(767) CHARACTER SET binary NOT NULL,
 	`preview_filetime` DATETIME,
 	`preview_width` SMALLINT UNSIGNED NOT NULL,
 	`preview_height` SMALLINT UNSIGNED NOT NULL,
-	`watermark_fileurl` VARCHAR(767) CHARACTER SET ascii,
+	`watermark_fileurl` VARCHAR(767) CHARACTER SET binary,
 	`watermark_filetime` DATETIME,
 	PRIMARY KEY (`imageid`,`viewid`),
 	FOREIGN KEY (`imageid`) REFERENCES `#__sigplus_image`(`imageid`) ON DELETE CASCADE,
