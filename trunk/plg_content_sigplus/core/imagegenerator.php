@@ -168,11 +168,11 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 		$ext = strtolower(pathinfo($imagepath, PATHINFO_EXTENSION));
 		switch ($ext) {
 			case 'jpg': case 'jpeg':
-				return imagecreatefromjpeg($imagepath);
+				return fsx::imagecreatefromjpeg($imagepath);
 			case 'gif':
-				return imagecreatefromgif($imagepath);
+				return fsx::imagecreatefromgif($imagepath);
 			case 'png':
-				return imagecreatefrompng($imagepath);
+				return fsx::imagecreatefrompng($imagepath);
 			default:
 				return false;  // missing or unrecognized extension
 		}
@@ -251,6 +251,14 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				} else {  // fit width
 					$zoom = $orig_w / $thumb_w;
 					$thumb_h = floor($orig_h / $zoom);
+				}
+
+				// formula above may produce zero width or height for extremely narrow and extremely elongated images
+				if ($thumb_w < 1) {
+					$thumb_w = 1;  // any image must be at least 1px wide
+				}
+				if ($thumb_h < 1) {
+					$thumb_h = 1;  // any image must be at least 1px tall
 				}
 			}
 

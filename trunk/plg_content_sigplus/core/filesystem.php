@@ -77,6 +77,10 @@ class fsx_windows implements fsx_functions {
 		unset($this->fs);
 	}
 
+	private static function is_ascii($string) {
+		return !preg_match('/[\\x80-\\xff]+/', $string);
+	}
+
 	public function get_short_path($path) {
 		try {
 			if ($this->fs->FileExists($path)) {
@@ -193,11 +197,16 @@ class fsx_windows implements fsx_functions {
 	}
 
 	public function file_get_contents($file) {
+		if (self::is_ascii($file)) {
+			return file_get_contents($file);
+		}
+
 		try {
-			$stream = new COM('ADODB.Stream', null, CP_UTF8);
+			$stream = new COM('ADODB.Stream', null, CP_UTF8);  // use UTF-8 code page for communicating with COM object
+			$stream->Mode = 3;  // adModeReadWrite
 			$stream->Type = 1;  // adTypeBinary
 			$stream->Open();
-			$stream->LoadFromFile($file);
+			$stream->LoadFromFile($file);  // read file into Stream object
 			$data = $stream->Read();  // convert to PHP Traversable
 			ob_start();
 			foreach ($data as $item) {  // iterate COM SAFEARRAY as character codes and print each character
@@ -229,11 +238,16 @@ class fsx_windows implements fsx_functions {
 	}
 
 	public function readfile($file) {
+		if (self::is_ascii($file)) {
+			return readfile($file);
+		}
+
 		try {
-			$stream = new COM('ADODB.Stream', null, CP_UTF8);
+			$stream = new COM('ADODB.Stream', null, CP_UTF8);  // use UTF-8 code page for communicating with COM object
+			$stream->Mode = 3;  // adModeReadWrite
 			$stream->Type = 1;  // binary
 			$stream->Open();
-			$stream->LoadFromFile($file);
+			$stream->LoadFromFile($file);  // read file into Stream object
 			$data = $stream->Read();  // convert to PHP Traversable
 			foreach ($data as $item) {  // iterate COM SAFEARRAY as character codes and print each character
 				print chr($item);
@@ -245,12 +259,24 @@ class fsx_windows implements fsx_functions {
 		}
 	}
 
-	public function getimagesize($file) {
+	public function getimagesize($file, &$info = null) {
 		if (function_exists('getimagesizefromstring')) {
-			return getimagesizefromstring($this->file_get_contents($file));
+			return getimagesizefromstring($this->file_get_contents($file), $info);
 		} else {
-			return getimagesize($this->get_short_path($file));
+			return getimagesize($this->get_short_path($file), $info);
 		}
+	}
+	
+	public function imagecreatefromjpeg($file) {
+		return imagecreatefromstring($this->file_get_contents($file));
+	}
+
+	public function imagecreatefromgif($file) {
+		return imagecreatefromstring($this->file_get_contents($file));
+	}
+
+	public function imagecreatefrompng($file) {
+		return imagecreatefromstring($this->file_get_contents($file));
 	}
 }
 
@@ -350,8 +376,20 @@ class fsx_unix implements fsx_functions {
 		return readfile($file);
 	}
 
-	public function getimagesize($file) {
-		return getimagesize($file);
+	public function getimagesize($file, &$info = null) {
+		return getimagesize($file, $info);  // no special wrapper is required for UNIX-style operating systems
+	}
+
+	public function imagecreatefromjpeg($file) {
+		return imagecreatefromjpeg($file);  // no special wrapper is required for UNIX-style operating systems
+	}
+
+	public function imagecreatefromgif($file) {
+		return imagecreatefromgif($file);  // no special wrapper is required for UNIX-style operating systems
+	}
+
+	public function imagecreatefrompng($file) {
+		return imagecreatefrompng($file);  // no special wrapper is required for UNIX-style operating systems
 	}
 }
 
@@ -445,8 +483,20 @@ class fsx {
 		return self::$instance->readfile($file);
 	}
 
-	public static function getimagesize($file) {
-		return self::$instance->getimagesize($file);
+	public static function getimagesize($file, &$info = null) {
+		return self::$instance->getimagesize($file, $info);
+	}
+
+	public static function imagecreatefromjpeg($file) {
+		return self::$instance->imagecreatefromjpeg($file);
+	}
+
+	public static function imagecreatefromgif($file) {
+		return self::$instance->imagecreatefromgif($file);
+	}
+
+	public static function imagecreatefrompng($file) {
+		return self::$instance->imagecreatefrompng($file);
 	}
 
 	public static function filemdate($file) {
@@ -564,10 +614,29 @@ function safeurlencode($url) {
 */
 function pathurlencode($path) {
 	$parts = explode('/', strtr($path, DIRECTORY_SEPARATOR, '/'));
-	foreach ($parts as &$part) {
-		$part = rawurlencode($part);
+	if (preg_match('#^[A-Za-z0-9]:$#S', $parts[0])) {  // a Windows-style path with drive letter
+		$firstpart = array_shift($parts);  // do not URL-encode drive letter
+		foreach ($parts as &$part) {
+			$part = rawurlencode($part);
+		}
+		array_unshift($parts, $firstpart);
+	} else {
+		foreach ($parts as &$part) {
+			$part = rawurlencode($part);
+		}
 	}
 	return implode('/', $parts);
+}
+
+/**
+* URL-decodes all components of a path.
+*/
+function pathurldecode($path) {
+	$parts = explode('/', $path);
+	foreach ($parts as &$part) {
+		$part = rawurldecode($part);
+	}
+	return implode(DIRECTORY_SEPARATOR, $parts);
 }
 
 /**
