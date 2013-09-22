@@ -1328,6 +1328,16 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		// watermarked image
 		list($watermarkedpath, $watermarkedtime) = $this->getImageData($this->getWatermarkedPath($imagepath, SIGPLUS_TEST));
 
+		// handle special value NULL when thumbnail or preview image could not be generated
+		if (!isset($thumbwidth) || !isset($thumbheight)) {
+			$thumbwidth = 0;
+			$thumbheight = 0;
+		}
+		if (!isset($previewwidth) || !isset($previewheight)) {
+			$previewwidth = 0;
+			$previewheight = 0;
+		}
+		
 		// insert image view
 		SIGPlusDatabase::insertSingleUnique(
 			'#__sigplus_imageview',

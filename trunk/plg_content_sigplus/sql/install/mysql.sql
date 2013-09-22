@@ -152,11 +152,11 @@ CREATE TABLE `#__sigplus_caption` (
 CREATE TABLE `#__sigplus_imageview` (
 	`imageid` INT UNSIGNED NOT NULL,
 	`viewid` INT UNSIGNED NOT NULL,
-	`thumb_fileurl` VARCHAR(767) CHARACTER SET binary NOT NULL,
+	`thumb_fileurl` VARCHAR(767) CHARACTER SET binary,
 	`thumb_filetime` DATETIME,
 	`thumb_width` SMALLINT UNSIGNED NOT NULL,
 	`thumb_height` SMALLINT UNSIGNED NOT NULL,
-	`preview_fileurl` VARCHAR(767) CHARACTER SET binary NOT NULL,
+	`preview_fileurl` VARCHAR(767) CHARACTER SET binary,
 	`preview_filetime` DATETIME,
 	`preview_width` SMALLINT UNSIGNED NOT NULL,
 	`preview_height` SMALLINT UNSIGNED NOT NULL,
