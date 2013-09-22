@@ -201,6 +201,7 @@ class fsx_windows implements fsx_functions {
 			return file_get_contents($file);
 		}
 
+		$is_output_buffered = false;
 		try {
 			$stream = new COM('ADODB.Stream', null, CP_UTF8);  // use UTF-8 code page for communicating with COM object
 			$stream->Mode = 3;  // adModeReadWrite
@@ -208,7 +209,7 @@ class fsx_windows implements fsx_functions {
 			$stream->Open();
 			$stream->LoadFromFile($file);  // read file into Stream object
 			$data = $stream->Read();  // convert to PHP Traversable
-			ob_start();
+			$is_output_buffered = ob_start();
 			foreach ($data as $item) {  // iterate COM SAFEARRAY as character codes and print each character
 				print chr($item);
 			}
@@ -216,6 +217,9 @@ class fsx_windows implements fsx_functions {
 			$stream->Close();
 			return $string;
 		} catch (com_exception $e) {
+			if ($is_output_buffered) {
+				ob_end_clean();
+			}
 			return file_get_contents($this->get_short_path($file));
 		}
 	}
@@ -266,7 +270,7 @@ class fsx_windows implements fsx_functions {
 			return getimagesize($this->get_short_path($file), $info);
 		}
 	}
-	
+
 	public function imagecreatefromjpeg($file) {
 		return imagecreatefromstring($this->file_get_contents($file));
 	}
