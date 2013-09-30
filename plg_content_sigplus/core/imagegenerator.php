@@ -88,7 +88,9 @@ class SIGPlusImageLibrary {
 
 	public static function instantiate($library) {
 		if ($library == 'default') {
-			if (is_imagick_supported()) {
+			if (is_gmagick_supported()) {
+				$library = 'gmagick';
+			} elseif (is_imagick_supported()) {
 				$library = 'imagick';
 			} elseif (is_gd_supported()) {
 				$library = 'gd';
@@ -97,6 +99,11 @@ class SIGPlusImageLibrary {
 			}
 		}
 		switch ($library) {
+			case 'gmagick':
+				if (is_gmagick_supported()) {
+					return new SIGPlusImageLibraryGmagick();
+				}
+				break;
 			case 'imagick':
 				if (is_imagick_supported()) {
 					return new SIGPlusImageLibraryImagick();
@@ -356,7 +363,44 @@ class SIGPlusImageLibraryImagick extends SIGPlusImageLibrary {
 
 		list($x, $y) = $this->computeCoordinates($params, $width, $height, $w, $h);
 
-		$image->compositeImage($watermark, imagick::COMPOSITE_DEFAULT, $x, $y);
+		$image->compositeImage($watermark, Imagick::COMPOSITE_DEFAULT, $x, $y);
+		$result = $image->writeImage($watermarkedimagepath);
+
+		$watermark->destroy();
+		$image->destroy();
+		return $result;
+	}
+}
+
+class SIGPlusImageLibraryGmagick extends SIGPlusImageLibrary {
+	public function createThumbnail($imagepath, $thumbpath, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
+		$image = new Gmagick($imagepath);
+		if ($crop) {  // resize with automatic centering, crop image if necessary
+			$image->cropThumbnailImage($thumb_w, $thumb_h);
+		} else {  // resize with fitting larger dimension, do not crop image
+			$image->thumbnailImage($thumb_w, $thumb_h, true);
+		}
+		$result = $image->writeImage($thumbpath);
+		$image->destroy();
+		return $result;
+	}
+
+	public function createWatermarked($imagepath, $watermarkpath, $watermarkedimagepath, $params) {
+		if (!is_file($watermarkpath)) {
+			return false;
+		}
+
+		$image = new Gmagick($imagepath);
+		$width = $image->getImageWidth();
+		$height = $image->getImageHeight();
+
+		$watermark = new Gmagick($watermarkpath);
+		$w = $watermark->getImageWidth();
+		$h = $watermark->getImageHeight();
+
+		list($x, $y) = $this->computeCoordinates($params, $width, $height, $w, $h);
+
+		$image->compositeImage($watermark, Gmagick::COMPOSITE_DEFAULT, $x, $y);
 		$result = $image->writeImage($watermarkedimagepath);
 
 		$watermark->destroy();

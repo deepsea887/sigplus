@@ -75,6 +75,24 @@ function is_imagick_supported() {
 }
 
 /**
+* Whether server has GraphicsMagick library support enabled.
+*/
+function is_gmagick_supported() {
+	static $supported = null;
+	if (isset($supported)) {
+		return $supported;
+	}
+
+	$supported = extension_loaded('gmagick');
+	if (!$supported) {
+		return false;
+	}
+
+	$supported = class_exists('Gmagick');
+	return $supported;
+}
+
+/**
 * Whether XML services are supported.
 */
 function is_xml_supported() {

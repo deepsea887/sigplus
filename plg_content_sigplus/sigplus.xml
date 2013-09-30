@@ -300,6 +300,7 @@
 					<option value="none">SIGPLUS_LIBRARY_IMAGE_NONE</option>
 					<option value="default">SIGPLUS_LIBRARY_IMAGE_DEFAULT</option>
 					<option value="gd">SIGPLUS_LIBRARY_IMAGE_GD</option>
+					<option value="gmagick">SIGPLUS_LIBRARY_IMAGE_GMAGICK</option>
 					<option value="imagick">SIGPLUS_LIBRARY_IMAGE_IMAGICK</option>
 				</field>
 				<field type="spacer" label="SIGPLUS_CATEGORY_DEBUG" />
