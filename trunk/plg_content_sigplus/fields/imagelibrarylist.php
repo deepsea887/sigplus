@@ -85,6 +85,9 @@ class JFormFieldImageLibraryList extends JFormField {
 		if (is_gd_supported()) {
 			$supported['gd'] = 'GD';  // localized when control HTML code is generated
 		}
+		if (is_gmagick_supported()) {
+			$supported['gmagick'] = 'GraphicsMagick';
+		}
 		if (is_imagick_supported()) {
 			$supported['imagick'] = 'ImageMagick';
 		}

@@ -127,16 +127,21 @@ class plgContentSIGPlus extends JPlugin {
 	*    Example: {gallery} http://example.com/image.jpg {/gallery}
 	*/
 	public function onContentPrepare($context, &$article, &$params, $limitstart) {
-		// skip plug-in activation when the content is being indexed
 		if ($context === 'com_finder.indexer') {
-			return;
+			// skip plug-in activation when the content is being indexed
+		} elseif ($context === 'com_content.category' || $context === 'com_content.featured') {
+			$this->parseContent($article->text, $article->introtext);  // only introductory text is visible, do not make replacements elsewhere
+		} else {
+			$this->parseContent($article->text);  // replacements take effect
 		}
-
-		$this->parseContent($article);  // replacements take effect
 	}
 
-	private function parseContent(&$article) {
-		if (strpos($article->text, '{'.$this->tag_gallery) === false && strpos($article->text, '{'.$this->tag_lightbox) === false) {
+	private function parseContent(&$text, $introtext = null) {
+		if (isset($introtext) && strpos($introtext, '{'.$this->tag_gallery) === false && strpos($introtext, '{'.$this->tag_lightbox) === false) {
+			return false;  // short-circuit plugin activation, no replacements made
+		}
+
+		if (strpos($text, '{'.$this->tag_gallery) === false && strpos($text, '{'.$this->tag_lightbox) === false) {
 			return false;  // short-circuit plugin activation, no replacements made
 		}
 
@@ -180,27 +185,27 @@ class plgContentSIGPlus extends JPlugin {
 			$tag_gallery = preg_quote($this->tag_gallery, '#');
 			//$pattern = '#\{'.$tag_gallery.'([^{}]*)(?<!/)\}\s*((?:[^{]+|\{(?!/'.$tag_gallery.'))+)\s*\{/'.$tag_gallery.'\}#msSu';
 			$pattern = '#\{'.$tag_gallery.'([^{}]*)(?<!/)\}(.+?)\{/'.$tag_gallery.'\}#msSu';
-			//$article->text = preg_replace_callback($pattern, array($this, 'getGalleryReplacement'), $article->text, 1, $gallerycount);
-			$gallerycount = $this->getGalleryReplacementAll($article->text, $pattern);
+			//$text = preg_replace_callback($pattern, array($this, 'getGalleryReplacement'), $text, 1, $gallerycount);
+			$gallerycount = $this->getGalleryReplacementAll($text, $pattern);
 
 			// find {lightbox}...{/lightbox} tags wrapping HTML and emit code
 			$tag_lightbox = preg_quote($this->tag_lightbox, '#');
 			$pattern = '#\{'.$tag_lightbox.'([^{}]*)(?<!/)\}(.+?)\{/'.$tag_lightbox.'\}#msSu';
-			$article->text = preg_replace_callback($pattern, array($this, 'getLightboxReplacement'), $article->text, -1, $lightboxcount);
+			$text = preg_replace_callback($pattern, array($this, 'getLightboxReplacement'), $text, -1, $lightboxcount);
 
 			// find compact {lightbox/} tags and emit code
 			$pattern = '#\{'.$tag_lightbox.'([^{}]*)/\}#msSu';
-			$article->text = preg_replace_callback($pattern, array($this, 'getSelectorReplacement'), $article->text);
+			$text = preg_replace_callback($pattern, array($this, 'getSelectorReplacement'), $text);
 
 			// employ safety measure for excessively large galleries
-			if (strlen($article->text) > 80000) {  // there is a risk of exhausting the backtrack limit and producing the "white screen of death"
+			if (strlen($text) > 80000) {  // there is a risk of exhausting the backtrack limit and producing the "white screen of death"
 				ini_set('pcre.backtrack_limit', 1000000);  // try to raise backtrack limit
 				SIGPlusLogging::appendStatus('Generated HTML code is excessively large, consider splitting galleries. Regular expression matching backtrack limit has been increased.');
 			}
 
 			$log = SIGPlusLogging::fetch();
 			if ($log) {
-				$article->text = $log.$article->text;
+				$text = $log.$text;
 			}
 
 			return $gallerycount + $lightboxcount > 0;
