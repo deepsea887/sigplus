@@ -93,6 +93,7 @@ function __sigplusCaption(id, titletemplate, summarytemplate) {
 		anchor = $(anchor);  // $(...) for Internet Explorer 8 and earlier compatibility
 		var replacement = {  // template replacement rules
 			filename: (anchor.pathname || '').match(/([^\/]*)$/)[1],  // keep only file name component from path
+			filesize: anchor.get('data-image-file-size'),
 			current: index + 1,  // index is zero-based but user interface needs one-based counter
 			total: anchors.length
 		};

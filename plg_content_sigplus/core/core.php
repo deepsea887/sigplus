@@ -1949,7 +1949,7 @@ class SIGPlusCore {
 	/**
 	* Get an image label with placeholder and default value substitutions.
 	*/
-	private function getSubstitutedLabel($text, $default, $template, $filename, $index, $total) {
+	private static function getSubstitutedLabel($text, $default, $template, $filename, $index, $total, $filesize) {
 		// use default text if no text is explicitly given
 		if (!isset($text) && isset($default)) {
 			$text = $default;
@@ -1957,17 +1957,33 @@ class SIGPlusCore {
 
 		// replace placeholders for file name, current image number and total image count with actual values in template
 		if (isset($text) && isset($template)) {
-			$text = str_replace(array('{$text}','{$filename}','{$current}','{$total}'), array($text, $filename, (string) ($index+1), (string) $total), $template);
+			$text = str_replace(
+				array('{$text}','{$filename}','{$current}','{$total}','{$filesize}'),
+				array($text, $filename, (string) ($index+1), (string) $total, (string) $filesize),
+				$template
+			);
 		}
 
 		return $text;
+	}
+	
+	/**
+	* Returns whether the label depends on server data not available on the client side.
+	*/
+	private static function isServerDependentLabel($template) {
+		// check if placeholders for server-dependent values are present in template string
+		if (isset($template)) {
+			return strpos($template, '{$filesize}') !== false;
+		} else {
+			return false;
+		}
 	}
 
 	/**
 	* Get an image label with placeholder and default substitutions as plain text with double quote escapes.
 	*/
-	private function getLabel($text, $default, $template, $url, $index, $total) {
-		return $this->getSubstitutedLabel($text, $default, $template, basename($url), $index, $total);
+	private static function getLabel($text, $default, $template, $url, $index, $total, $filesize) {
+		return self::getSubstitutedLabel($text, $default, $template, basename($url), $index, $total, $filesize);
 	}
 
 	/**
@@ -2396,6 +2412,7 @@ class SIGPlusCore {
 				'IFNULL(v.'.$db->quoteName('watermark_fileurl').', i.'.$db->quoteName('fileurl').') AS '.$db->quoteName('url').','.PHP_EOL.
 				'i.'.$db->quoteName('width').','.PHP_EOL.
 				'i.'.$db->quoteName('height').','.PHP_EOL.
+				'i.'.$db->quoteName('filesize').','.PHP_EOL.
 				'IFNULL(c.'.$db->quoteName('title').','.PHP_EOL.
 					'('.PHP_EOL.
 						'SELECT p.'.$db->quoteName('title').PHP_EOL.
@@ -2500,7 +2517,7 @@ class SIGPlusCore {
 	private function printGalleryItem($row, $style = null) {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
-		list($imageid, $source, $width, $height, $title, $summary, $preview_url, $preview_width, $preview_height, $thumb_url, $thumb_width, $thumb_height) = $row;
+		list($imageid, $source, $width, $height, $filesize, $title, $summary, $preview_url, $preview_width, $preview_height, $thumb_url, $thumb_width, $thumb_height) = $row;
 		if ($style) {
 			$style = ' style="'.$style.'"';
 		}
@@ -2511,15 +2528,19 @@ class SIGPlusCore {
 		$thumb_url = $this->makeURL($thumb_url);
 		$download_url = $this->getImageDownloadUrl($imageid);
 
+		$server_attr_data = '';
 		if (SIGPLUS_CAPTION_CLIENT) {  // client-side template replacement
 			$title = $title ? $title : $curparams->caption_title;
 			$summary = $summary ? $summary : $curparams->caption_summary;
+			if (self::isServerDependentLabel($curparams->caption_title_template) || self::isServerDependentLabel($curparams->caption_summary_template)) {
+				$server_attr_data = '" data-image-file-size="'.$filesize.'"';
+			}
 		} else {  // server-side template replacement
-			$title = $this->getSubstitutedLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $total);
-			$summary = $this->getSubstitutedLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $total);
+			$title = self::getSubstitutedLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $total, $filesize);
+			$summary = self::getSubstitutedLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $total, $filesize);
 		}
 
-		print '<a class="sigplus-image"'.$style.' href="'.$url.'">';
+		print '<a class="sigplus-image"'.$style.' href="'.$url.'"'.$server_attr_data.'>';
 		print '<img src="'.htmlspecialchars($preview_url).'" width="'.$preview_width.'" height="'.$preview_height.'" alt="'.htmlspecialchars($title).'" />';
 		print '<img class="sigplus-thumb" src="'.htmlspecialchars($thumb_url).'" width="'.$thumb_width.'" height="'.$thumb_height.'" alt="" />';
 		print '</a>';
