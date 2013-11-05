@@ -282,6 +282,42 @@ class fsx_windows implements fsx_functions {
 	public function imagecreatefrompng($file) {
 		return imagecreatefromstring($this->file_get_contents($file));
 	}
+	
+	public function imagejpeg($image, $file, $quality) {
+		ob_start();
+		imagejpeg($image, null, $quality);
+		$data = ob_get_clean();
+		if ($data !== false) {
+			$this->file_put_contents($file, $data);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function imagegif($image, $file) {
+		ob_start();
+		imagegif($image);
+		$data = ob_get_clean();
+		if ($data !== false) {
+			$this->file_put_contents($file, $data);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function imagepng($image, $file, $quality) {
+		ob_start();
+		imagepng($image, null, $quality);
+		$data = ob_get_clean();
+		if ($data !== false) {
+			$this->file_put_contents($file, $data);
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
 
 class fsx_unix implements fsx_functions {
@@ -395,6 +431,18 @@ class fsx_unix implements fsx_functions {
 	public function imagecreatefrompng($file) {
 		return imagecreatefrompng($file);  // no special wrapper is required for UNIX-style operating systems
 	}
+
+	public function imagejpeg($image, $file, $quality) {
+		return imagejpeg($image, $file, $quality);
+	}
+	
+	public function imagegif($image, $file) {
+		return imagegif($image, $file);
+	}
+
+	public function imagepng($image, $file, $quality) {
+		return imagepng($image, $file, $quality);
+	}
 }
 
 /**
@@ -501,6 +549,18 @@ class fsx {
 
 	public static function imagecreatefrompng($file) {
 		return self::$instance->imagecreatefrompng($file);
+	}
+
+	public static function imagejpeg($image, $file, $quality) {
+		return self::$instance->imagejpeg($image, $file, $quality);
+	}
+
+	public static function imagegif($image, $file) {
+		return self::$instance->imagegif($image, $file);
+	}
+
+	public static function imagepng($image, $file, $quality) {
+		return self::$instance->imagepng($image, $file, $quality);
 	}
 
 	public static function filemdate($file) {
