@@ -215,7 +215,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 			return (bool)preg_match('/\x00\x21\xF9\x04.{4}\x00(\x2C|\x21)/s', file_get_contents($imagepath));
 		}
 	}
-	
+
 	public function createThumbnail($imagepath, $thumbpath, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
 		// check memory requirement for operation
 		$this->checkMemory($imagepath);
@@ -223,6 +223,12 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 		if (self::isAnimated($imagepath)) {
 			// get GIF animation sequence
 			$gifDecoder = new SIGPlusGifDecoder(fsx::file_get_contents($imagepath));
+			$delays_between_frames = $gifDecoder->GIFGetDelays();
+			$loop_count = $gifDecoder->GIFGetLoop();
+			$disposal = 0;  // $gifDecoder->GIFGetDisposal()[0]
+			$transparent_red = $gifDecoder->GIFGetTransparentR();
+			$transparent_green = $gifDecoder->GIFGetTransparentG();
+			$transparent_blue = $gifDecoder->GIFGetTransparentB();
 
 			// re-scale each frame of the animated image
 			$target_frames = array();
@@ -233,21 +239,33 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				// re-scale a single frame
 				$target_image = $this->createThumbnailFromResource($source_image, $thumb_w, $thumb_h, $crop, $quality);
 
-				// convert image resource into a string
-				ob_start();				
-				imagegif($target_image);
-				$target_frames[] = ob_get_clean();
+				if ($target_image) {
+					// set transparent color (if applicable)
+					if (false && $transparent_red >= 0 && $transparent_green >= 0 && $transparent_blue >= 0) {
+						imagetruecolortopalette($target_image, false, 255);
+						$transparent_index = imagecolorresolve($target_image, $transparent_red, $transparent_green, $transparent_blue);
+						imagecolortransparent($target_image, $transparent_index);
+					}
+
+					// convert image resource into a string
+					ob_start();
+					imagegif($target_image);
+					$target_frames[] = ob_get_clean();
+					
+					// release image resource
+					imagedestroy($target_image);
+				}
 				
-				// release image resources
+				// release image resource
 				imagedestroy($source_image);
-				imagedestroy($target_image);
 			}
+			unset($gifDecoder);
 
 			// build an animated frames array from separate frames
 			$gifEncoder = new SIGPlusGifEncoder(
 				$target_frames,
-				$gifDecoder->GIFGetDelays(), $gifDecoder->GIFGetLoop(), $gifDecoder->GIFGetDisposal(),
-				$gifDecoder->GIFGetTransparentR(), $gifDecoder->GIFGetTransparentG(), $gifDecoder->GIFGetTransparentB()
+				$delays_between_frames, $loop_count, $disposal,
+				$transparent_red, $transparent_green, $transparent_blue
 			);
 
 			// save the animation in a single file
@@ -258,14 +276,14 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 			if (!$source_img) {
 				return false;  // could not create image from file
 			}
-		
+
 			// process image
 			$thumb_img = $this->createThumbnailFromResource($source_img, $thumb_w, $thumb_h, $crop, $quality);
 			imagedestroy($source_img);
 			if (!$thumb_img) {
 				return false;
 			}
-			
+
 			// save image to file
 			$result = self::imageToFile($thumbpath, $thumb_img, $quality);
 			imagedestroy($thumb_img);
@@ -353,7 +371,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				imagecolordeallocate($thumb_img, $transparentcolor);
 			}
 
-			// resample image into thumbnail size
+			// re-sample image into thumbnail size
 			$result = $result && imagecopyresampled($thumb_img, $source_img, 0, 0, $crop_x, $crop_y, $thumb_w, $thumb_h, $crop_w, $crop_h);
 
 			if ($result === false) {
@@ -503,9 +521,9 @@ class SIGPlusImageLibraryGmagick extends SIGPlusImageLibrary {
 }
 
 class SIGPlusGifDecoder {
-	private $GIF_TransparentR = - 1;
-	private $GIF_TransparentG = - 1;
-	private $GIF_TransparentB = - 1;
+	private $GIF_TransparentR = -1;
+	private $GIF_TransparentG = -1;
+	private $GIF_TransparentB = -1;
 	private $GIF_TransparentI = 0;
 	private $GIF_buffer = array();
 	private $GIF_arrays = array();
@@ -532,8 +550,8 @@ class SIGPlusGifDecoder {
 		self::GIFGetByte(6);
 		self::GIFGetByte(7);
 		$this->GIF_screen = $this->GIF_buffer;
-		$this->GIF_colorF = $this->GIF_buffer[4] & 0x80 ? 1 : 0;
-		$this->GIF_sorted = $this->GIF_buffer[4] & 0x08 ? 1 : 0;
+		$this->GIF_colorF = ($this->GIF_buffer[4] & 0x80) ? 1 : 0;
+		$this->GIF_sorted = ($this->GIF_buffer[4] & 0x08) ? 1 : 0;
 		$this->GIF_colorC = $this->GIF_buffer[4] & 0x07;
 		$this->GIF_colorS = 2 << $this->GIF_colorC;
 		if ($this->GIF_colorF == 1) {
@@ -543,13 +561,13 @@ class SIGPlusGifDecoder {
 		for ($cycle = 1; $cycle; ) {
 			if (self::GIFGetByte(1)) {
 				switch ($this->GIF_buffer[0]) {
-				case 0x21:
+				case 0x21:  // character "!" indicates an extension block
 					self::GIFReadExtensions();
 					break;
-				case 0x2C:
+				case 0x2C:  // character "," indicates an image
 					self::GIFReadDescriptor();
 					break;
-				case 0x3B:
+				case 0x3B:  // character ";" should be the last byte of file
 					$cycle = 0;
 					break;
 				}
@@ -560,7 +578,7 @@ class SIGPlusGifDecoder {
 	}
 
 	private function GIFReadExtensions() {
-		self::GIFGetByte(1);
+		self::GIFGetByte(1);  // Graphic Control Label
 		if ($this->GIF_buffer[0] == 0xff) {
 			for (;;) {
 				self::GIFGetByte(1);
@@ -574,19 +592,31 @@ class SIGPlusGifDecoder {
 			}
 		} else {
 			for (;;) {
-				self::GIFGetByte(1);
-				if (($u = $this->GIF_buffer[0]) == 0x00) {
+				self::GIFGetByte(1);  // Block Size
+				if (($u = $this->GIF_buffer[0]) == 0x00) {  // block size of zero marks the end of Graphic Control Extension
 					break;
 				}
-				self::GIFGetByte($u);
+				self::GIFGetByte($u);  // read as many bytes as size of block
 				if ($u == 0x04) {
-					if ($this->GIF_buffer[4] & 0x80) {
-						$this->GIF_dispos[] = ($this->GIF_buffer[0] >> 2) - 1;
-					} else {
-						$this->GIF_dispos[] = ($this->GIF_buffer[0] >> 2) - 0;
-					}
+					//     +---------------+
+					//  0  |               |       Block Size                    Byte
+					//     +---------------+
+					//  1  |     |     | | |       <Packed Fields>               See below
+					//     +---------------+
+					//  2  |               |       Delay Time                    Unsigned
+					//     +-             -+
+					//  3  |               |
+					//     +---------------+
+					//  4  |               |       Transparent Color Index       Byte
+					//     +---------------+
+					//
+					//      <Packed Fields>  =     Reserved                      3 Bits
+					//                             Disposal Method               3 Bits
+					//                             User Input Flag               1 Bit
+					//                             Transparent Color Flag        1 Bit
+					$this->GIF_dispos[] = ($this->GIF_buffer[0] >> 2) & 0x07;
 					$this->GIF_delays[] = ($this->GIF_buffer[1] | $this->GIF_buffer[2] << 8);
-					if ($this->GIF_buffer[3]) {
+					if ($this->GIF_buffer[0] & 0x01) {
 						$this->GIF_TransparentI = $this->GIF_buffer[3];
 					}
 				}
@@ -598,10 +628,10 @@ class SIGPlusGifDecoder {
 		$GIF_screen = array();
 		self::GIFGetByte(9);
 		$GIF_screen = $this->GIF_buffer;
-		$GIF_colorF = $this->GIF_buffer[8] & 0x80 ? 1 : 0;
+		$GIF_colorF = ($this->GIF_buffer[8] & 0x80) ? 1 : 0;
 		if ($GIF_colorF) {
 			$GIF_code = $this->GIF_buffer[8] & 0x07;
-			$GIF_sort = $this->GIF_buffer[8] & 0x20 ? 1 : 0;
+			$GIF_sort = ($this->GIF_buffer[8] & 0x20) ? 1 : 0;
 		} else {
 			$GIF_code = $this->GIF_colorC;
 			$GIF_sort = $this->GIF_sorted;
@@ -724,7 +754,7 @@ class SIGPlusGifEncoder {
 	* @param $GIF_grn Green component of transparent color, or -1 for no transparent color.
 	* @param $GIF_blu Blue component of transparent color, or -1 for no transparent color.
 	*/
-	public function SIGPlusGifEncoder(array $GIF_src, $GIF_dly, $GIF_lop, $GIF_dis, $GIF_red, $GIF_grn, $GIF_blu) {
+	public function SIGPlusGifEncoder(array $GIF_src, array $GIF_dly, $GIF_lop, $GIF_dis, $GIF_red, $GIF_grn, $GIF_blu) {
 			$this->LOP = ($GIF_lop > -1) ? $GIF_lop : 0;
 			$this->DIS = ($GIF_dis > -1) ? ($GIF_dis < 3 ? $GIF_dis : 3) : 2;
 			$this->COL = ($GIF_red > -1 && $GIF_grn > -1 && $GIF_blu > -1) ? ($GIF_red | ($GIF_grn << 8) | ($GIF_blu << 16)) : -1;
@@ -774,7 +804,7 @@ class SIGPlusGifEncoder {
 		$Global_rgb = substr($this->BUF[0], 13, 3 * (2 << (ord($this->BUF[0]{10}) & 0x07)));
 		$Locals_rgb = substr($this->BUF[$i], 13, 3 * (2 << (ord($this->BUF[$i]{10}) & 0x07)));
 		$Locals_ext = "!\xF9\x04".chr(($this->DIS << 2) + 0).chr(($d >> 0) & 0xFF).chr(($d >> 8) & 0xFF)."\x0\x0";
-		if ($this->COL > - 1 && ord($this->BUF[$i]{10}) & 0x80) {
+		if ($this->COL > -1 && (ord($this->BUF[$i]{10}) & 0x80)) {
 			for ($j = 0; $j < (2 << (ord($this->BUF[$i]{10}) & 0x07)); $j++) {
 				if (ord($Locals_rgb{3 * $j + 0}) == (($this->COL >> 16) & 0xFF) && ord($Locals_rgb{3 * $j + 1}) == (($this->COL >> 8) & 0xFF) && ord($Locals_rgb{3 * $j + 2}) == (($this->COL >> 0) & 0xFF)) {
 					$Locals_ext = "!\xF9\x04".chr(($this->DIS << 2) + 1).chr(($d >> 0) & 0xFF).chr(($d >> 8) & 0xFF).chr($j)."\x0";
@@ -792,7 +822,7 @@ class SIGPlusGifEncoder {
 			$Locals_tmp = substr($Locals_tmp, 10, strlen($Locals_tmp) - 10);
 			break;
 		}
-		if (ord($this->BUF[$i]{10}) & 0x80 && $this->IMG > -1) {
+		if ((ord($this->BUF[$i]{10}) & 0x80) && $this->IMG > -1) {
 			if ($Global_len == $Locals_len) {
 				if (self::GIFBlockCompare($Global_rgb, $Locals_rgb, $Global_len)) {
 						$this->GIF .= $Locals_ext.$Locals_img.$Locals_tmp;
