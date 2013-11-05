@@ -30,7 +30,7 @@ window.addEvent('domready', function () {
 		if (elem = anchor.getElement('img')) {
 			anchor.store('title', elem.get('alt'));
 		}
-		
+
 		// assign thumbnail image
 		if (elem = anchor.getElement('.sigplus-thumb')) {
 			anchor.store('thumb', elem);  // copy to MooTools element storage
@@ -74,6 +74,16 @@ window.addEvent('domready', function () {
 function __sigplusCaption(id, titletemplate, summarytemplate) {
 	'use strict';
 
+	function bytesToSize(bytes) {
+		if (bytes == 0) {
+			return '0 B';
+		} else {
+			var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+			var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1000)));
+			return (bytes / Math.pow(1000, i)).toPrecision(3) + ' ' + sizes[i];
+		}
+	};
+
 	var anchors = document.getElements('#' + id + ' a.sigplus-image');
 	titletemplate = titletemplate || '{$text}';
 	summarytemplate = summarytemplate || '{$text}';
@@ -81,11 +91,11 @@ function __sigplusCaption(id, titletemplate, summarytemplate) {
 		function _subs(template, text) {
 			return template.substitute(Object.merge({'text': text || ''}, replacement), /\\?\{\$([^{}]+)\}/g);
 		}
-		
+
 		function _subsattr(elem, attr, template) {
 			elem.set(attr, _subs(template, elem.get(attr)));
 		}
-		
+
 		function _subsstore(elem, key, template) {
 			elem.store(key, _subs(template, elem.retrieve(key)));
 		}
@@ -93,7 +103,7 @@ function __sigplusCaption(id, titletemplate, summarytemplate) {
 		anchor = $(anchor);  // $(...) for Internet Explorer 8 and earlier compatibility
 		var replacement = {  // template replacement rules
 			filename: (anchor.pathname || '').match(/([^\/]*)$/)[1],  // keep only file name component from path
-			filesize: anchor.get('data-image-file-size'),
+			filesize: bytesToSize(anchor.get('data-image-file-size')),
 			current: index + 1,  // index is zero-based but user interface needs one-based counter
 			total: anchors.length
 		};
