@@ -168,6 +168,17 @@ class SIGPlusImageLibrary {
 
 class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 	/**
+	* Determines whether an image is an animated GIF image.
+	*/
+	private static function isAnimated($imagepath) {
+		if ('gif' != strtolower(pathinfo($imagepath, PATHINFO_EXTENSION))) {
+			return false;  // only GIF format supports animation
+		} else {
+			return (bool)preg_match('/\x00\x21\xF9\x04.{4}\x00(\x2C|\x21)/s', file_get_contents($imagepath));
+		}
+	}
+
+	/**
 	* Creates an in-memory image from a local or remote image.
 	* @param string $imagepath The absolute path to a local image or the URL to a remote image.
 	*/
@@ -333,15 +344,44 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 }
 
 class SIGPlusImageLibraryImagick extends SIGPlusImageLibrary {
+	private static function isAnimated($image) {
+		$frames = 0;
+		foreach ($image as $i) {
+			$frames++;
+			if ($frames > 1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public function createThumbnail($imagepath, $thumbpath, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
 		$image = new Imagick($imagepath);
-		$image->setImageCompressionQuality($quality);
-		if ($crop) {  // resize with automatic centering, crop image if necessary
-			$image->cropThumbnailImage($thumb_w, $thumb_h);
-		} else {  // resize with fitting larger dimension, do not crop image
-			$image->thumbnailImage($thumb_w, $thumb_h, true);
+		if (self::isAnimated($image)) {
+			// loop through the frames
+			foreach ($image as $frame) {
+				if ($crop) {  // resize with automatic centering, crop frame if necessary
+					$frame->cropThumbnailImage($thumb_w, $thumb_h);
+				} else {  // resize with fitting larger dimension, do not crop frame
+					$frame->thumbnailImage($thumb_w, $thumb_h, true);
+				}
+				$frame->setImagePage($thumb_w, $thumb_h, 0, 0);
+			}
+
+			// write animated image to disk
+			$result = $image->writeImages($thumbpath);
+		} else {
+			// resize standard (non-animated) image
+			$image->setImageCompressionQuality($quality);
+			if ($crop) {  // resize with automatic centering, crop image if necessary
+				$image->cropThumbnailImage($thumb_w, $thumb_h);
+			} else {  // resize with fitting larger dimension, do not crop image
+				$image->thumbnailImage($thumb_w, $thumb_h, true);
+			}
+
+			// write standard image to disk
+			$result = $image->writeImage($thumbpath);
 		}
-		$result = $image->writeImage($thumbpath);
 		$image->destroy();
 		return $result;
 	}

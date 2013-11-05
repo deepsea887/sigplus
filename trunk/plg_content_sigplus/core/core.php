@@ -1337,7 +1337,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 			$previewwidth = 0;
 			$previewheight = 0;
 		}
-		
+
 		// insert image view
 		SIGPlusDatabase::insertSingleUnique(
 			'#__sigplus_imageview',
@@ -1946,6 +1946,12 @@ class SIGPlusCore {
 		return '('.implode(' '.$filter->rel.' ', $expr).')';
 	}
 
+	private static function getFormattedSize($size) {
+		$units = array( 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+		$power = $size > 0 ? floor(log($size, 1000)) : 0;
+		return number_format($size / pow(1000, $power), 2, '.', '') . ' ' . $units[$power];
+	}
+
 	/**
 	* Get an image label with placeholder and default value substitutions.
 	*/
@@ -1959,14 +1965,14 @@ class SIGPlusCore {
 		if (isset($text) && isset($template)) {
 			$text = str_replace(
 				array('{$text}','{$filename}','{$current}','{$total}','{$filesize}'),
-				array($text, $filename, (string) ($index+1), (string) $total, (string) $filesize),
+				array($text, $filename, (string) ($index+1), (string) $total, self::getFormattedSize($filesize)),
 				$template
 			);
 		}
 
 		return $text;
 	}
-	
+
 	/**
 	* Returns whether the label depends on server data not available on the client side.
 	*/
@@ -2481,6 +2487,7 @@ class SIGPlusCore {
 		// generate HTML code for each image
 		if ($total > 0) {
 			$rows = $db->loadRowList();
+			$count = count($rows);
 
 			ob_start();  // start output buffering
 			//print '<!--[if gte IE 9]><!--><noscript class="sigplus-gallery"><!--<![endif]-->';  // downlevel-hidden conditional comment, browsers below IE9 ignore HTML inside, all other browsers interpret it
@@ -2488,17 +2495,17 @@ class SIGPlusCore {
 			print '<div id="'.$galleryid.'" class="'.$gallerystyle.'">';
 
 			print '<ul>';
-			$limit = $curparams->maxcount > 0 ? min($curparams->maxcount, count($rows)) : count($rows);
+			$limit = $curparams->maxcount > 0 ? min($curparams->maxcount, $count) : $count;
 			for ($index = 0; $index < $limit; $index++) {  // no maximum preview image count set or current image index is within maximum limit
 				print '<li>';
-				$this->printGalleryItem($rows[$index]);
+				$this->printGalleryItem($rows[$index], $index, $count);
 				print '</li>';
 			}
 			print '</ul>';
 
 			if ($curparams->maxcount > 0 && $curparams->lightbox !== false) {  // if lightbox is disabled, user cannot navigate to images beyond maximum image count
-				for (; $index < count($rows); $index++) {
-					$this->printGalleryItem($rows[$index], 'display:none !important;');
+				for (; $index < $count; $index++) {
+					$this->printGalleryItem($rows[$index], $index, $count, 'display:none !important;');
 				}
 			}
 
@@ -2514,7 +2521,7 @@ class SIGPlusCore {
 		return $body;
 	}
 
-	private function printGalleryItem($row, $style = null) {
+	private function printGalleryItem($row, $index, $count, $style = null) {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
 		list($imageid, $source, $width, $height, $filesize, $title, $summary, $preview_url, $preview_width, $preview_height, $thumb_url, $thumb_width, $thumb_height) = $row;
@@ -2536,8 +2543,8 @@ class SIGPlusCore {
 				$server_attr_data = '" data-image-file-size="'.$filesize.'"';
 			}
 		} else {  // server-side template replacement
-			$title = self::getSubstitutedLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $total, $filesize);
-			$summary = self::getSubstitutedLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $total, $filesize);
+			$title = self::getSubstitutedLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $count, $filesize);
+			$summary = self::getSubstitutedLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $count, $filesize);
 		}
 
 		print '<a class="sigplus-image"'.$style.' href="'.$url.'"'.$server_attr_data.'>';
