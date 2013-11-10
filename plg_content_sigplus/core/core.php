@@ -1422,6 +1422,22 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 	}
 
 	/**
+	* True if the file extension indicates a recognized video format.
+	*/
+	protected static function is_video_file($file) {
+		$extension = pathinfo($file, PATHINFO_EXTENSION);
+		switch ($extension) {
+			case 'avi': case 'AVI':
+			case 'flv': case 'FLV':
+			case 'mov': case 'MOV':
+			case 'mp4': case 'mpeg': case 'MP4': case 'MPEG':
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/**
 	* Removes all images and related generated images associated with a folder that has been deleted.
 	*/
 	private function purgeLocalFolder($url) {
