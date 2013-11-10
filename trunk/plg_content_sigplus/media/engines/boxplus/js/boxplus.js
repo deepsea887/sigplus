@@ -453,6 +453,20 @@
 				}
 			};
 
+			// add swipe navigation to be used on portable devices
+			var touchStartX;
+			self.viewer.addEvent('touchstart', function (evt) {
+				touchStartX = evt.changedTouches[0].pageX;
+			});
+			self.viewer.addEvent('touchend', function (evt) {
+				var x = evt.changedTouches[0].pageX;
+				if (x - touchStartX >= 50) {  // swipe to the right
+					self.previous();
+				} else if (touchStartX - x >= 50) {  // swipe to the left
+					self.next();
+				}
+			});
+
 			_bind('prev', self.previous);
 			_bind('next', self.next);
 			_bind('start', self.start);
@@ -1270,7 +1284,7 @@
 
 							// set thumbail navigation bar maximum width
 							self._getElements('thumbs').setStyle('max-width', viewerdims['width']);
-							
+
 							// show bottom and sideways caption area temporarily hidden
 							self.setVisible('controls', true);
 							self.setVisible('bottom', true);
