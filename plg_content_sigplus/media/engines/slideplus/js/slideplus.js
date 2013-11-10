@@ -566,6 +566,25 @@
 			} else {
 				prevbuttons.addEvent('click', self['prev'].bind(self));
 				nextbuttons.addEvent('click', self['next'].bind(self));
+
+				// add swipe navigation to be used on portable devices
+				var swipestart;
+				var isvertical = options['orientation'] == 'vertical';
+				viewer.addEvent('touchstart', function (evt) {
+					evt.stop();
+					var touch = evt.changedTouches[0];
+					swipestart = isvertical ? touch.pageY : touch.pageX;
+				});
+				viewer.addEvent('touchend', function (evt) {
+					evt.stop();
+					var touch = evt.changedTouches[0];
+					var pos = isvertical ? touch.pageY : touch.pageX;
+					if (pos - swipestart >= 50) {  // swipe to the right
+						self.prev();
+					} else if (swipestart - pos >= 50) {  // swipe to the left
+						self.next();
+					}
+				});
 			}
 			self._buttons('first').addEvent('click', self['first'].bind(self));
 			self._buttons('last').addEvent('click', self['last'].bind(self));

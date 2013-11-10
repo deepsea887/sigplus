@@ -1378,8 +1378,8 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 				'INNER JOIN '.$db->quoteName('#__sigplus_folder').' AS f'.PHP_EOL.
 				'ON i.'.$db->quoteName('folderid').' = f.'.$db->quoteName('folderid').PHP_EOL.
 				'INNER JOIN '.$db->quoteName('#__sigplus_hierarchy').' AS h'.PHP_EOL.
-				'ON f.'.$db->quoteName('folderid').' = h.'.$db->quoteName('ancestorid').PHP_EOL.
-			'WHERE i.'.$db->quoteName('folderid').' = '.$folderid.' AND NOT EXISTS (SELECT * FROM '.$db->quoteName('#__sigplus_imageview').' AS v WHERE i.'.$db->quoteName('imageid').' = v.'.$db->quoteName('imageid').' AND v.'.$db->quoteName('viewid').' = '.$viewid.')'.$depthcond
+				'ON f.'.$db->quoteName('folderid').' = h.'.$db->quoteName('descendantid').PHP_EOL.
+			'WHERE h.'.$db->quoteName('ancestorid').' = '.$folderid.' AND NOT EXISTS (SELECT * FROM '.$db->quoteName('#__sigplus_imageview').' AS v WHERE i.'.$db->quoteName('imageid').' = v.'.$db->quoteName('imageid').' AND v.'.$db->quoteName('viewid').' = '.$viewid.')'.$depthcond
 		);
 		return $db->loadRowList();
 	}
@@ -2450,10 +2450,15 @@ class SIGPlusCore {
 				$db->quoteName('thumb_width').','.PHP_EOL.
 				$db->quoteName('thumb_height').PHP_EOL.
 			'FROM '.$db->quoteName('#__sigplus_image').' AS i'.PHP_EOL.
+				// folder "f" in which image is to be found
 				'INNER JOIN '.$db->quoteName('#__sigplus_folder').' AS f'.PHP_EOL.
 				'ON i.'.$db->quoteName('folderid').' = f.'.$db->quoteName('folderid').PHP_EOL.
+				// couple folders related to folder "f" in the folder hierarchy
 				'INNER JOIN '.$db->quoteName('#__sigplus_hierarchy').' AS h'.PHP_EOL.
-				'ON f.'.$db->quoteName('folderid').' = h.'.$db->quoteName('ancestorid').PHP_EOL.
+				'ON f.'.$db->quoteName('folderid').' = h.'.$db->quoteName('descendantid').PHP_EOL.
+				// topmost folder "a" in the folder hierarchy, which the user selects
+				'INNER JOIN '.$db->quoteName('#__sigplus_folder').' AS a'.PHP_EOL.
+				'ON a.'.$db->quoteName('folderid').' = h.'.$db->quoteName('ancestorid').PHP_EOL.
 				'INNER JOIN '.$db->quoteName('#__sigplus_imageview').' AS v'.PHP_EOL.
 				'ON i.'.$db->quoteName('imageid').' = v.'.$db->quoteName('imageid').PHP_EOL.
 				'LEFT JOIN '.$db->quoteName('#__sigplus_caption').' AS c'.PHP_EOL.
@@ -2463,7 +2468,7 @@ class SIGPlusCore {
 				'(ISNULL(c.'.$db->quoteName('langid').') OR c.'.$db->quoteName('langid').' = '.$langid.') AND '.PHP_EOL.
 				'(ISNULL(c.'.$db->quoteName('countryid').') OR c.'.$db->quoteName('countryid').' = '.$countryid.') AND '.PHP_EOL.
 				// condition to match folder URL with (activation tag or module) source folder
-				$db->quoteName('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
+				'a.'.$db->quoteName('folderurl').' = '.$db->quote($source).' AND '.PHP_EOL.
 				// condition to match folder view with activation tag or module instance
 				$db->quoteName('viewid').' = '.$viewid.PHP_EOL.
 				// include and exclude filters or single image selection
