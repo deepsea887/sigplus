@@ -183,8 +183,8 @@ class plgContentSIGPlus extends JPlugin {
 
 			// find {gallery}...{/gallery} tags and emit code
 			$tag_gallery = preg_quote($this->tag_gallery, '#');
-			//$pattern = '#\{'.$tag_gallery.'([^{}]*)(?<!/)\}\s*((?:[^{]+|\{(?!/'.$tag_gallery.'))+)\s*\{/'.$tag_gallery.'\}#msSu';
-			$pattern = '#\{'.$tag_gallery.'([^{}]*)(?<!/)\}(.+?)\{/'.$tag_gallery.'\}#msSu';
+			$param_pattern = '(?:[^{}]+|\{\$[^{}]+\})*';  // characters other than curly braces, or variable substitutions in the style "{$variable}"
+			$pattern = '#\{'.$tag_gallery.'('.$param_pattern.')(?<!/)\}(.+?)\{/'.$tag_gallery.'\}#msSu';
 			//$text = preg_replace_callback($pattern, array($this, 'getGalleryReplacement'), $text, 1, $gallerycount);
 			$gallerycount = $this->getGalleryReplacementAll($text, $pattern);
 

@@ -456,9 +456,11 @@
 			// add swipe navigation to be used on portable devices
 			var touchStartX;
 			self.viewer.addEvent('touchstart', function (evt) {
+				evt.stop();
 				touchStartX = evt.changedTouches[0].pageX;
 			});
 			self.viewer.addEvent('touchend', function (evt) {
+				evt.stop();
 				var x = evt.changedTouches[0].pageX;
 				if (x - touchStartX >= 50) {  // swipe to the right
 					self.previous();
@@ -466,6 +468,9 @@
 					self.next();
 				}
 			});
+			
+			// add double-click event to allow the pop-up window to be closed easily on portable devices
+			self.viewer.addEvent('dblclick', self.close.bind(self));
 
 			_bind('prev', self.previous);
 			_bind('next', self.next);

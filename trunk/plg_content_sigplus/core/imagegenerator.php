@@ -237,7 +237,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				$source_image = imagecreatefromstring($source_frame);
 
 				// re-scale a single frame
-				$target_image = $this->createThumbnailFromResource($source_image, $thumb_w, $thumb_h, $crop, $quality);
+				$target_image = $this->getThumbnailFromResource($source_image, $thumb_w, $thumb_h, $crop, $quality);
 
 				if ($target_image) {
 					// set transparent color (if applicable)
@@ -251,11 +251,11 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 					ob_start();
 					imagegif($target_image);
 					$target_frames[] = ob_get_clean();
-					
+
 					// release image resource
 					imagedestroy($target_image);
 				}
-				
+
 				// release image resource
 				imagedestroy($source_image);
 			}
@@ -277,18 +277,23 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				return false;  // could not create image from file
 			}
 
-			// process image
-			$thumb_img = $this->createThumbnailFromResource($source_img, $thumb_w, $thumb_h, $crop, $quality);
+			$result = $this->createThumbnailFromResource($source_img, $thumbpath, $thumb_w, $thumb_h, $crop, $quality);
 			imagedestroy($source_img);
-			if (!$thumb_img) {
-				return false;
-			}
-
-			// save image to file
-			$result = self::imageToFile($thumbpath, $thumb_img, $quality);
-			imagedestroy($thumb_img);
 			return $result;
 		}
+	}
+
+	public function createThumbnailFromResource($source_img, $thumbpath, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
+		// process image
+		$thumb_img = $this->getThumbnailFromResource($source_img, $thumb_w, $thumb_h, $crop, $quality);
+		if (!$thumb_img) {
+			return false;
+		}
+
+		// save image to file
+		$result = self::imageToFile($thumbpath, $thumb_img, $quality);
+		imagedestroy($thumb_img);
+		return $result;
 	}
 
 	/**
@@ -299,7 +304,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 	* @param $thumb_h The desired thumbnail height.
 	* @parap $crop Whether to crop images or re-scale them.
 	*/
-	private function createThumbnailFromResource($source_img, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
+	private function getThumbnailFromResource($source_img, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
 		// get dimensions for cropping and resizing
 		$orig_w = imagesx($source_img);
 		$orig_h = imagesy($source_img);
@@ -867,5 +872,37 @@ class SIGPlusGifEncoder {
 
 	public function GetAnimation() {
 		return $this->GIF;
+	}
+}
+
+/**
+* Extracts a frame from an MPEG movie into an image file.
+*/
+class SIGPlusMPEGPosterExtractor {
+	/** The GD image processing library wrapper. */
+	private $imagelibrary;
+
+	public static function instantiate() {
+		if (is_gd_supported() && extension_loaded('ffmpeg')) {
+			return new SIGPlusMPEGPosterExtractor(new SIGPlusImageLibraryGD());
+		} else {
+			return false;
+		}
+	}
+
+	private function SIGPlusMPEGPosterExtractor(SIGPlusImageLibraryGD $imagelibrary) {
+		$this->imagelibrary = $imagelibrary;
+	}
+
+	public function createPosterImage($moviepath, $thumbpath, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
+		$movie = new ffmpeg_movie($moviepath);
+
+		// extract frame from the video
+		$thumbindex = (int) round($movie->getFrameCount() / 2.5);
+		$frame = $movie->getFrame($thumbindex);
+		$poster_img = $frame->toGDImage();
+
+		// process and save image
+		return $this->imagelibrary->createThumbnailFromResource($poster_img, $thumbpath, $thumb_w, $thumb_h, $crop, $quality);
 	}
 }
