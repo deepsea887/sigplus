@@ -2504,51 +2504,37 @@ class SIGPlusCore {
 		} else {
 			$total = 0;
 		}
-
-		// generate HTML code for each image
 		if ($total > 0) {
-			$rows = $db->loadRowList();
-			$count = count($rows);
-
-			ob_start();  // start output buffering
-			//print '<!--[if gte IE 9]><!--><noscript class="sigplus-gallery"><!--<![endif]-->';  // downlevel-hidden conditional comment, browsers below IE9 ignore HTML inside, all other browsers interpret it
-			print '<div>';  // HTML tag <noscript> is unreliable on mobile platforms
-			print '<div id="'.$galleryid.'" class="'.$gallerystyle.'">';
-
-			print '<ul>';
-			$limit = $curparams->maxcount > 0 ? min($curparams->maxcount, $count) : $count;
-			for ($index = 0; $index < $limit; $index++) {  // no maximum preview image count set or current image index is within maximum limit
-				print '<li>';
-				$this->printGalleryItem($rows[$index], $index, $count);
-				print '</li>';
-			}
-			print '</ul>';
-
-			if ($curparams->maxcount > 0 && $curparams->lightbox !== false) {  // if lightbox is disabled, user cannot navigate to images beyond maximum image count
-				for (; $index < $count; $index++) {
-					$this->printGalleryItem($rows[$index], $index, $count, 'display:none !important;');
-				}
-			}
-
-			print '</div>';
-			//print '<!--[if gte IE 9]><!--></noscript><!--<![endif]-->';
-			print '</div>';  // HTML tag <noscript> is unreliable on mobile platforms
-			$body = ob_get_clean();  // fetch output buffer
+			$images = $db->loadRowList();
 		} else {
-			$body = JText::_('SIGPLUS_GALLERY_EMPTY');
+			$rows = array();
 			$galleryid = null;
 		}
+		$limit = $curparams->maxcount > 0 ? min($curparams->maxcount, $total) : $total;
+
+		// generate HTML code for each image
+		ob_start();  // start output buffering
+		$this->printGallery($galleryid, $gallerystyle, $images, $limit, $total);
+		$body = ob_get_clean();  // fetch output buffer
 
 		return $body;
 	}
 
-	private function printGalleryItem($row, $index, $count, $style = null) {
+	private function printGallery($galleryid, $gallerystyle, array $images, $limit, $total) {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
-		list($imageid, $source, $width, $height, $filesize, $title, $summary, $preview_url, $preview_width, $preview_height, $thumb_url, $thumb_width, $thumb_height) = $row;
-		if ($style) {
-			$style = ' style="'.$style.'"';
+		if (version_compare(JVERSION, '3.1') >= 0) {
+			$layout_path = JPluginHelper::getLayoutPath('content', 'sigplus', 'default');
+		} else {
+			$layout_path = dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'tmpl'.DIRECTORY_SEPARATOR.'default.php';
 		}
+		require($layout_path);
+	}
+
+	private function printImage($image, $index, $total, $style = null) {
+		$curparams = $this->paramstack->top();  // current gallery parameters
+
+		list($imageid, $source, $width, $height, $filesize, $title, $summary, $preview_url, $preview_width, $preview_height, $thumb_url, $thumb_width, $thumb_height) = $image;
 
 		// translate paths into URLs
 		$url = $this->makeURL($source);
@@ -2556,26 +2542,27 @@ class SIGPlusCore {
 		$thumb_url = $this->makeURL($thumb_url);
 		$download_url = $this->getImageDownloadUrl($imageid);
 
-		$server_attr_data = '';
+		$properties = array();
 		if (SIGPLUS_CAPTION_CLIENT) {  // client-side template replacement
 			$title = $title ? $title : $curparams->caption_title;
 			$summary = $summary ? $summary : $curparams->caption_summary;
 			if (self::isServerDependentLabel($curparams->caption_title_template) || self::isServerDependentLabel($curparams->caption_summary_template)) {
-				$server_attr_data = '" data-image-file-size="'.$filesize.'"';
+				$property = new stdClass;
+				$property->key = 'image-file-size';
+				$property->value = $filesize;
+				$properties[] = $property;
 			}
 		} else {  // server-side template replacement
-			$title = self::getSubstitutedLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $count, $filesize);
-			$summary = self::getSubstitutedLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $count, $filesize);
+			$title = self::getSubstitutedLabel($title, $curparams->caption_title, $curparams->caption_title_template, $url, $index, $total, $filesize);
+			$summary = self::getSubstitutedLabel($summary, $curparams->caption_summary, $curparams->caption_summary_template, $url, $index, $total, $filesize);
 		}
 
-		print '<a class="sigplus-image"'.$style.' href="'.$url.'"'.$server_attr_data.'>';
-		print '<img src="'.htmlspecialchars($preview_url).'" width="'.$preview_width.'" height="'.$preview_height.'" alt="'.htmlspecialchars($title).'" />';
-		print '<img class="sigplus-thumb" src="'.htmlspecialchars($thumb_url).'" width="'.$thumb_width.'" height="'.$thumb_height.'" alt="" />';
-		print '</a>';
-		print '<div class="sigplus-summary">'.$summary.'</div>';
-		if ($download_url) {
-			print '<a class="sigplus-download"'.$style.' href="'.htmlspecialchars($download_url).'"></a>';
+		if (version_compare(JVERSION, '3.1') >= 0) {
+			$layout_path = JPluginHelper::getLayoutPath('content', 'sigplus', 'item');
+		} else {
+			$layout_path = dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'tmpl'.DIRECTORY_SEPARATOR.'item.php';
 		}
+		require($layout_path);
 	}
 
 	public function addStyles($id = null) {

@@ -146,7 +146,7 @@ background:transparent url(navigation-next.png) no-repeat scroll 0 center;
 #boxplus .boxplus-viewer > .boxplus-resizer > * {
 position:absolute;
 top:6px;
-right:6px;
+left:6px;
 width:20px;
 height:20px;
 background:transparent url(resize.png) no-repeat scroll 0 0;

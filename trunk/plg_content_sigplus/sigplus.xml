@@ -16,6 +16,7 @@
 		<folder>engines</folder>
 		<folder>fields</folder>
 		<folder>sql</folder>
+		<folder>tmpl</folder>
 		<filename>index.html</filename>
 	</files>
 	<media folder="media" destination="sigplus">
