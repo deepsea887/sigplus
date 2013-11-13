@@ -272,15 +272,18 @@ class fsx_windows implements fsx_functions {
 	}
 
 	public function imagecreatefromjpeg($file) {
-		return imagecreatefromstring($this->file_get_contents($file));
+		$content = $this->file_get_contents($file);
+		return @imagecreatefromstring($content);
 	}
 
 	public function imagecreatefromgif($file) {
-		return imagecreatefromstring($this->file_get_contents($file));
+		$content = $this->file_get_contents($file);
+		return @imagecreatefromstring($content);
 	}
 
 	public function imagecreatefrompng($file) {
-		return imagecreatefromstring($this->file_get_contents($file));
+		$content = $this->file_get_contents($file);
+		return @imagecreatefromstring($content);
 	}
 	
 	public function imagejpeg($image, $file, $quality) {
