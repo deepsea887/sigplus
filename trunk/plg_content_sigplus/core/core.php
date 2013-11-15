@@ -2507,7 +2507,7 @@ class SIGPlusCore {
 		if ($total > 0) {
 			$images = $db->loadRowList();
 		} else {
-			$rows = array();
+			$images = array();
 			$galleryid = null;
 		}
 		$limit = $curparams->maxcount > 0 ? min($curparams->maxcount, $total) : $total;
@@ -2666,6 +2666,10 @@ class SIGPlusCore {
 
 			$instance->addOnReadyEvent();
 		}
+	}
+
+	public function getParameters() {
+		return $this->paramstack->top();
 	}
 
 	public function setParameterObject($object) {

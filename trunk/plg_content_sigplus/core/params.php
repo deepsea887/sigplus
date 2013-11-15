@@ -786,6 +786,18 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 */
 class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	/**
+	* Title of Joomla module that acts as a base template for parameter values.
+	*
+	* This parameter accepts a <em>mod_sigplus</em> module title, whose configuration parameters act as a base for
+	* plug-in parameters. In-line parameters specified in the plug-in activation tag override those parameters
+	* inherited from the base module. This lets users set some default parameter values on the configuration page of
+	* a module, and specify the module title in the plug-in activation tag as a single parameter or add some further
+	* overrides. The module must be accessible in the context where it is referenced, i.e. it must be enabled,
+	* assigned to the same menu item that the content is assigned to in which the activation tag is typed (or assigned
+	* to all pages), and the user must have the appropriate access rights.
+	*/
+	public $base_module = null;
+	/**
 	* The JavaScript lightbox engine to use, or false to disable the lightbox engine.
 	* @type {string}
 	* @example <kbd>{gallery lightbox=boxplus/darksquare}myfolder{/gallery}</kbd> uses the boxplus pop-up window dark theme to display images when a preview image is clicked.

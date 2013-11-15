@@ -267,7 +267,11 @@ class plgContentSIGPlus extends JPlugin {
 		}
 
 		// the activation code {gallery key=value}myfolder{/gallery} translates into a source and a parameter string
-		$this->core->setParameterString(self::strip_html($params));
+		$params = self::strip_html($params);
+		$this->core->setParameterString($params);
+
+		// update parameters if a module is specified that acts as a base for gallery parameters
+		$this->setInheritedParameters($params);
 
 		try {
 			if (is_absolute_path($imagereference)) {  // do not permit an absolute path enclosed in activation tags
@@ -379,6 +383,43 @@ class plgContentSIGPlus extends JPlugin {
 		}
 
 		return $replacement;
+	}
+
+	/**
+	* Sets plug-in parameters inherited from a module.
+	*
+	* Parameters of a module may in this way act as a template for plug-in parameters. Plug-in parameters override
+	* the parameter values inherited from the base module.
+	*/
+	private function setInheritedParameters($params) {
+		// get current parameters
+		$curparams = $this->core->getParameters();
+
+		if (!isset($curparams->base_module)) {
+			return false;
+		}
+
+		// import parameters from module
+		$module = JModuleHelper::getModule('mod_sigplus', $curparams->base_module);
+		if (empty($module)) {
+			return false;
+		}
+
+		// pop parameters recently pushed to parameter stack
+		$this->core->resetParameters();
+
+		// process parameters from module that acts as base source for parameters
+		$baseparams = json_decode($module->params);
+		unset($baseparams->source);  // ignore parameter "source" not meaningful in this context
+
+		// push base parameters to parameter stack
+		$this->core->setParameterObject($baseparams);
+
+		// (re-)push activation code parameters to parameter stack
+		$this->core->setParameterString($params);
+		$curparams = $this->core->getParameters();
+
+		return true;
 	}
 
 	private static function strip_html($html) {
