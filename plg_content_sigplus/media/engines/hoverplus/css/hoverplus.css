@@ -31,6 +31,7 @@ position:absolute;
 margin:0;
 overflow:hidden;
 z-index:10000;
+background-color: rgba(0,0,0,0.6) !important;
 }
 
 #hoverplus.hoverplus-hidden {
@@ -52,6 +53,7 @@ padding:0;
 #hoverplus .hoverplus-text {
 margin:0;
 padding:0;
+color: rgb(255,255,255) !important;
 }
 
 #hoverplus .hoverplus-title {

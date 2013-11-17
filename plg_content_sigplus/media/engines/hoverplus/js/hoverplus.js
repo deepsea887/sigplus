@@ -79,8 +79,7 @@
 			/**
 			* Smart placement for the lightweight window not to cover the element that has triggered displaying the window.
 			*/
-			function _position() {
-				var size = self._dialog.getSize();
+			function _position(size_x, size_y) {
 				var coord = elem.getCoordinates();  // dimensions and offset w.r.t. browser window edges
 
 				var winscroll = window.getScroll();
@@ -91,35 +90,56 @@
 
 				var winsize = window.getSize();
 				var error = [
-					arealeft + areawidth + size.x - winsize.x,  // position to the right of area
-					areatop + areaheight + size.y - winsize.y,  // position to the bottom of area
-					size.x - arealeft                           // position to the left of area
+					arealeft + areawidth + size_x - winsize.x,  // position to the right of area
+					areatop + areaheight + size_y - winsize.y,  // position to the bottom of area
+					size_x - arealeft,                          // position to the left of area
+					size_y - areatop                            // position to the top of area
 				];
 
 				// find positioning with minimum error
 				var index = -1;
 				var min = Infinity;
-				for (var k in error) {
+				for (var k = 0; k < error.length; k++) {
 					if (error[k] < min) {
 						index = k;
 						min = error[k];
 					}
 				}
 
-				var x = (winsize.x - size.x) / 2;
-				var y = (winsize.y - size.y) / 2;
 				var pad = 20;  // keeps distance
+
+				// calculate horizontal position
+				var x = arealeft + (areawidth - size_x) / 2;  // position at area horizontal center
+				var x_max = winsize.x - size_x - pad;
+				if (x > x_max) {
+					x = x_max;
+				}
+				if (x < pad) {
+					x = pad;
+				}
+
+				// calculate vertical position
+				var y = areatop + (areaheight - size_y) / 2;  // position at area vertical middle
+				var y_max = winsize.y - size_y - pad;
+				if (y > y_max) {
+					y = y_max;
+				}
+				if (y < pad) {
+					y = pad;
+				}
+
 				var left = [
 					arealeft + areawidth + pad,
 					x,
-					arealeft - size.x - pad
+					arealeft - size_x - pad,
+					x
 				];
 				var top = [
 					y,
 					areatop + areaheight + pad,
-					y
+					y,
+					areatop - size_y - pad
 				];
-
 				return {
 					'left': winscroll.x + left[index],
 					'top': winscroll.y + top[index]
@@ -128,7 +148,7 @@
 
 			// set window to initial size and position
 			new Fx.Morph(self._dialog).set(_dotclass('dialog'));  // set width and height
-			self._dialog.setStyles(_position());  // set position
+			self._dialog.setStyles(_position(0, 0));  // set position
 
 			// show dialog but hide descendants
 			_show(self._dialog);
@@ -144,13 +164,13 @@
 						'width': w,
 						'height': h
 					};
-					self._viewer.setStyles($extend({
+					self._viewer.setStyles(Object.append({
 						'background-image': 'url("' + url + '")'
 					}, dims));
 					self._caption.setStyle('width', w);
 
 					// get dialog width and height
-					var target = $extend(_position(), dims);
+					var target = Object.append(_position(w, h), dims);
 
 					// morph dialog to new size and position
 					new Fx.Morph(self._dialog, {
@@ -200,33 +220,30 @@
 		'Implements': Options,
 
 		'options': {
-		},
+			/**
+			* Title text that belongs an anchor.
+			* @param {Element} anchor A mootools Element object representing the anchor.
+			* @return {?string} Raw HTML data as a string.
+			*/
+			'getTitle': function (anchor) {
+				var image = anchor.getElement('img');
+				return image ? image.getProperty('alt') : '';
+			},
 
-		/**
-		* Title text that belongs an anchor.
-		* @param {Element} anchor A mootools Element object representing the anchor.
-		* @return {?string} Raw HTML data as a string.
-		*/
-		_getTitle: function (anchor) {
-			var image = anchor.getElement('img');
-			return image ? image.getProperty('alt') : '';
-		},
-		/**
-		* Description text that belongs to an anchor.
-		* @param {Element} anchor A mootools Element object representing the anchor.
-		* @return {string} Raw HTML data as a string.
-		*/
-		_getText: function (anchor) {
-			return anchor.getProperty('title');
+			/**
+			* Description text that belongs to an anchor.
+			* @param {Element} anchor A mootools Element object representing the anchor.
+			* @return {string} Raw HTML data as a string.
+			*/
+			'getText': function (anchor) {
+				return anchor.getProperty('title');
+			}
 		},
 
 		'initialize': function (elem, url, options) {
 			var self = this;
 			self['setOptions'](options);
 			options = self['options'];
-
-			self._getTitle = $pick(options['getTitle'], self._getTitle);
-			self._getText = $pick(options['getText'], self._getText);
 
 			/**
 			* Stores an active timer.
@@ -256,7 +273,7 @@
 				}
 				elem.removeEvent('mousemove', _timerfun);  // cancel the timer for mouse move events
 
-				dialog.show(elem, url, self._getTitle(elem), self._getText(elem));
+				dialog.show(elem, url, options['getTitle'](elem), options['getText'](elem));
 			}
 
 			elem.addEvents({
