@@ -271,7 +271,8 @@ class plgContentSIGPlus extends JPlugin {
 		$this->core->setParameterString($params);
 
 		// update parameters if a module is specified that acts as a base for gallery parameters
-		$this->setInheritedParameters($params);
+		// pushes a new set of parameters on the parameter stack
+		$inherits = $this->setInheritedParameters($params);
 
 		try {
 			if (is_absolute_path($imagereference)) {  // do not permit an absolute path enclosed in activation tags
@@ -294,9 +295,17 @@ class plgContentSIGPlus extends JPlugin {
 			$this->core->addScripts($id);
 
 			$this->core->resetParameters();
+			if ($inherits) {  // pops the extra set of parameters from the parameter stack
+				$this->core->resetParameters();
+			}
+
 			return $body;
 		} catch (Exception $e) {
 			$this->core->resetParameters();
+			if ($inherits) {  // pops the extra set of parameters from the parameter stack
+				$this->core->resetParameters();
+			}
+
 			throw $e;
 		}
 	}
