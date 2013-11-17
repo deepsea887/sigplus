@@ -240,13 +240,6 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				$target_image = $this->getThumbnailFromResource($source_image, $thumb_w, $thumb_h, $crop, $quality);
 
 				if ($target_image) {
-					// set transparent color (if applicable)
-					if (false && $transparent_red >= 0 && $transparent_green >= 0 && $transparent_blue >= 0) {
-						imagetruecolortopalette($target_image, false, 255);
-						$transparent_index = imagecolorresolve($target_image, $transparent_red, $transparent_green, $transparent_blue);
-						imagecolortransparent($target_image, $transparent_index);
-					}
-
 					// convert image resource into a string
 					ob_start();
 					imagegif($target_image);
@@ -359,11 +352,12 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				}
 			}
 
+			// create resource for thumbnail image
 			$thumb_img = imagecreatetruecolor($thumb_w, $thumb_h);
-			$result = imagealphablending($thumb_img, false) && imagesavealpha($thumb_img, true);
 
+			// set transparency for a palette image
 			if (!imageistruecolor($source_img) && ($transparentindex = imagecolortransparent($source_img)) >= 0) {
-				// convert color index transparency to alpha channel transparency
+				// convert index transparency to color (alpha channel) transparency
 				if (imagecolorstotal($source_img) > $transparentindex) {  // transparent color is in palette
 					$transparentrgba = imagecolorsforindex($source_img, $transparentindex);
 				} else {  // use white as transparent background color
@@ -371,13 +365,30 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 				}
 
 				// fill image with transparent color
-				$transparentcolor = imagecolorallocatealpha($thumb_img, $transparentrgba['red'], $transparentrgba['green'], $transparentrgba['blue'], 127);
-				imagefilledrectangle($thumb_img, 0, 0, $orig_w, $orig_h, $transparentcolor);
+				$transparentcolor = imagecolorallocate($thumb_img, $transparentrgba['red'], $transparentrgba['green'], $transparentrgba['blue']);
+				imagecolortransparent($thumb_img, $transparentcolor);
+				imagefilledrectangle($thumb_img, 0, 0, $thumb_w, $thumb_h, $transparentcolor);
 				imagecolordeallocate($thumb_img, $transparentcolor);
 			}
 
+			// set alpha blending mode
+			$result = true;
+			if (imageistruecolor($source_img)) {
+				$result = $result && imagealphablending($thumb_img, false);
+				$result = $result && imagesavealpha($thumb_img, true);
+			}
+
 			// re-sample image into thumbnail size
-			$result = $result && imagecopyresampled($thumb_img, $source_img, 0, 0, $crop_x, $crop_y, $thumb_w, $thumb_h, $crop_w, $crop_h);
+			if (imageistruecolor($source_img)) {
+				// use re-sample for true color images (e.g. PNG, JPEG)
+				$result = $result && imagecopyresampled($thumb_img, $source_img, 0, 0, $crop_x, $crop_y, $thumb_w, $thumb_h, $crop_w, $crop_h);
+			} else {
+				// use re-size for palette images (e.g. GIF)
+				$result = $result && imagecopyresized($thumb_img, $source_img, 0, 0, $crop_x, $crop_y, $thumb_w, $thumb_h, $crop_w, $crop_h);
+
+				// convert true color thumbnail image to match palette source image
+				$result = $result && imagetruecolortopalette($thumb_img, false, imagecolorstotal($source_img));
+			}
 
 			if ($result === false) {
 				imagedestroy($thumb_img);
