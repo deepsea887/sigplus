@@ -1103,9 +1103,13 @@
 		*/
 		getCenter: function (obj) {
 			var winsize = window.getSize();
+			var winwidth = window.clientWidth;
+			var winheight = window.clientHeight;
+			winwidth = winwidth > 1 ? winwidth : winsize['x'];
+			winheight = winheight > 1 ? winheight : winsize['y'];
 			var objsize = obj.getSize();
-			var x = (0).max((winsize['x'] - objsize['x']) / 2);  // function max avoids dialog extending beyond left or top edge where browser does not let user scroll
-			var y = (0).max((winsize['y'] - objsize['y']) / 2);
+			var x = (0).max((winwidth - objsize['x']) / 2);  // function max avoids dialog extending beyond left or top edge where browser does not let user scroll
+			var y = (0).max((winheight - objsize['y']) / 2);
 			if (this.popup.getStyle('position') != 'fixed') {
 				var scroll = window.getScroll();
 				x += scroll['x'];
