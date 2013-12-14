@@ -299,7 +299,7 @@
 	hoverplus['bind'] = function (elem, options) {
 		function _bindAnchors(anchors) {
 			anchors.each(function (item) {
-				if (/\.(jpe?g|png|gif)$/.test(item.getProperty('href'))) {
+				if (/\.(jpe?g|png|gif)$/i.test(item.getProperty('href'))) {
 					new hoverplus(item, item.getProperty('href'), options);
 				}
 			});
