@@ -380,7 +380,7 @@
 					}).adopt(listitem.getChildren())
 				);
 			});
-			
+
 			// set viewpane size
 			var rows = options['size']['rows'];
 			var cols = options['size']['cols'];
@@ -389,12 +389,12 @@
 				// show hidden elements temporarily to obtain valid values for width, height, padding, border and margin
 				var maxwidth = 0;
 				var maxheight = 0;
-				images.each(function (image) {
-					var itemdims = image.getDimensions({'computeSize': true, 'styles': ['margin','border','padding']});
+				images.concat(listitems).each(function (item) {
+					var itemdims = item.getDimensions({'computeSize': true, 'styles': ['margin','border','padding']});
 					maxwidth = Math.max(maxwidth, itemdims['totalWidth']);
 					maxheight = Math.max(maxheight, itemdims['totalHeight']);
 				});
-				
+
 				// get maximum width and height of image slider items
 				$$(list, viewer).setStyles({
 					'width': cols * (self._maxwidth = maxwidth),

@@ -791,7 +791,7 @@
 		},
 
 		/**
-		* Shows or hides image metainformation.
+		* Shows or hides image meta-information.
 		* Fired when the user clicks the metadata icon.
 		*/
 		toggleMetadata: function () {
@@ -1280,6 +1280,25 @@
 					// show viewer content
 					self.setVisible('viewer', true);
 
+					// align active thumbnail in quick-access navigation bar if necessary
+					self._getAllElements('thumbs').each(function (item) {
+						var ribbon = item.getElement('ul');
+						var activeitem = ribbon.getElement('.' + BOXPLUS_ACTIVE);
+						if (activeitem) {
+							var maxwidth = item.getSize().x - activeitem.getSize().x;  // size of window seen
+							var pos = ribbon.getPosition(item);  // scroll offset (y component always equal to zero)
+							var x = activeitem.getPosition(ribbon).x;  // absolute offset
+							var offset = pos.x + x;  // visual offset from left edge (absolute offset compensated with scroll offset)
+							if (offset > maxwidth) {  // thumbnail image beyond right edge
+								pos.x = -x + maxwidth;  // align at the right edge
+							}
+							if (offset < 0) {  // thumbnail image beyond left edge
+								pos.x = -x;  // align at the left edge
+							}
+							ribbon.setPosition(pos);
+						}
+					});
+					
 					// reset thumbnail quick-access navigation bar
 					self.startScroll(0);
 
