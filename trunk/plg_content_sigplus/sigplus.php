@@ -236,8 +236,11 @@ class plgContentSIGPlus extends JPlugin {
 				$app = JFactory::getApplication();
 				switch ($this->core->verbosityLevel()) {
 					case 'laconic':
-						// display a very general, uninformative message
-						$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE');
+						if ($e instanceof SIGPlusTimeoutException) {  // display a timeout message
+							$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE_TIMEOUT');
+						} else {  // display a very general, uninformative message
+							$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE');
+						}
 
 						// hide activation tag completely
 						$text = substr($text, 0, $start).substr($text, $end);
