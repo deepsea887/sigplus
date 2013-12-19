@@ -456,7 +456,7 @@ class SIGPlusImageLibraryImagick extends SIGPlusImageLibrary {
 			}
 
 			// write animated image to disk
-			$result = $image->writeImages($thumbpath);
+			$result = $image->writeImages($thumbpath, true);
 		} else {
 			// resize standard (non-animated) image
 			$image->setImageCompressionQuality($quality);
