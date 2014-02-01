@@ -213,6 +213,7 @@ class SIGPlusEngineServices {
 		$document = JFactory::getDocument();
 		$document->addStyleSheet($this->getResourceURL('/media/sigplus/css/sigplus.css'));
 		$this->addConditionalStylesheet('/media/sigplus/css/sigplus.ie7.css', 8);
+		$this->addConditionalStylesheet('/media/sigplus/css/sigplus.ie8.css', 9);
 	}
 
 	/**

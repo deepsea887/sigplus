@@ -1072,7 +1072,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* Creates a thumbnail image, a preview image, and a watermarked image for an original.
 	* Images are generated only if they do not already exist.
 	* A separate thumbnail image is generated if the preview is too large to act as a thumbnail.
-	* @param string $imagepath An absolute file system path to an image.
+	* @param {string} $imagepath An absolute file system path to an image.
 	*/
 	private function getGeneratedImages($imagepath) {
 		SIGPlusTimer::checkpoint();
@@ -2068,8 +2068,9 @@ class SIGPlusCore {
 
 	/**
 	* Transforms a file system path into a URL.
+	* @param {string} $make_absolute Build absolute URL address with scheme, host and port.
 	*/
-	public function makeURL($url) {
+	public function makeURL($url, $make_absolute = false) {
 		if (is_absolute_path($url)) {
 			if (strpos($url, JPATH_CACHE.DIRECTORY_SEPARATOR) === 0) {  // file is inside cache folder
 				$path = substr($url, strlen(JPATH_CACHE.DIRECTORY_SEPARATOR));
@@ -2082,6 +2083,11 @@ class SIGPlusCore {
 				$url = $this->config->base_url.'/'.pathurlencode($path);
 			} else {
 				return false;
+			}
+
+			// transform relative URLs into absolute URLs if necessary
+			if ($make_absolute && strpos($url, JURI::base(true).'/') === 0) {
+				$url = JURI::base(false).substr($url, strlen(JURI::base(true)) + 1);
 			}
 		}
 		return $url;
@@ -2435,7 +2441,20 @@ class SIGPlusCore {
 				'i.'.$db->quoteName('width').','.PHP_EOL.
 				'i.'.$db->quoteName('height').','.PHP_EOL.
 				'i.'.$db->quoteName('filesize').','.PHP_EOL.
-				'IFNULL(c.'.$db->quoteName('title').','.PHP_EOL.
+				'IFNULL('.PHP_EOL.
+					// use image title if set
+					'IFNULL(c.'.$db->quoteName('title').','.PHP_EOL.
+						// or use meta-data field "Headline" if no image title has been set explicitly
+						'('.PHP_EOL.
+							'SELECT md.'.$db->quoteName('textvalue').''.PHP_EOL.
+							'FROM #__sigplus_property AS mp'.PHP_EOL.
+							'INNER JOIN #__sigplus_data AS md'.PHP_EOL.
+							'ON mp.'.$db->quoteName('propertyid').' = md.'.$db->quoteName('propertyid').PHP_EOL.
+							'WHERE mp.'.$db->quoteName('propertyname').' = '.$db->quote('Headline').' AND md.'.$db->quoteName('imageid').' = i.'.$db->quoteName('imageid').''.PHP_EOL.
+							'LIMIT 1'.PHP_EOL.
+						')'.PHP_EOL.
+					'),'.PHP_EOL.
+					// or use the best wild-card match for the image
 					'('.PHP_EOL.
 						'SELECT p.'.$db->quoteName('title').PHP_EOL.
 						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS p'.PHP_EOL.
@@ -2447,7 +2466,20 @@ class SIGPlusCore {
 						'ORDER BY p.'.$db->quoteName('priority').' LIMIT 1'.PHP_EOL.
 					')'.PHP_EOL.
 				') AS '.$db->quoteName('title').','.PHP_EOL.
-				'IFNULL(c.'.$db->quoteName('summary').','.PHP_EOL.
+				'IFNULL('.PHP_EOL.
+					// use image summary if set
+					'IFNULL(c.'.$db->quoteName('summary').','.PHP_EOL.
+						// or use meta-data field "Caption-Abstract" if no image summary has been set explicitly
+						'('.PHP_EOL.
+							'SELECT md.'.$db->quoteName('textvalue').''.PHP_EOL.
+							'FROM #__sigplus_property AS mp'.PHP_EOL.
+							'INNER JOIN #__sigplus_data AS md'.PHP_EOL.
+							'ON mp.'.$db->quoteName('propertyid').' = md.'.$db->quoteName('propertyid').PHP_EOL.
+							'WHERE mp.'.$db->quoteName('propertyname').' = '.$db->quote('Caption-Abstract').' AND md.'.$db->quoteName('imageid').' = i.'.$db->quoteName('imageid').''.PHP_EOL.
+							'LIMIT 1'.PHP_EOL.
+						')'.PHP_EOL.
+					'),'.PHP_EOL.
+					// or use the best wild-card match for the image
 					'('.PHP_EOL.
 						'SELECT p.'.$db->quoteName('summary').PHP_EOL.
 						'FROM '.$db->quoteName('#__sigplus_foldercaption').' AS p'.PHP_EOL.
@@ -2512,6 +2544,9 @@ class SIGPlusCore {
 		}
 		$limit = $curparams->maxcount > 0 ? min($curparams->maxcount, $total) : $total;
 
+		// add images to be used on social network sites
+		$this->addOpenGraphProperties($images);
+
 		// generate HTML code for each image
 		ob_start();  // start output buffering
 		$this->printGallery($galleryid, $gallerystyle, $images, $limit, $total);
@@ -2563,6 +2598,32 @@ class SIGPlusCore {
 			$layout_path = dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'tmpl'.DIRECTORY_SEPARATOR.'item.php';
 		}
 		require($layout_path);
+	}
+
+	/**
+	* Add Open Graph meta tags to tell social network sites (e.g. Facebook) which images to use as representative images for the page when the page is shared.
+	*/
+	private function addOpenGraphProperties(array $images) {
+		if (empty($images)) {
+			return;
+		}
+
+		$document = JFactory::getDocument();
+		if ($document->getType() != 'html') {  // custom tags are supported by HTML document type only
+			return;
+		}
+
+		$limit = min(count($images), 3);
+		for ($index = 0; $index < $limit; $index++) {
+			$image = $images[$index];
+			list($imageid, $source, $width, $height, $filesize, $title, $summary, $preview_url, $preview_width, $preview_height, $thumb_url, $thumb_width, $thumb_height) = $image;
+
+			// translate paths into absolute URLs
+			$url = $this->makeURL($source, true);
+
+			// add Open Graph meta tag
+			$document->addCustomTag('<meta property="og:image" content="'.$url.'"/>');
+		}
 	}
 
 	public function addStyles($id = null) {
