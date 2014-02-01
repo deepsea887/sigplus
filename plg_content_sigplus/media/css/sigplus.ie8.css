@@ -1,0 +1,13 @@
+/*!
+* @file
+* @brief    sigplus Image Gallery Plus image gallery stylesheet for Internet Explorer 8
+* @author   Levente Hunyadi
+* @version  $__VERSION__$
+* @remarks  Copyright (C) 2009-2010 Levente Hunyadi
+* @remarks  Licensed under GNU/GPLv3, see http://www.gnu.org/licenses/gpl-3.0.html
+* @see      http://hunyadi.info.hu/projects/sigplus
+*/
+
+a.sigplus-image > img {
+max-width:none;
+}

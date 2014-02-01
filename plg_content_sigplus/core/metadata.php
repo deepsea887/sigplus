@@ -168,6 +168,10 @@ class SIGPlusMetadataServices {
 			}
 
 			$properties = array_unique(array_merge(self::$enveloperecord, self::$applicationrecord, $exiftags));
+			
+			// force re-indexing numeric array starting at index 1 (MySQL does not allow a value of 0 for AUTO_INCREMENT columns)
+			array_unshift($properties, false);
+			unset($properties[0]);
 		}
 
 		return $properties;

@@ -60,9 +60,8 @@ visibility:inherit !important;
 
 /* horizontal and vertical caption alignment */
 .captionplus-align {
-display:-moz-box !important;
-display:-webkit-box !important;
-display:box !important;
+display: -ms-flexbox !important;
+display: flex !important;
 -moz-box-orient:horizontal !important;
 -webkit-box-orient:horizontal !important;
 box-orient:horizontal !important;
@@ -71,39 +70,33 @@ height:100% !important;
 }
 
 .captionplus-horizontal-center {
--moz-box-pack:center !important;
--webkit-box-pack:center !important;
-box-pack:center !important;
+-ms-flex-pack:center !important;
+justify-content:center !important;
 }
 
 .captionplus-horizontal-start {
--moz-box-pack:start !important;
--webkit-box-pack:start !important;
-box-pack:start !important;
+-ms-flex-pack:start !important;
+justify-content:flex-start !important;
 }
 
 .captionplus-horizontal-end {
--moz-box-pack:end !important;
--webkit-box-pack:end !important;
-box-pack:end !important;
+-ms-flex-pack:end !important;
+justify-content:flex-end !important;
 }
 
 .captionplus-vertical-center {
--moz-box-align:center !important;
--webkit-box-align:center !important;
-box-align:center !important;
+-ms-flex-align: center !important;
+align-items: center !important;
 }
 
 .captionplus-vertical-start {
--moz-box-align:start !important;
--webkit-box-align:start !important;
-box-align:start !important;
+-ms-flex-align: start !important;
+align-items: flex-start !important;
 }
 
 .captionplus-vertical-end {
--moz-box-align:end !important;
--webkit-box-align:end !important;
-box-align:end !important;
+-ms-flex-align: end !important;
+align-items: flex-end !important;
 }
 
 /* buttons inside image caption */
