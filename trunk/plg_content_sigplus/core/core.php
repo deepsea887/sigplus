@@ -732,12 +732,14 @@ class SIGPlusImageMetadata {
 
 			foreach ($this->metadata as $key => $metavalue) {
 				$keyid = SIGPlusMetadataServices::getPropertyNumericKey($key);
-				if (is_array($metavalue)) {
-					$value = implode(';', $metavalue);
-				} else {
-					$value = (string) $metavalue;
+				if ($keyid) {  // key maps to a numeric identifier
+					if (is_array($metavalue)) {
+						$value = implode(';', $metavalue);
+					} else {
+						$value = (string) $metavalue;
+					}
+					$entries[] = array($keyid, $value);
 				}
-				$entries[] = array($keyid, $value);
 			}
 
 			SIGPlusDatabase::insertBatch(
@@ -2659,7 +2661,7 @@ class SIGPlusCore {
 			}
 			$selectors = array(
 				'#'.$id.' ul > li img' => $cssrules,
-				'#'.$id.' .captionplus-caption' => $captionrules
+				'#'.$id.' .captionplus-overlay' => $captionrules
 			);
 			$instance->addStyles($selectors);
 		}

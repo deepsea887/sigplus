@@ -98,11 +98,17 @@ class plgContentSIGPlusInstallerScript {
 		if (!is_gd_supported() && !is_imagick_supported()) {
 			$app->enqueueMessage(JText::_('SIGPLUS_INSTALLER_LIBRARY_IMAGE'), 'warning');
 		}
+		if (!extension_loaded('openssl')) {
+			$app->enqueueMessage(JText::_('SIGPLUS_INSTALLER_LIBRARY_OPENSSL'), 'warning');
+		}
 		if (!is_xml_supported()) {
 			$app->enqueueMessage(JText::_('SIGPLUS_INSTALLER_LIBRARY_XML'), 'warning');
 		}
 		if (!ini_get('allow_url_fopen')) {
 			$app->enqueueMessage(JText::_('SIGPLUS_INSTALLER_PHP_URL_FOPEN'), 'warning');
+		}
+		if (!in_array('http', stream_get_wrappers(), true)) {
+			$app->enqueueMessage(JText::_('SIGPLUS_INSTALLER_PHP_HTTP_WRAPPER'), 'warning');
 		}
 	}
 

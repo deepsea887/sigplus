@@ -35,6 +35,10 @@ position:relative !important;
 line-height:normal !important;
 }
 
+.captionplus > a.sigplus-image {
+line-height:0 !important;
+}
+
 .captionplus-outside,
 .captionplus-overlay {
 display:block !important;

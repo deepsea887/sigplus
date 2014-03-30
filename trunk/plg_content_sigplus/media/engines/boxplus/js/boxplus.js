@@ -468,7 +468,7 @@
 					self.next();
 				}
 			});
-			
+
 			// add double-click event to allow the pop-up window to be closed easily on portable devices
 			self.viewer.addEvent('dblclick', self.close.bind(self));
 
@@ -877,6 +877,12 @@
 			this._imagedims = dims;
 		},
 
+		setVideo: function (href, dims) {
+			this.viewervideo.set(dims).set('src', href).setStyles(dims).removeClass(BOXPLUS_UNAVAILABLE).adopt(new Element('source', {
+				'src': href
+			}));
+		},
+
 		/**
 		* @param {HTMLAnchorElement} anchor An HTML anchor element.
 		*/
@@ -891,7 +897,7 @@
 			var href = anchor.href;
 			var path = anchor.pathname;
 			if (/\.(ogg|webM)$/i.test(path)) {  // supported by HTML5-native <video> tag
-				self.viewervideo.set(dims).set('src', href).setStyles(dims).removeClass(BOXPLUS_UNAVAILABLE);
+				self.setVideo(href, dims);
 			} else {
 				self.viewerobject.setStyles(dims).removeClass(BOXPLUS_UNAVAILABLE);
 				if (/\.(pdf|mov)$/i.test(path)) {
@@ -935,26 +941,35 @@
 					}
 
 					// build custom HTML string of nested <object> elements with the specified dimensions and attributes
-
-					self.viewerobject.set('html',
-						'<object' + _getAsAttributeList(Object.merge({
+					// code must use "element.innerHTML = html" instead of "element.set('html', html)" or IE7/IE8 will refuse displaying data referenced by <object> tag
+					self.viewerobject.innerHTML =
+						'<object id="boxplus-object"' + _getAsAttributeList(Object.merge({
 							'classid': 'clsid:' + classid
 						}, dims)) + '>' +
 						_getAsParameterList(attrs) +
-						'<!--[if lt IE 9]><!--><object' + _getAsAttributeList(Object.merge({
+							'<!--[if lt IE 9]><!--><object' + _getAsAttributeList(Object.merge({}, {
 							'type': type,
 							'data': href
 						}, dims)) + '>' + dialog.getMessage('unknown-type').replace('%s', type) + '</object><!--<![endif]-->' +
 						'</object>'
-					);
-				} else {  // /\.swf$/i.test(path)
-					// classid = 'D27CDB6E-AE6D-11cf-96B8-444553540000';
-					new Swiff(href, Object.merge({
-						'container': self.viewerobject,
+					;
+				} else {
+					var swiffparams = Object.merge({
 						'params': {
 							'allowFullScreen': true
 						}
-					}, dims));
+					}, dims);
+					if (/\.swf$/i.test(path)) {
+						// classid = 'D27CDB6E-AE6D-11cf-96B8-444553540000';
+						new Swiff(href, Object.merge({
+							'container': self.viewerobject
+						}, swiffparams));
+					} else {
+						self.setVideo(href, dims);
+						new Swiff(href, Object.merge({
+							'container': self.viewervideo
+						}, swiffparams));
+					}
 				}
 			}
 		},
@@ -966,7 +981,10 @@
 			var self = this;
 			self.setEmpty();
 			self.setDimensions(anchor);
-			self.viewerframe.set('src', anchor.href).setStyles(self._imagedims).removeClass(BOXPLUS_UNAVAILABLE);
+			self.viewerframe.set({
+				frameborder: 0,
+				src: anchor.href
+			}).setStyles(self._imagedims).removeClass(BOXPLUS_UNAVAILABLE);
 		},
 
 		/**
@@ -980,7 +998,7 @@
 			self.viewercontent.empty();
 			self.viewerimage.erase('src');
 			!self.viewervideo.pause || self.viewervideo.pause();
-			self.viewervideo.erase('src');
+			self.viewervideo.empty().erase('src');
 			self.viewerobject.empty();
 			self.viewerframe.set('src', 'about:blank').erase('src');
 
@@ -1164,6 +1182,14 @@
 		},
 
 		/**
+		* Exposes or hides the pop-up window internal copy used for determining object sizes.
+		* @param {boolean} visible Whether the internal copy is to be shown or hidden.
+		*/
+		_expose: function (visible) {
+			this.popupclone.setStyle('display', visible ? 'block' : 'none');
+		},
+
+		/**
 		* Resizes the pop-up window dialog.
 		* @param {function()=} callback A function to invoke when the animated sizing completes.
 		*/
@@ -1191,6 +1217,9 @@
 			// calculate pop-up window size based on internal image copy
 			var w = self._imagedims.width;
 			var h = self._imagedims.height;
+
+			// temporarily expose internal copy
+			self._expose(true);
 
 			/**
 			* Updates the size of the viewer and returns the new dimensions of the dialog.
@@ -1266,6 +1295,9 @@
 			};
 			var morph = new Fx.Morph(self.popup, Object.merge(params, {
 				'onComplete': function () {
+					// temporarily expose internal copy
+					self._expose(true);
+
 					// clear forced height of center panel, the pop-up window dimensions should allow for bottom and sideways panel
 					self.centerpanel.setStyle('height', 'auto');
 
@@ -1298,14 +1330,15 @@
 							ribbon.setPosition(pos);
 						}
 					});
-					
+
 					// reset thumbnail quick-access navigation bar
 					self.startScroll(0);
 
 					// invoke callback if defined
 					callback && callback();
 
-					new Fx.Morph(self.popup, Object.merge(params, {
+					var dims = _dialogdimensions();
+					var morph = new Fx.Morph(self.popup, Object.merge(params, {
 						'onComplete': function () {
 							self.setAvailable('bottom', true);
 							self.setAvailable('sideways', true);
@@ -1321,12 +1354,26 @@
 							// set resizing complete
 							self.resizing = false;
 
+							// temporarily expose internal copy
+							self._expose(true);
+
 							// re-center dialog if page has been scrolled during resizing
 							self.recenter();
+
+							// hide internal copy exposed temporarily
+							self._expose(false);
 						}
-					})).start(_dialogdimensions());
+					}));
+
+					// hide internal copy exposed temporarily
+					self._expose(false);
+
+					morph.start(dims);
 				}
 			}));
+
+			// hide internal copy exposed temporarily
+			self._expose(false);
 
 			morph.start(dims);
 			self.bottomclone.removeClass(BOXPLUS_UNAVAILABLE);
@@ -1783,7 +1830,11 @@
 					$(new Image).addEvent('load', function () {  // triggered when the image has been preloaded
 						_showImage(anchor, this);  // the keyword 'this' refers to the image
 					}).set('src', url);
-				} else if (/\.(pdf|mov|mpe?g|ogg|swf|webM|wmv)$/i.test(path) || /(viddler|vimeo|youtube)\.com$/.test(anchor.hostname)) {
+				} else if (/youtube\.com$/.test(anchor.hostname)) {
+					dialog.setFrame(anchor);
+					_showCaption(anchor);
+					_show();
+				} else if (/\.(pdf|mov|mpe?g|ogg|swf|webM|wmv)$/i.test(path) || /(viddler|vimeo)\.com$/.test(anchor.hostname)) {
 					dialog.setObject(anchor);
 					_showCaption(anchor);
 					_show();
