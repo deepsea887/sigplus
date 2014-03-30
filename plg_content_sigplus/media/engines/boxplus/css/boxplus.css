@@ -38,6 +38,10 @@ z-index:10000;
 background:transparent none no-repeat scroll center center;
 }
 
+#boxplus .boxplus-dialog.boxplus-hidden {
+display:none;
+}
+
 #boxplus .boxplus-dialog div {
 margin:0;
 border:0 none transparent;

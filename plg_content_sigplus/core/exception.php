@@ -178,8 +178,12 @@ class SIGPlusImageFormatException extends SIGPlusFileSystemException {
 * Thrown when the extension cannot access a document at a remote location
 */
 class SIGPlusRemoteException extends SIGPlusInvalidValueException {
-	public function __construct($folder) {
-		parent::__construct('SIGPLUS_EXCEPTION_REMOTE', $folder);
+	public function __construct($url) {
+		if (!extension_loaded('openssl') && in_array(parse_url($url, PHP_URL_SCHEME), array('https', 'ftps'))) {
+			parent::__construct('SIGPLUS_EXCEPTION_REMOTE_SSL', $url);
+		} else {
+			parent::__construct('SIGPLUS_EXCEPTION_REMOTE', $url);
+		}
 	}
 }
 

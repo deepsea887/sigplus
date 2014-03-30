@@ -30,6 +30,19 @@ background:transparent none no-repeat scroll 0 0 !important;
 text-align:center !important;
 }
 
+/* maximum width constraints */
+ol.scrollplus > li a.sigplus-image,
+ul.scrollplus > li a.sigplus-image,
+ol.scrollplus > li a.sigplus-image > img,
+ul.scrollplus > li a.sigplus-image > img {
+max-width:100% !important;
+}
+
+ol.scrollplus > li a.sigplus-image > img,
+ul.scrollplus > li a.sigplus-image > img {
+box-sizing:border-box !important;
+}
+
 /* scrollbar container */
 .scrollplus-slider {
 position:relative !important;

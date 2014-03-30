@@ -43,7 +43,7 @@ function is_gd_supported() {
 	if (!$supported) {
 		return false;
 	}
-	
+
 	$supported = function_exists('gd_info');  // might fail in rare cases even if GD is available
 	if (!$supported) {
 		return false;

@@ -311,6 +311,7 @@
 				</field>
 				<field name="debug_server" type="list" default="default" label="SIGPLUS_DEBUG_SERVER" description="SIGPLUS_DEBUG_SERVER_DESCRIPTION">
 					<option value="default">SIGPLUS_DEBUG_DEFAULT</option>
+					<option value="none">SIGPLUS_DEBUG_NONE</option>
 					<option value="laconic">SIGPLUS_DEBUG_LACONIC</option>
 					<option value="verbose">SIGPLUS_DEBUG_VERBOSE</option>
 				</field>

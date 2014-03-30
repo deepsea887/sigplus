@@ -181,12 +181,21 @@ class plgContentSIGPlus extends JPlugin {
 				SIGPlusLogging::appendStatus(JText::_('SIGPLUS_STATUS_LOGGING'));
 			}
 
+			$gallerycount = 0;
+
+			// pattern for key/value parameter list
+			$param_pattern = '(?:[^{}]+|\{\$[^{}]+\})*';  // characters other than curly braces, or variable substitutions in the style "{$variable}"
+
+			// find compact {gallery/} tags and emit code
+			$tag_gallery = preg_quote($this->tag_gallery, '#');
+			$pattern = '#\{'.$tag_gallery.'('.$param_pattern.')/\}#msSu';
+			$gallerycount += $this->getGalleryReplacementAll($text, $pattern);
+
 			// find {gallery}...{/gallery} tags and emit code
 			$tag_gallery = preg_quote($this->tag_gallery, '#');
-			$param_pattern = '(?:[^{}]+|\{\$[^{}]+\})*';  // characters other than curly braces, or variable substitutions in the style "{$variable}"
-			$pattern = '#\{'.$tag_gallery.'('.$param_pattern.')(?<!/)\}(.+?)\{/'.$tag_gallery.'\}#msSu';
+			$pattern = '#\{'.$tag_gallery.'('.$param_pattern.')(?<!/)\}(.+?)\{/'.$tag_gallery.'\}#msSu';  // do not match compact tag {gallery/}
 			//$text = preg_replace_callback($pattern, array($this, 'getGalleryReplacement'), $text, 1, $gallerycount);
-			$gallerycount = $this->getGalleryReplacementAll($text, $pattern);
+			$gallerycount += $this->getGalleryReplacementAll($text, $pattern);
 
 			// find {lightbox}...{/lightbox} tags wrapping HTML and emit code
 			$tag_lightbox = preg_quote($this->tag_lightbox, '#');
@@ -215,6 +224,8 @@ class plgContentSIGPlus extends JPlugin {
 
 	/**
 	* Replaces all occurrences of a gallery activation tag.
+	* @param {string} $text Article (content item) text.
+	* @param {string} $pattern Replacement regular expression pattern.
 	*/
 	private function getGalleryReplacementAll(&$text, $pattern) {
 		$count = 0;
@@ -229,12 +240,19 @@ class plgContentSIGPlus extends JPlugin {
 			$end = $start + strlen($match[0][0]);
 
 			try {
-				$body = $this->getGalleryReplacementSingle($match[2][0], $match[1][0]);
+				$innertext = isset($match[2]) ? $match[2][0] : null;  // text in between start and end tags (unless omitted)
+				$paramtext = $match[1][0];
+				$body = $this->getGalleryReplacementSingle($innertext, $paramtext);
 				$text = substr($text, 0, $start).$body.substr($text, $end);
 				$offset = $start + strlen($body);
 			} catch (Exception $e) {
 				$app = JFactory::getApplication();
 				switch ($this->core->verbosityLevel()) {
+					case 'none':
+						// display no message, hide activation tag completely
+						$text = substr($text, 0, $start).substr($text, $end);
+						$offset = $start;
+						break;
 					case 'laconic':
 						if ($e instanceof SIGPlusTimeoutException) {  // display a timeout message
 							$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE_TIMEOUT');
@@ -245,6 +263,9 @@ class plgContentSIGPlus extends JPlugin {
 						// hide activation tag completely
 						$text = substr($text, 0, $start).substr($text, $end);
 						$offset = $start;
+
+						// show error message
+						$app->enqueueMessage($message, 'error');
 						break;
 					case 'verbose':
 					default:
@@ -253,8 +274,10 @@ class plgContentSIGPlus extends JPlugin {
 
 						// leave activation tag as it appears
 						$offset = $end;
+
+						// show error message
+						$app->enqueueMessage($message, 'error');
 				}
-				$app->enqueueMessage($message, 'error');
 			}
 		}
 		return $count;
@@ -262,29 +285,41 @@ class plgContentSIGPlus extends JPlugin {
 
 	/**
 	* Replaces a single occurrence of a gallery activation tag.
+	* @param {string} $sourcetext A string that identifies the image source.
+	* @param {string} $paramtext A string that stores parameter key/value pairs.
 	*/
-	private function getGalleryReplacementSingle($source, $params) {
-		$imagereference = html_entity_decode($source, ENT_QUOTES, 'utf-8');
-		if (is_url_http($imagereference)) {
-			$imagereference = safeurlencode($imagereference);
-		}
-
+	private function getGalleryReplacementSingle($sourcetext, $paramtext) {
 		// the activation code {gallery key=value}myfolder{/gallery} translates into a source and a parameter string
-		$params = self::strip_html($params);
-		$this->core->setParameterString($params);
+		$paramtext = self::strip_html($paramtext);
+		$this->core->setParameterString($paramtext);
 
 		// update parameters if a module is specified that acts as a base for gallery parameters
 		// pushes a new set of parameters on the parameter stack
-		$inherits = $this->setInheritedParameters($params);
+		$inherits = $this->setInheritedParameters($paramtext);
+
+		// get special-purpose parameter "source"
+		$params = $this->core->getParameters();
+
+		// set image source
+		$source = null;
+		if (isset($sourcetext)) {
+			$source = html_entity_decode($sourcetext, ENT_QUOTES, 'utf-8');
+		}
+		if ($params->source) {
+			$source = $params->source;
+		}
+		if (is_url_http($source)) {
+			$source = safeurlencode($source);
+		}
 
 		try {
-			if (is_absolute_path($imagereference)) {  // do not permit an absolute path enclosed in activation tags
-				throw new SIGPlusImageSourceException($imagereference);
+			if (is_absolute_path($source)) {  // do not permit an absolute path enclosed in activation tags
+				throw new SIGPlusImageSourceException($source);
 			}
 
 			// download image
 			try {
-				if ($this->core->downloadImage($imagereference)) {  // an image has been requested for download
+				if ($this->core->downloadImage($source)) {  // an image has been requested for download
 					jexit();  // do not produce a page
 				}
 			} catch (SIGPlusImageDownloadAccessException $e) {  // signal download errors but do not stop page processing
@@ -293,7 +328,7 @@ class plgContentSIGPlus extends JPlugin {
 			}
 
 			// generate image gallery
-			$body = $this->core->getGalleryHTML($imagereference, $id);
+			$body = $this->core->getGalleryHTML($source, $id);
 			$this->core->addStyles($id);
 			$this->core->addScripts($id);
 

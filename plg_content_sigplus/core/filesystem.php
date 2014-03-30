@@ -815,9 +815,9 @@ function http_get_modified($url, &$lastmod = null, &$etag = null, $method = 'GET
 			)
 		);
 		$context = stream_context_create($options);
-		$stream = @fopen($url, 'r', false, $context);
+		$stream = fopen($url, 'r', false, $context);
 	} else {
-		$stream = @fopen($url, 'r');
+		$stream = fopen($url, 'r');
 	}
 
 	// test for HTTP ETag match, $http_response_header is a predefined PHP variable
