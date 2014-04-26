@@ -1522,6 +1522,10 @@
 		* @param {!Object} options
 		*/
 		'initialize': function (elem, options) {
+			if (!elem) {
+				return;
+			}
+
 			var self = this;
 
 			// find anchors that belong to a gallery.
