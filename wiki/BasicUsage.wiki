@@ -84,7 +84,7 @@ All other settings are to be left with their defaults; refer to the list at the 
 
 === Description and live example ===
 
-{sigplus rows=2 cols=2 alignment=right}margaretisland{/sigplus}
+{sigplus rows=2 cols=2 alignment=right}margaret{/sigplus}
 
 The example shows a gallery with two rows and two columns on the right side of the page.
 
@@ -214,7 +214,7 @@ This example displays a gallery with two rows and three columns. In the pop-up w
 
 === Description and live example ===
 
-{sigplus rows=1 cols=1 alignment=right lightbox_slideshow=4000 lightbox_autostart=1 rotator_navigation=top rotator_trigger=mouseover caption_visibility=always}margaretisland{/sigplus}
+{sigplus rows=1 cols=1 alignment=right lightbox_slideshow=4000 lightbox_autostart=1 rotator_navigation=top rotator_trigger=mouseover caption_visibility=always}margaret{/sigplus}
 
 This example shows up as a gallery with one row and one column, on the right side of the page. The slideshow control button also appears in the pop-up window, but there is no need to press the button because the slideshow starts automatically and shows the next image after 4 seconds. The navigation bar for the image rotator displays on the top. Moving the mouse pointer over the control links causes the rotator to start advancing. Image captions can always be seen, not only when the mouse pointer moves over the previews.
 

@@ -69,7 +69,7 @@
 										'horizontal-' + options['horzalign'],
 										'vertical-' + options['vertalign']
 									]),
-									'html': caption ? caption : ''  // text content
+									'html': caption ? '<div>' + caption + '</div>' : ''  // text content
 								})
 							),
 							options['position']

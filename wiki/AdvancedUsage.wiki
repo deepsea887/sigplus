@@ -223,7 +223,7 @@ Advanced settings:
 
 === Description and live example ===
 
-{sigplus rows=2 cols=3 maxcount=5 alignment=center lightbox=boxplus/lightrounded lightbox_slideshow=7000 rotator_orientation=vertical rotator_step=page caption_visibility=always caption_position=overlay-top preview_margin=4 preview_border_style=outset preview_border_width=2 preview_border_color="#4f2105" preview_padding=3 thumb_width=40 thumb_height=40 thumb_crop=yes}margaretisland{/sigplus}
+{sigplus rows=2 cols=3 maxcount=5 alignment=center lightbox=boxplus/lightrounded lightbox_slideshow=7000 rotator_orientation=vertical rotator_step=page caption_visibility=always caption_position=overlay-top preview_margin=4 preview_border_style=outset preview_border_width=2 preview_border_color="#4f2105" preview_padding=3 thumb_width=40 thumb_height=40 thumb_crop=yes}margaret{/sigplus}
 
 The result is a gallery with two rows and three columns in the middle of the page. Clicking on any of the previews will bring up a pop-up window with a white background and rounded corners. Pressing the control button will start a slideshow that displays the next image automatically after 7 seconds. The rotator advances vertically by a whole page when you use the navigation links _Next_ and _Previous_. Image captions can be seen permanently in the upper part of the previews. 2 px wide brown borders in 3D outset style are shown around the 3 px wide padding. Margin has a width of 4 px. Each thumbnail in the pop-up window has the same width and height, which is 40x40 px.
 
@@ -344,7 +344,7 @@ Advanced settings:
 
 === Description and live example ===
 
-{sigplus rows=1 cols=2 alignment=right-float lightbox_thumbs=none lightbox_slideshow=2000 lightbox_autostart=1 rotator_delay=1000 download="Registered" metadata="Registered" preview_margin=4 preview_border_style=groove preview_border_width=3 preview_border_color="#006400" preview_padding=3 caption_source=filename}margaretisland{/sigplus}
+{sigplus rows=1 cols=2 alignment=right-float lightbox_thumbs=none lightbox_slideshow=2000 lightbox_autostart=1 rotator_delay=1000 download="Registered" metadata="Registered" preview_margin=4 preview_border_style=groove preview_border_width=3 preview_border_color="#006400" preview_padding=3 caption_source=filename}margaret{/sigplus}
 
 The above example shows a gallery with one row and two columns on the right side of the page. The text wraps around the previews. The slideshow in the pop-up window starts automatically and shows the next image in two seconds. Thumbnails are hidden. One second passes between successive automatic slide steps when the mouse moves away from over the rotator. Only registered users can download the images and access image metadata such as the person who took the image, location and camera information. Preview margin is 4 px, padding is 3 px wide. 3 px wide dark green 3D grooved borders display around the previews.
 

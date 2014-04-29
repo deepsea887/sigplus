@@ -8,7 +8,7 @@
 	<copyright>© 2009-2012 Levente Hunyadi. All rights reserved.</copyright>
 	<license>GNU/GPL</license>
 	<authorUrl>http://hunyadi.info.hu/projects/sigplus</authorUrl>
-	<version>1.5.0.205</version>
+	<version>1.5.0.207</version>
 	<downloadUrl>http://joomlacode.org/gf/project/sigplus/frs/</downloadUrl>
 	<files>
 		<file id="sigplus" type="plugin" group="content">plg_content_sigplus.ar.zip</file>
