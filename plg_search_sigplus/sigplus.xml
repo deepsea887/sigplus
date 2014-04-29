@@ -3,7 +3,7 @@
 	<name>plg_search_sigplus</name>
 	<author>Levente Hunyadi</author>
 	<creationDate>$__DATE__$</creationDate>
-	<copyright>© 2009-2011 Levente Hunyadi. All rights reserved.</copyright>
+	<copyright>© 2009-2014 Levente Hunyadi. All rights reserved.</copyright>
 	<license>GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html</license>
 	<authorUrl>http://hunyadi.info.hu/projects/sigplus/</authorUrl>
 	<version>$__VERSION_NUMBER__$</version>

@@ -4,7 +4,7 @@
 * @brief    sigplus Image Gallery Plus library dependencies
 * @author   Levente Hunyadi
 * @version  $__VERSION__$
-* @remarks  Copyright (C) 2009-2011 Levente Hunyadi
+* @remarks  Copyright (C) 2009-2014 Levente Hunyadi
 * @remarks  Licensed under GNU/GPLv3, see http://www.gnu.org/licenses/gpl-3.0.html
 * @see      http://hunyadi.info.hu/projects/sigplus
 */
