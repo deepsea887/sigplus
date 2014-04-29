@@ -71,6 +71,7 @@ display: flex !important;
 box-orient:horizontal !important;
 width:100% !important;
 height:100% !important;
+white-space: normal !important;
 }
 
 .captionplus-horizontal-center {

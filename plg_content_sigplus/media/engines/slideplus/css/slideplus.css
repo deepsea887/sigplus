@@ -92,55 +92,40 @@ position:absolute !important;
 
 /* horizontal and vertical item alignment */
 .slideplus-align {
-display:-moz-box !important;
-display:-webkit-box !important;
-display:box !important;
--moz-box-orient:horizontal !important;
--webkit-box-orient:horizontal !important;
-box-orient:horizontal !important;
+display:-webkit-flex !important;
+display:flex !important;
+-webkit-flex-direction:row !important;
+flex-direction:row !important;
 width:100% !important;
 height:100% !important;
 }
 
 .slideplus-align > * {
 display:block !important;
-margin:auto !important;
 }
 
 .slideplus-horizontal-center {
--moz-box-pack:center !important;
--webkit-box-pack:center !important;
-box-pack:center !important;
+justify-content:center !important;
 }
 
 .slideplus-horizontal-start {
--moz-box-pack:start !important;
--webkit-box-pack:start !important;
-box-pack:start !important;
+justify-content:flex-start !important;
 }
 
 .slideplus-horizontal-end {
--moz-box-pack:end !important;
--webkit-box-pack:end !important;
-box-pack:end !important;
+justify-content:flex-end !important;
 }
 
 .slideplus-vertical-center {
--moz-box-align:center !important;
--webkit-box-align:center !important;
-box-align:center !important;
+align-items:center !important;
 }
 
 .slideplus-vertical-start {
--moz-box-align:start !important;
--webkit-box-align:start !important;
-box-align:start !important;
+align-items:flex-start !important;
 }
 
 .slideplus-vertical-end {
--moz-box-align:end !important;
--webkit-box-align:end !important;
-box-align:end !important;
+align-items:flex-end !important;
 }
 
 /* overlay navigation buttons */
@@ -313,7 +298,7 @@ span.slideplus-navbutton,
 	-khtml-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
-	user-select: none; 
+	user-select: none;
 }
 
 /* hidden */
