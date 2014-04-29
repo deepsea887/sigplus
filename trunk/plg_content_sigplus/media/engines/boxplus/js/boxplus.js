@@ -1,14 +1,14 @@
 /**@license boxplus: a versatile lightweight pop-up window engine for MooTools
  * @author  Levente Hunyadi
  * @version $__VERSION__$
- * @remarks Copyright (C) 2009-2011 Levente Hunyadi
+ * @remarks Copyright (C) 2009-2014 Levente Hunyadi
  * @remarks Licensed under GNU/GPLv3, see http://www.gnu.org/licenses/gpl-3.0.html
  * @see     http://hunyadi.info.hu/projects/boxplus
  **/
 
 /*
 * boxplus: a versatile lightweight pop-up window engine for MooTools
-* Copyright 2009-2011 Levente Hunyadi
+* Copyright 2009-2014 Levente Hunyadi
 *
 * boxplus is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by

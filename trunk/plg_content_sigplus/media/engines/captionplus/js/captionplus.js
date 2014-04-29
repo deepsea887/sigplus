@@ -1,7 +1,7 @@
 /**@license captionplus mouse-over image caption engine
  * @author  Levente Hunyadi
  * @version $__VERSION__$
- * @remarks Copyright (C) 2009-2011 Levente Hunyadi
+ * @remarks Copyright (C) 2009-2014 Levente Hunyadi
  * @see     http://hunyadi.info.hu/projects/
  **/
 

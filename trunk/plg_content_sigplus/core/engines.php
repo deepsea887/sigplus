@@ -4,14 +4,14 @@
 * @brief    sigplus Image Gallery Plus javascript engine service classes
 * @author   Levente Hunyadi
 * @version  $__VERSION__$
-* @remarks  Copyright (C) 2009-2011 Levente Hunyadi
+* @remarks  Copyright (C) 2009-2014 Levente Hunyadi
 * @remarks  Licensed under GNU/GPLv3, see http://www.gnu.org/licenses/gpl-3.0.html
 * @see      http://hunyadi.info.hu/projects/sigplus
 */
 
 /*
 * sigplus Image Gallery Plus plug-in for Joomla
-* Copyright 2009-2011 Levente Hunyadi
+* Copyright 2009-2014 Levente Hunyadi
 *
 * sigplus is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
