@@ -117,7 +117,8 @@ The example shows a gallery with two rows and two columns. Only three images dis
 === Usage in article text ===
 
 <pre>
-{gallery rows=2 cols=2 maxcount=3 alignment=before-float lightbox=boxplus/lightrounded rotator_orientation=vertical rotator_delay=5000}myfolder{/gallery}</pre>
+{gallery rows=2 cols=2 maxcount=3 alignment=before-float lightbox=boxplus/lightrounded
+         rotator_orientation=vertical rotator_delay=5000}myfolder{/gallery}</pre>
 
 
 == How to display each preview with the same width and height and make them move through an automatic animation ==
@@ -144,7 +145,8 @@ This gallery is shown with three rows and one column, located on the right side.
 === Usage in article text ===
 
 <pre>
-{gallery rows=3 cols=1 preview_crop=yes alignment=right preview_width=180 preview_height=180 lightbox=boxplus/darkrounded rotator_delay=3000}myfolder{/gallery}</pre>
+{gallery rows=3 cols=1 preview_crop=yes alignment=right preview_width=180 preview_height=180
+         lightbox=boxplus/darkrounded rotator_delay=3000}myfolder{/gallery}</pre>
 
 
 == Change the rotator orientation from horizontal to vertical and the style of the pop-up window background ==
@@ -196,7 +198,8 @@ This example displays a gallery with two rows and three columns. In the pop-up w
 === Usage in article text ===
 
 <pre>
-{gallery rows=2 cols=3 lightbox_thumbs=outside lightbox_slideshow=4000 rotator_step=page caption_position=above}myfolder{/gallery}</pre>
+{gallery rows=2 cols=3 lightbox_thumbs=outside lightbox_slideshow=4000 rotator_step=page
+         caption_position=above}myfolder{/gallery}</pre>
 
 
 == Create an automatic slideshow in the pop-up window and let the rotator proceed by mouse-over ==
@@ -221,4 +224,5 @@ This example shows up as a gallery with one row and one column, on the right sid
 === Usage in article text ===
 
 <pre>
-{gallery rows=1 cols=1 alignment=right lightbox_slideshow=4000 lightbox_autostart=1 rotator_navigation=top rotator_trigger=mouseover caption_visibility=always}myfolder{/gallery}</pre>
+{gallery rows=1 cols=1 alignment=right lightbox_slideshow=4000 lightbox_autostart=1
+         rotator_navigation=top rotator_trigger=mouseover caption_visibility=always}myfolder{/gallery}</pre>

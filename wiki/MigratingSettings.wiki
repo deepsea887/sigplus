@@ -109,8 +109,8 @@ The following table helps you convert configuration settings from sigplus 1.4.x 
 ||  ||  || _Show_ || `1` ||
 ||  ||  || _Hide_ || `0` ||
 || Image protection || `protection` ||  ||  ||
-|| _yes_ ||  ||  ||  ||
-|| _no_ ||  ||  ||  ||
+|| _yes_ ||  ||  || `lightbox:contextmenu=0` ||
+|| _no_ ||  ||  || `lightbox:contextmenu=1` ||
 || Preview margin || `preview_margin` || Margin || `margin` ||
 || Preview border style || `preview_border_style` || Border style || `borderstyle` ||
 || _default_ || `default` || _default_ || `default` ||

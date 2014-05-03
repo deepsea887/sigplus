@@ -103,7 +103,7 @@ All other settings are unchanged with respect to their defaults.
 
 === Description and live example ===
 
-{sigplus rows=1 cols=4 lightbox_thumbs=outside rotator_delay=2000 preview_margin=4 preview_border_style=double preview_border_width=3 preview_border_color="#216b80" preview_padding=3 sort-criterion=filesize sort-order=asc}budapest{/sigplus}
+{sigplus rows=1 cols=4 lightbox_thumbs=outside rotator_delay=2000 preview_margin=4 preview_border_style=double preview_border_width=3 preview_border_color="#216b80" preview_padding=3 sort_criterion=filesize sort_order=asc}budapest{/sigplus}
 
 The example shows as a gallery with one row and four columns. In the pop-up window the navigation bar lies in the caption area, above the image title. Two seconds pass between successive automatic slide steps when the mouse moves away from over the rotator. The margin has a width of 4 px and a 3 px wide deep sky blue double-line border that surrounds all the previews. Padding is 3 px wide. Images are sorted according to their size and are shown in ascending order (smallest file size first).
 
@@ -112,7 +112,7 @@ The example shows as a gallery with one row and four columns. In the pop-up wind
 <pre>
 {gallery rows=1 cols=4 lightbox_thumbs=outside rotator_delay=2000 preview_margin=4 preview_border_style=double
          preview_border_width=3 preview_border_color="#216b80" preview_padding=3
-         sort-criterion=filesize sort-order=asc}myfolder{/gallery}</pre>
+         sort_criterion=filesize sort_order=asc}myfolder{/gallery}</pre>
 
 
 == Customizing sort options ==
@@ -142,17 +142,17 @@ Advanced settings:
 
 === Description and live example ===
 
-{sigplus rows=3 cols=3 alignment=right lightbox=boxplus/lightrounded lightbox_thumbs=outside lightbox_slideshow=5000 lightbox_autostart=1 rotator_step=page preview_margin=5 preview_border_style=ridge preview_border_width=5 preview_border_color="#daa520" preview_padding=4 sort-criterion=filename sort-order=desc}impressionist{/sigplus}
+{sigplus rows=3 cols=3 alignment=right lightbox=boxplus/lightrounded lightbox_thumbs=outside lightbox_slideshow=5000 lightbox_autostart=1 rotator_step=page preview_margin=5 preview_border_style=ridge preview_border_width=5 preview_border_color="#daa520" preview_padding=4 sort_criterion=filename sort_order=desc}impressionist{/sigplus}
 
 This example shows a gallery with three rows and three columns on the right side of the page. Clicking on any previews will bring up the pop-up window with a white background and rounded corners. The lightbox navigation bar lies in the caption area and without pressing the control button the slideshow will start immediately as soon as the pop-up window appears. The image rotator advances by a whole page when using navigation controls _Previous_ and _Next_. The preview images are surrounded by a 5 px wide margin, a 5 px wide golden ridged 3D border and a 4 px wide padding. Images in the gallery are sorted according to their filenames, following one another in descending order.
 
 === Usage in article text ===
 
 <pre>
-{gallery rows=3 cols=3 alignment=right rotator_step=page
+{gallery rows=3 cols=3 alignment=right rotator_step=page preview_margin=5 preview_padding=4
+         preview_border_style=ridge preview_border_width=5 preview_border_color="#daa520"
          lightbox=boxplus/lightrounded lightbox_thumbs=outside lightbox_slideshow=5000 lightbox_autostart=1
-         preview_margin=5 preview_border_style=ridge preview_border_width=5 preview_border_color="#daa520" preview_padding=4
-         sort-criterion=filename sort-order=desc}myfolder{/gallery}</pre>
+         sort_criterion=filename sort_order=desc}myfolder{/gallery}</pre>
 
 
 == How to change the thumbnail width and height ==
@@ -305,17 +305,17 @@ Advanced settings:
 
 === Description and live example ===
 
-{sigplus rows=3 cols=2 alignment=left-float lightbox=boxplus/lightrounded lightbox_slideshow=3000 lightbox_autostart=1 caption_position=below preview_margin=6 preview_border_style=solid preview_border_width=2 preview_border_color="#541054" preview_padding=3 watermark-position=se watermark-x=12 watermark-y=7 watermark_source=watermark.png lightbox_transition=linear rotator_alignment=w rotator_transition=linear}budapest{/sigplus}
+{sigplus rows=3 cols=2 alignment=left-float lightbox=boxplus/lightrounded lightbox_slideshow=3000 lightbox_autostart=1 caption_position=below preview_margin=6 preview_border_style=solid preview_border_width=2 preview_border_color="#541054" preview_padding=3 watermark_position=se watermark_x=12 watermark_y=7 watermark_source=watermark.png lightbox_transition=linear rotator_alignment=w rotator_transition=linear}budapest{/sigplus}
 
 This example shows a gallery with three rows and two columns on the left-hand side of the page. Text is allowed to wrap around the previews. The pop-up window displays with a white background and rounded corners. The slideshow will start immediately as soon as the pop-up window appears, there is no need to press the control button. During the slideshow three seconds pass between navigating to successive images. Image captions show up below the previews. A 2 px wide dark violet solid border belongs to all the previews. Margin around the borders has a width of 6 px, and a 3 px wide padding surrounds the previews. Each image in the pop-up window is watermarked in the lower right corner. The distance of the watermark from the edge of the image is 12 px horizontally and 7 px vertically.
 
 === Usage in article text ===
 
 <pre>
-{gallery rows=3 cols=2 alignment=left-float lightbox=boxplus/lightrounded lightbox_slideshow=3000 lightbox_autostart=1
-         caption_position=below preview_margin=6 preview_border_style=solid preview_border_width=2 preview_border_color="#541054" preview_padding=3
-         watermark-position=se watermark-x=12 watermark-y=7 watermark_source=watermark.png
-         lightbox_transition=linear rotator_alignment=w rotator_transition=linear}myfolder{/gallery}</pre>
+{gallery rows=3 cols=2 alignment=left-float caption_position=below rotator_alignment=w rotator_transition=linear
+         lightbox=boxplus/lightrounded lightbox_slideshow=3000 lightbox_autostart=1 lightbox_transition=linear
+         preview_margin=6 preview_border_style=solid preview_border_width=2 preview_border_color="#541054" preview_padding=3
+         watermark_position=se watermark_x=12 watermark_y=7 watermark_source=watermark.png}myfolder{/gallery}</pre>
 
 
 == How to make the images downloadable and metadata accessible only for registered viewers ==
@@ -351,6 +351,7 @@ The above example shows a gallery with one row and two columns on the right side
 === Usage in article text ===
 
 <pre>
-{gallery rows=1 cols=2 alignment=right-float lightbox_thumbs=none lightbox_slideshow=2000 lightbox_autostart=1 rotator_delay=1000
-         preview_margin=4 preview_border_style=groove preview_border_width=3 preview_border_color="#006400" preview_padding=3
+{gallery rows=1 cols=2 alignment=right-float rotator_delay=1000 preview_margin=4 preview_padding=3
+         preview_border_style=groove preview_border_width=3 preview_border_color="#006400"
+         lightbox_thumbs=none lightbox_slideshow=2000 lightbox_autostart=1
          download="Registered" metadata="Registered" caption_source=filename}myfolder{/gallery}</pre>
