@@ -34,6 +34,13 @@ if (!defined('SIGPLUS_VERSION_PLUGIN')) {
 	define('SIGPLUS_VERSION_PLUGIN', '$__VERSION__$');
 }
 
+if (!defined('SIGPLUS_PLUGIN_FOLDER')) {
+	define('SIGPLUS_PLUGIN_FOLDER', 'sigplus');
+}
+if (!defined('SIGPLUS_MEDIA_FOLDER')) {
+	define('SIGPLUS_MEDIA_FOLDER', 'sigplus');
+}
+
 if (!defined('SIGPLUS_DEBUG')) {
 	/**
 	* Triggers debug mode.
@@ -57,7 +64,7 @@ require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'c
 /**
 * sigplus Image Gallery Plus plug-in.
 */
-class plgContentSIGPlus extends JPlugin {
+class plgContentSigPlusNovo extends JPlugin {
 	/** Activation tag used to produce galleries with the plug-in. */
 	private $tag_gallery = 'gallery';
 	/** Activation tag used to produce a lightbox-powered link with the plug-in. */
@@ -145,7 +152,7 @@ class plgContentSIGPlus extends JPlugin {
 			return false;  // short-circuit plugin activation, no replacements made
 		}
 
-		if (SIGPlusTimer::shortcircuit()) {
+		if (SigPlusNovoTimer::shortcircuit()) {
 			return false;  // short-circuit plugin activation, allotted execution time expired, error message already printed
 		}
 
@@ -157,19 +164,19 @@ class plgContentSIGPlus extends JPlugin {
 			$this->core = false;
 			try {
 				// create configuration parameter objects
-				$configuration = new SIGPlusConfigurationParameters();
-				$configuration->service = new SIGPlusServiceParameters();
+				$configuration = new SigPlusNovoConfigurationParameters();
+				$configuration->service = new SigPlusNovoServiceParameters();
 				$configuration->service->setParameters($this->params);
-				$configuration->gallery = new SIGPlusGalleryParameters();
+				$configuration->gallery = new SigPlusNovoGalleryParameters();
 				$configuration->gallery->setParameters($this->params);
 
 				if (SIGPLUS_LOGGING || $configuration->service->debug_server == 'verbose') {
-					SIGPlusLogging::setService(new SIGPlusHTMLLogging());
+					SigPlusNovoLogging::setService(new SigPlusNovoHTMLLogging());
 				} else {
-					SIGPlusLogging::setService(new SIGPlusNoLogging());
+					SigPlusNovoLogging::setService(new SigPlusNovoNoLogging());
 				}
 
-				$this->core = new SIGPlusCore($configuration);
+				$this->core = new SigPlusNovoCore($configuration);
 			} catch (Exception $e) {
 				$app = JFactory::getApplication();
 				$app->enqueueMessage($e->getMessage(), 'error');
@@ -178,7 +185,7 @@ class plgContentSIGPlus extends JPlugin {
 
 		if ($this->core !== false) {
 			if (SIGPLUS_LOGGING) {
-				SIGPlusLogging::appendStatus(JText::_('SIGPLUS_STATUS_LOGGING'));
+				SigPlusNovoLogging::appendStatus(JText::_('SIGPLUS_STATUS_LOGGING'));
 			}
 
 			$gallerycount = 0;
@@ -209,10 +216,10 @@ class plgContentSIGPlus extends JPlugin {
 			// employ safety measure for excessively large galleries
 			if (strlen($text) > 80000) {  // there is a risk of exhausting the backtrack limit and producing the "white screen of death"
 				ini_set('pcre.backtrack_limit', 1000000);  // try to raise backtrack limit
-				SIGPlusLogging::appendStatus('Generated HTML code is excessively large, consider splitting galleries. Regular expression matching backtrack limit has been increased.');
+				SigPlusNovoLogging::appendStatus('Generated HTML code is excessively large, consider splitting galleries. Regular expression matching backtrack limit has been increased.');
 			}
 
-			$log = SIGPlusLogging::fetch();
+			$log = SigPlusNovoLogging::fetch();
 			if ($log) {
 				$text = $log.$text;
 			}
@@ -231,7 +238,7 @@ class plgContentSIGPlus extends JPlugin {
 		$count = 0;
 		$offset = 0;
 		while (preg_match($pattern, $text, $match, PREG_OFFSET_CAPTURE, $offset)) {
-			if (SIGPlusTimer::shortcircuit()) {
+			if (SigPlusNovoTimer::shortcircuit()) {
 				return $count;  // short-circuit plugin activation, allotted execution time expired, error message already printed
 			}
 
@@ -254,7 +261,7 @@ class plgContentSIGPlus extends JPlugin {
 						$offset = $start;
 						break;
 					case 'laconic':
-						if ($e instanceof SIGPlusTimeoutException) {  // display a timeout message
+						if ($e instanceof SigPlusNovoTimeoutException) {  // display a timeout message
 							$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE_TIMEOUT');
 						} else {  // display a very general, uninformative message
 							$message = JText::_('SIGPLUS_EXCEPTION_MESSAGE');
@@ -314,7 +321,7 @@ class plgContentSIGPlus extends JPlugin {
 
 		try {
 			if (is_absolute_path($source)) {  // do not permit an absolute path enclosed in activation tags
-				throw new SIGPlusImageSourceException($source);
+				throw new SigPlusNovoImageSourceException($source);
 			}
 
 			// download image
@@ -322,7 +329,7 @@ class plgContentSIGPlus extends JPlugin {
 				if ($this->core->downloadImage($source)) {  // an image has been requested for download
 					jexit();  // do not produce a page
 				}
-			} catch (SIGPlusImageDownloadAccessException $e) {  // signal download errors but do not stop page processing
+			} catch (SigPlusNovoImageDownloadAccessException $e) {  // signal download errors but do not stop page processing
 				$app = JFactory::getApplication();
 				$app->enqueueMessage($e->getMessage(), 'error');
 			}
@@ -370,7 +377,7 @@ class plgContentSIGPlus extends JPlugin {
 	*/
 	private function getLightboxReplacement($match) {
 		// extract parameter string
-		$params = SIGPlusConfigurationBase::string_to_array(self::strip_html($match[1]));
+		$params = SigPlusNovoConfigurationBase::string_to_array(self::strip_html($match[1]));
 
 		// extract or create identifier
 		if (!isset($params['id'])) {
@@ -385,7 +392,10 @@ class plgContentSIGPlus extends JPlugin {
 				$this->core->addLightboxLinkScript($params['id'], $params['link']);
 				unset($params['link']);
 				$params['href'] = 'javascript:void(0);';  // artificial link target
-			} elseif (isset($params['href']) && is_url_http($params['href'])) {  // create link to (external) image
+			} elseif (isset($params['href'])) {  // create link to (external) image
+				if (!is_url_http($params['href'])) {  // make relative URLs absolute
+					$params['href'] = JURI::base(false).$params['href'];
+				}
 				$params['href'] = safeurlencode($params['href']);
 
 				// add lightbox scripts to page header
@@ -413,7 +423,7 @@ class plgContentSIGPlus extends JPlugin {
 		$replacement = $match[0];  // no replacements
 
 		// extract parameter string
-		$params = SIGPlusConfigurationBase::string_to_array(self::strip_html($match[1]));
+		$params = SigPlusNovoConfigurationBase::string_to_array(self::strip_html($match[1]));
 
 		// apply lightbox to all items that satisfy the CSS selector
 		if (isset($params['selector'])) {
@@ -474,5 +484,14 @@ class plgContentSIGPlus extends JPlugin {
 		$text = str_replace("\xc2\xa0", ' ', $text);  // translate non-breaking space to regular space
 		$text = strip_tags($text);  // remove HTML tags
 		return $text;
+	}
+}
+
+if (!file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'js')) {  // available in 1.4.x only
+	/**
+	* Compatibility layer for using sigplus Novo as a next version of sigplus.
+	*/
+	class plgContentSIGPlus extends plgContentSigPlusNovo {
+
 	}
 }

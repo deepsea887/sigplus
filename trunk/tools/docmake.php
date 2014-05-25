@@ -94,7 +94,7 @@ $params = array();
 
 define('_JEXEC', 1);
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'params.php';
-$class = new ReflectionClass('SIGPlusGalleryParameters');
+$class = new ReflectionClass('SigPlusNovoGalleryParameters');
 //$docstring = new DocString($class->getDocComment());
 foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
 	$docstring = new DocString($property->getDocComment());

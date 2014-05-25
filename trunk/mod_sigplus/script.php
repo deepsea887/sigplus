@@ -30,7 +30,14 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-class mod_sigplusInstallerScript {
+if (!defined('SIGPLUS_PLUGIN_FOLDER')) {
+	define('SIGPLUS_PLUGIN_FOLDER', 'sigplus');
+}
+if (!defined('SIGPLUS_MEDIA_FOLDER')) {
+	define('SIGPLUS_MEDIA_FOLDER', 'sigplus');
+}
+
+class mod_SigPlusNovoInstallerScript {
 	function __construct($parent) { }
 
 	function install($parent) { }
@@ -39,22 +46,12 @@ class mod_sigplusInstallerScript {
 
 	function update($parent) { }
 
-	function preflight($type, $parent) {
-		/*
-		if ((include_once JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'version.php') === false || SIGPLUS_VERSION !== '$__VERSION__$') {  // available since 1.5.0
-			$message = 'Installing or upgrading the sigplus module requires a matching version $__VERSION__$ of the sigplus content plug-in to have been installed previously; please install or upgrade the sigplus content plug-in first.';
-			$app = JFactory::getApplication();
-			$app->enqueueMessage($message, 'error');
-
-			return false;
-		}
-		*/
-	}
+	function preflight($type, $parent) { }
 
 	function postflight($type, $parent) {
 		// copy language file
-		$pluginlang = JPATH_ROOT.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR.'en-GB'.DIRECTORY_SEPARATOR.'en-GB.plg_content_sigplus.ini';
-		$modulelang = JPATH_ROOT.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR.'en-GB'.DIRECTORY_SEPARATOR.'en-GB.mod_sigplus.ini';
+		$pluginlang = JPATH_ROOT.DIRECTORY_SEPARATOR.'administrator'.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR.'en-GB'.DIRECTORY_SEPARATOR.'en-GB.plg_content_'.SIGPLUS_PLUGIN_FOLDER.'.ini';
+		$modulelang = JPATH_ROOT.DIRECTORY_SEPARATOR.'language'.DIRECTORY_SEPARATOR.'en-GB'.DIRECTORY_SEPARATOR.'en-GB.mod_'.SIGPLUS_PLUGIN_FOLDER.'.ini';
 		if (($data = file_get_contents($pluginlang)) !== false && ($handle = fopen($modulelang, 'a')) !== false) {
 			fwrite($handle, "\n\n");
 			fwrite($handle, $data);
@@ -62,8 +59,8 @@ class mod_sigplusInstallerScript {
 		}
 
 		// copy back-end controls
-		$sourcepath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'fields';
-		$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.'mod_sigplus'.DIRECTORY_SEPARATOR.'fields';
+		$sourcepath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.'fields';
+		$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.'mod_'.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.'fields';
 		$fieldfiles = scandir($sourcepath);
 		foreach ($fieldfiles as $fieldfile) {
 			if (pathinfo($sourcepath.DIRECTORY_SEPARATOR.$fieldfile, PATHINFO_EXTENSION) == 'php') {
@@ -71,4 +68,8 @@ class mod_sigplusInstallerScript {
 			}
 		}
 	}
+}
+
+class mod_SIGPlusInstallerScript extends mod_SigPlusNovoInstallerScript {
+
 }

@@ -30,6 +30,14 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+if (!defined('SIGPLUS_VERSION_MODULE')) {
+	define('SIGPLUS_VERSION_MODULE', '$__VERSION__$');
+}
+
+if (!defined('SIGPLUS_PLUGIN_FOLDER')) {
+	define('SIGPLUS_PLUGIN_FOLDER', 'sigplus');
+}
+
 if (!defined('SIGPLUS_DEBUG')) {
 	// Triggers debug mode. Debug uses uncompressed version of scripts rather than the bandwidth-saving minified versions.
 	define('SIGPLUS_DEBUG', false);
@@ -46,7 +54,7 @@ $galleryHTML = false;
 
 try {
 	// import dependencies
-	if (($core = SIGPlusModuleHelper::import()) !== false) {
+	if (($core = SigPlusNovoModuleHelper::import()) !== false) {
 		$core->setParameterObject($params);  // get parameters from the module's configuration
 
 		try {
@@ -61,7 +69,7 @@ try {
 				if ($core->downloadImage($imagesource)) {  // an image has been requested for download
 					jexit();  // do not produce a page
 				}
-			} catch (SIGPlusImageDownloadAccessException $e) {  // signal download errors but do not stop page processing
+			} catch (SigPlusNovoImageDownloadAccessException $e) {  // signal download errors but do not stop page processing
 				$app = JFactory::getApplication();
 				$app->enqueueMessage($e->getMessage(), 'error');
 			}

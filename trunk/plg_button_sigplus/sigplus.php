@@ -30,6 +30,13 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+if (!defined('SIGPLUS_PLUGIN_FOLDER')) {
+	define('SIGPLUS_PLUGIN_FOLDER', 'sigplus');
+}
+if (!defined('SIGPLUS_MEDIA_FOLDER')) {
+	define('SIGPLUS_MEDIA_FOLDER', 'sigplus');
+}
+
 jimport('joomla.plugin.plugin');
 jimport('joomla.form.form');
 jimport('joomla.html.parameter');
@@ -37,7 +44,7 @@ jimport('joomla.html.parameter');
 /**
 * Triggered when the sigplus content plug-in is unavailable or there is a version mismatch.
 */
-class SIGPlusEditorDependencyException extends Exception {
+class SigPlusNovoEditorDependencyException extends Exception {
 	/**
 	* Creates a new exception instance.
 	* @param {string} $key Error message language key.
@@ -52,7 +59,7 @@ class SIGPlusEditorDependencyException extends Exception {
 /**
 * Editor button for sigplus.
 */
-class plgButtonSIGPlus extends JPlugin {
+class plgButtonSigPlusNovo extends JPlugin {
 	public function __construct(& $subject, $config) {
 		parent::__construct($subject, $config);
 		$this->loadLanguage();
@@ -64,35 +71,35 @@ class plgButtonSIGPlus extends JPlugin {
 	public function onDisplay($editorname) {
 		try {
 			// load sigplus content plug-in
-			if (!JPluginHelper::importPlugin('content', 'sigplus')) {
-				throw new SIGPlusEditorDependencyException();
+			if (!JPluginHelper::importPlugin('content', SIGPLUS_PLUGIN_FOLDER)) {
+				throw new SigPlusNovoEditorDependencyException();
 			}
 
 			// load sigplus content plug-in parameters
-			$plugin = JPluginHelper::getPlugin('content', 'sigplus');
+			$plugin = JPluginHelper::getPlugin('content', SIGPLUS_PLUGIN_FOLDER);
 
 			// load language file for internationalized labels
 			$lang = JFactory::getLanguage();
-			$lang->load('plg_content_sigplus', JPATH_ADMINISTRATOR);
+			$lang->load('plg_content_'.SIGPLUS_PLUGIN_FOLDER, JPATH_ADMINISTRATOR);
 
-			$xmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'sigplus.xml';
-			$htmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'plg_button_sigplus'.DIRECTORY_SEPARATOR.'button.'.$lang->getTag().'.html';
-			$jsdir = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'plg_button_sigplus'.DIRECTORY_SEPARATOR.'js';
+			$xmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.SIGPLUS_PLUGIN_FOLDER.'.xml';
+			$htmlfile = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'plg_button_'.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.'button.'.$lang->getTag().'.html';
+			$jsdir = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'plg_button_'.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.'js';
 			
 			// check for existence of content plug-in XML configuration file
 			if (!file_exists($xmlfile)) {
-				throw new SIGPlusAccessException($xmlfile);
+				throw new SigPlusNovoAccessException($xmlfile);
 			}
 			
 			// regenerate dialog form if content plug-in has been upgraded
 			if (!file_exists($htmlfile) || !(filemtime($htmlfile) >= filemtime($xmlfile))) {
 				// load configuration XML file
-				$form = new JForm('sigplus');
+				$form = new JForm(SIGPLUS_PLUGIN_FOLDER);
 				$form->loadFile($xmlfile, true, '/extension/config/fields');
 				$fieldSets = $form->getFieldsets('params');
 
 				// get permissible gallery parameters
-				$vars = get_class_vars('SIGPlusGalleryParameters');
+				$vars = get_class_vars('SigPlusNovoGalleryParameters');
 				
 				// get full path to MooTools
 				$mootools = JURI::root(true).'/media/system/js/mootools-core.js';
@@ -162,7 +169,7 @@ class plgButtonSIGPlus extends JPlugin {
 				print '</html>';
 				$html = ob_get_clean();
 				if (file_put_contents($htmlfile, $html) === false) {
-					throw new SIGPlusAccessException($htmlfile);
+					throw new SigPlusNovoAccessException($htmlfile);
 				}
 			}
 
@@ -175,14 +182,15 @@ class plgButtonSIGPlus extends JPlugin {
 			// add modal window
 			JHTML::_('behavior.modal');
 			$button = new JObject;
+			$button->set('class', 'btn');
 			$button->set('modal', true);
 			//$button->set('link', '#sigplus-settings-form');
 			$app = JFactory::getApplication();
 			if ($app->isAdmin()) {
 				// Joomla expects a relative path, leave site folder "administrator"
-				$button->set('link', '../media/plg_button_sigplus/button.'.$lang->getTag().'.html');
+				$button->set('link', '../media/plg_button_'.SIGPLUS_PLUGIN_FOLDER.'/button.'.$lang->getTag().'.html');
 			} else {
-				$button->set('link', 'media/plg_button_sigplus/button.'.$lang->getTag().'.html');
+				$button->set('link', 'media/plg_button_'.SIGPLUS_PLUGIN_FOLDER.'/button.'.$lang->getTag().'.html');
 			}
 			$button->set('text', 'sigplus');
 			if (version_compare(JVERSION, '3.0') >= 0) {
@@ -200,4 +208,8 @@ class plgButtonSIGPlus extends JPlugin {
 
 		return null;
 	}
+}
+
+class plgButtonSIGPlus extends plgButtonSigPlusNovo {
+
 }

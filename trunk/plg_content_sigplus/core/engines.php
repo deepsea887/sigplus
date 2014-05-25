@@ -33,7 +33,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 /**
 * Service class for JavaScript code management.
 */
-class SIGPlusEngineServices {
+class SigPlusNovoEngineServices {
 	/** True if one of the engines uses the MooTools library. */
 	private $mootools = false;
 	/** True if one of the engines uses the jQuery library. */
@@ -54,7 +54,7 @@ class SIGPlusEngineServices {
 
 	public static function initialize() {
 		if (!isset(self::$object)) {
-			self::$object = new SIGPlusEngineServices();
+			self::$object = new SigPlusNovoEngineServices();
 		}
 	}
 
@@ -147,7 +147,7 @@ class SIGPlusEngineServices {
 		if (isset($this->engines[$engine])) {
 			return $this->engines[$engine];
 		} else {
-			return $engines[$engine] = SIGPlusEngine::create($enginetype, $engine);
+			return $engines[$engine] = SigPlusNovoEngine::create($enginetype, $engine);
 		}
 	}
 
@@ -318,7 +318,7 @@ class SIGPlusEngineServices {
 	public function storeLightbox($selector) {
 		$this->addMooTools();
 		$script = 'document.id(document.body).store("'.$selector.'", lightbox);';  // assign to variable and persist in elements storage
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}
 	
@@ -336,30 +336,30 @@ class SIGPlusEngineServices {
 			'		lightbox.show && lightbox.show(document.getElements("'.$selector.'")['.($index - 1).']);'.PHP_EOL.
 			'	}'.PHP_EOL.
 			'});';
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addOnReadyScript($script);
 		return false;
 	}
 }
-SIGPlusEngineServices::initialize();
+SigPlusNovoEngineServices::initialize();
 
 /**
 * Base class for engines based on a javascript framework.
 */
-abstract class SIGPlusEngine {
+abstract class SigPlusNovoEngine {
 	abstract public function getIdentifier();
 	abstract public function getLibrary();
 
 	/**
 	* Adds style sheet references to the HTML @c head element.
 	*/
-	public function addStyles($selector, SIGPlusGalleryParameters $params) {
-		$instance = SIGPlusEngineServices::instance();
+	public function addStyles($selector, SigPlusNovoGalleryParameters $params) {
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addStylesheet('/media/sigplus/engines/'.$this->getIdentifier().'/css/'.$this->getIdentifier().'.css');
 
 		// add right-to-left reading order stylesheet (if available)
 		$language = JFactory::getLanguage();
-		if ($language->isRTL() && file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'engines'.DIRECTORY_SEPARATOR.$this->getIdentifier().DIRECTORY_SEPARATOR.'css'.DIRECTORY_SEPARATOR.$this->getIdentifier().'.rtl.css')) {
+		if ($language->isRTL() && file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.SIGPLUS_MEDIA_FOLDER.DIRECTORY_SEPARATOR.'engines'.DIRECTORY_SEPARATOR.$this->getIdentifier().DIRECTORY_SEPARATOR.'css'.DIRECTORY_SEPARATOR.$this->getIdentifier().'.rtl.css')) {
 			$instance->addStylesheet('/media/sigplus/engines/'.$this->getIdentifier().'/css/'.$this->getIdentifier().'.rtl.css');
 		}
 	}
@@ -369,8 +369,8 @@ abstract class SIGPlusEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
-		$instance = SIGPlusEngineServices::instance();
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
+		$instance = SigPlusNovoEngineServices::instance();
 
 		// add script library dependency
 		switch ($this->getLibrary()) {
@@ -395,10 +395,10 @@ abstract class SIGPlusEngine {
 		}
 
 		if (!ctype_alnum($engine)) {  // simple name required
-			throw new SIGPlusEngineUnavailableException($engine, $enginetype);  // naming failure
+			throw new SigPlusNovoEngineUnavailableException($engine, $enginetype);  // naming failure
 		}
 
-		$engineclass = 'SIGPlus'.$engine.$enginetype.'Engine';
+		$engineclass = 'SigPlusNovo'.$engine.$enginetype.'Engine';
 		$enginedir = dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'engines';
 		if (is_file($enginefile = $enginedir.DIRECTORY_SEPARATOR.$enginetype.DIRECTORY_SEPARATOR.$engine.'.php') || is_file($enginefile = $enginedir.DIRECTORY_SEPARATOR.$enginetype.DIRECTORY_SEPARATOR.$engine.'.php')) {
 			require_once $enginefile;
@@ -406,7 +406,7 @@ abstract class SIGPlusEngine {
 		if (class_exists($engineclass)) {
 			return new $engineclass($params);
 		} else {
-			throw new SIGPlusEngineUnavailableException($engine, $enginetype);  // inclusion failure
+			throw new SigPlusNovoEngineUnavailableException($engine, $enginetype);  // inclusion failure
 		}
 	}
 }
@@ -414,7 +414,7 @@ abstract class SIGPlusEngine {
 /**
 * Base class for pop-up window (lightbox-clone) support.
 */
-abstract class SIGPlusLightboxEngine extends SIGPlusEngine {
+abstract class SigPlusNovoLightboxEngine extends SigPlusNovoEngine {
 	/**
 	* A default constructor that ignores all optional arguments.
 	*/
@@ -444,7 +444,7 @@ abstract class SIGPlusLightboxEngine extends SIGPlusEngine {
 	*/
 	public function addInitializationScripts($selector, $params) {
 		$this->addScripts($selector, $params);
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addScript('/plugins/content/sigplus/engines/'.$this->getIdentifier().'/js/initialization.js');
 	}
 
@@ -455,7 +455,7 @@ abstract class SIGPlusLightboxEngine extends SIGPlusEngine {
 	*/
 	public function addActivationScripts($selector, $params) {
 		$this->addScripts($selector, $params);
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addScript('/plugins/content/sigplus/engines/'.$this->getIdentifier().'/js/activation.js');
 	}
 
@@ -477,13 +477,13 @@ abstract class SIGPlusLightboxEngine extends SIGPlusEngine {
 /**
 * Base class for image rotator support.
 */
-abstract class SIGPlusRotatorEngine extends SIGPlusEngine {
+abstract class SigPlusNovoRotatorEngine extends SigPlusNovoEngine {
 
 }
 
 /**
 * Base class for image caption support.
 */
-abstract class SIGPlusCaptionEngine extends SIGPlusEngine {
+abstract class SigPlusNovoCaptionEngine extends SigPlusNovoEngine {
 
 }

@@ -32,7 +32,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'filesystem.php';
 
-class SIGPlusMetadataServices {
+class SigPlusNovoMetadataServices {
 	private static $enveloperecord = array(
 		0=>'Envelope Record Version',
 		5=>'Destination',

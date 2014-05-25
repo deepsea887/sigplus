@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for MooTools-based slideplus rotator engine.
 * @see http://hunyadi.info.hu/projects/slideplus/
 */
-class SIGPlusSlidePlusRotatorEngine extends SIGPlusRotatorEngine {
+class SigPlusNovoSlidePlusRotatorEngine extends SigPlusNovoRotatorEngine {
 	public function getIdentifier() {
 		return 'slideplus';
 	}
@@ -30,12 +30,12 @@ class SIGPlusSlidePlusRotatorEngine extends SIGPlusRotatorEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		// add main script
 		parent::addScripts($selector, $params);
 
 		// get engine helper
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		
 		// add dependent MooTools framework script
 		$instance->addScript('/media/sigplus/engines/'.$this->getIdentifier().'/js/mootools-more-1.4.0.1.js');

@@ -30,7 +30,14 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-class plgContentSIGPlusInstallerScript {
+if (!defined('SIGPLUS_PLUGIN_FOLDER')) {
+	define('SIGPLUS_PLUGIN_FOLDER', 'sigplus');
+}
+if (!defined('SIGPLUS_MEDIA_FOLDER')) {
+	define('SIGPLUS_MEDIA_FOLDER', 'sigplus');
+}
+
+class plgContentSigPlusNovoInstallerScript {
 	function __construct($parent) { }
 
 	function install($parent) { }
@@ -51,7 +58,10 @@ class plgContentSIGPlusInstallerScript {
 				$app->enqueueMessage($message, 'warning');
 
 				$required = '1.5';  // minimum version required for upgrade installation to succeed
-				if ((include_once JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'version.php') !== false) {  // available since 1.5.0
+				if (get_class($this) == 'plgContentSigPlusNovoInstallerScript') {  // allow upgrading one Novo version to another Novo version
+					$current = SIGPLUS_VERSION;
+					$supported = true;
+				} elseif ((include_once JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'version.php') !== false) {  // available since 1.5.0
 					$current = SIGPLUS_VERSION;  // version number of installed plug-in
 					$supported = $current === '$__'.'VERSION'.'__$' || version_compare($current, $required) >= 0;  // allow upgrading experimental versions
 				} elseif (file_exists(JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'core.php')) {  // available since 1.4.x
@@ -116,7 +126,7 @@ class plgContentSIGPlusInstallerScript {
 		if (version_compare(JVERSION, '3.0') >= 0) {
 			return true;  // jQuery is native to Joomla 3.0 and later
 		} else {
-			$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'jquery.js';
+			$targetpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.SIGPLUS_MEDIA_FOLDER.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'jquery.js';
 			$sourcepaths = array(
 				'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js',
 				'http://ajax.microsoft.com/ajax/jquery/jquery-1.4.4.min.js',
@@ -146,7 +156,7 @@ class plgContentSIGPlusInstallerScript {
 				$stylesheet = Minify_CSS_Compressor::process(file_get_contents($path.DIRECTORY_SEPARATOR.$file));
 
 				// substitute image URLs with data URIs
-				$stylesheet = SIGPlusUriSubstitution::replace($stylesheet, $path.DIRECTORY_SEPARATOR.dirname($file), $count);
+				$stylesheet = SigPlusNovoUriSubstitution::replace($stylesheet, $path.DIRECTORY_SEPARATOR.dirname($file), $count);
 
 				// write file
 				file_put_contents($path.DIRECTORY_SEPARATOR.basename($file,'.css').'.min.css', $stylesheet);
@@ -160,7 +170,7 @@ class plgContentSIGPlusInstallerScript {
 	private static function minifyAllStylesheets() {
 		require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'filesystem.php';
 
-		walkdir(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus', array(), -1, array(__CLASS__, 'minifyStylesheets'));
+		walkdir(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.SIGPLUS_MEDIA_FOLDER, array(), -1, array(__CLASS__, 'minifyStylesheets'));
 	}
 
 	/**
@@ -278,12 +288,20 @@ class plgContentSIGPlusInstallerScript {
 
 		// populate metadata store with properties
 		require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'metadata.php';
-		$properties = SIGPlusMetadataServices::getProperties();
+		$properties = SigPlusNovoMetadataServices::getProperties();
 		self::populateTable($properties, '#__sigplus_property', 'propertyname');
 	}
 }
 
-class SIGPlusUriSubstitution {
+
+/**
+* Compatibility layer for installing sigplus Novo as a next version of sigplus.
+*/
+class plgContentSIGPlusInstallerScript extends plgContentSigPlusNovoInstallerScript {
+
+}
+
+class SigPlusNovoUriSubstitution {
 	/**
 	* The root path w.r.t. relative URLs are to be interpreted.
 	*/

@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for MooTools-based captionplus engine.
 * @see http://hunyadi.info.hu/projects/
 */
-class SIGPlusCaptionPlusCaptionEngine extends SIGPlusCaptionEngine {
+class SigPlusNovoCaptionPlusCaptionEngine extends SigPlusNovoCaptionEngine {
 	public function getIdentifier() {
 		return 'captionplus';
 	}
@@ -30,7 +30,7 @@ class SIGPlusCaptionPlusCaptionEngine extends SIGPlusCaptionEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		// add main script
 		parent::addScripts($selector, $params);
 
@@ -48,7 +48,7 @@ class SIGPlusCaptionPlusCaptionEngine extends SIGPlusCaptionEngine {
 
 		// add document loaded event script with parameters
 		$script = 'captionplus.bind(document.getElement("'.$selector.'"), '.json_encode($jsparams).');';
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}
 }

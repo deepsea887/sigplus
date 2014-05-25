@@ -33,14 +33,10 @@ defined('_JEXEC') or die('Restricted access');
 jimport('joomla.plugin.plugin');
 jimport('joomla.html.parameter');
 
-if (!defined('SIGPLUS_VERSION_MODULE')) {
-	define('SIGPLUS_VERSION_MODULE', '$__VERSION__$');
-}
-
 /**
 * Triggered when a mandatory dependency is missing or there is a version mismatch.
 */
-class SIGPlusModuleDependencyException extends Exception {
+class SigPlusNovoModuleDependencyException extends Exception {
 	protected $version_module;
 	protected $version_plugin;
 
@@ -68,7 +64,7 @@ class SIGPlusModuleDependencyException extends Exception {
     }
 }
 
-class SIGPlusModuleHelper {
+class SigPlusNovoModuleHelper {
 	private static $core;
 
 	/**
@@ -82,36 +78,36 @@ class SIGPlusModuleHelper {
 		self::$core = false;
 
 		// load sigplus content plug-in
-		if (!JPluginHelper::importPlugin('content', 'sigplus')) {
-			throw new SIGPlusModuleDependencyException('SIGPLUS_EXCEPTION_DEPENDENCY_MISSING');
+		if (!JPluginHelper::importPlugin('content', SIGPLUS_PLUGIN_FOLDER)) {
+			throw new SigPlusNovoModuleDependencyException('SIGPLUS_EXCEPTION_DEPENDENCY_MISSING');
 		}
 
 		if (!defined('SIGPLUS_VERSION')) {
-			throw new SIGPlusModuleDependencyException('SIGPLUS_EXCEPTION_DEPENDENCY_MISMATCH');
+			throw new SigPlusNovoModuleDependencyException('SIGPLUS_EXCEPTION_DEPENDENCY_MISMATCH');
 		}
 
 		if (SIGPLUS_VERSION_MODULE !== '$__'.'VERSION'.'__$' && SIGPLUS_VERSION_MODULE !== SIGPLUS_VERSION) {
-			throw new SIGPlusModuleDependencyException('SIGPLUS_EXCEPTION_DEPENDENCY_MISMATCH', SIGPLUS_VERSION);
+			throw new SigPlusNovoModuleDependencyException('SIGPLUS_EXCEPTION_DEPENDENCY_MISMATCH', SIGPLUS_VERSION);
 		}
 
 		// load sigplus content plug-in parameters
-		$plugin = JPluginHelper::getPlugin('content', 'sigplus');
+		$plugin = JPluginHelper::getPlugin('content', SIGPLUS_PLUGIN_FOLDER);
 		$params = json_decode($plugin->params);
 
 		// create configuration parameter objects
-		$configuration = new SIGPlusConfigurationParameters();
-		$configuration->service = new SIGPlusServiceParameters();
+		$configuration = new SigPlusNovoConfigurationParameters();
+		$configuration->service = new SigPlusNovoServiceParameters();
 		$configuration->service->setParameters($params);
-		$configuration->gallery = new SIGPlusGalleryParameters();
+		$configuration->gallery = new SigPlusNovoGalleryParameters();
 		$configuration->gallery->setParameters($params);
 
 		if (SIGPLUS_LOGGING || $configuration->service->debug_server) {
-			SIGPlusLogging::setService(new SIGPlusHTMLLogging());
+			SigPlusNovoLogging::setService(new SigPlusNovoHTMLLogging());
 		} else {
-			SIGPlusLogging::setService(new SIGPlusNoLogging());
+			SigPlusNovoLogging::setService(new SigPlusNovoNoLogging());
 		}
 
-		self::$core = new SIGPlusCore($configuration);
+		self::$core = new SigPlusNovoCore($configuration);
 
 		return self::$core;
 	}

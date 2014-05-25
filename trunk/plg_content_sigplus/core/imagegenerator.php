@@ -33,7 +33,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'filesystem.php';
 require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'librarian.php';
 
-class SIGPlusImageLibrary {
+class SigPlusNovoImageLibrary {
 	/**
 	* Available memory computed from total memory and memory usage.
 	*/
@@ -73,7 +73,7 @@ class SIGPlusImageLibrary {
 	* Generates a thumbnail image for an original image.
 	*/
 	public function createThumbnail($imagepath, $thumbpath, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
-		throw new SIGPlusLibraryUnavailableException();
+		throw new SigPlusNovoLibraryUnavailableException();
 	}
 
 	/**
@@ -83,7 +83,7 @@ class SIGPlusImageLibrary {
 	* @param string $watermarkedimagepath The full path where the watermarked image should be written.
 	*/
 	public function createWatermarked($imagepath, $watermarkpath, $watermarkedimagepath, $params) {
-		throw new SIGPlusLibraryUnavailableException();
+		throw new SigPlusNovoLibraryUnavailableException();
 	}
 
 	public static function instantiate($library) {
@@ -101,21 +101,21 @@ class SIGPlusImageLibrary {
 		switch ($library) {
 			case 'gmagick':
 				if (is_gmagick_supported()) {
-					return new SIGPlusImageLibraryGmagick();
+					return new SigPlusNovoImageLibraryGmagick();
 				}
 				break;
 			case 'imagick':
 				if (is_imagick_supported()) {
-					return new SIGPlusImageLibraryImagick();
+					return new SigPlusNovoImageLibraryImagick();
 				}
 				break;
 			case 'gd':
 				if (is_gd_supported()) {
-					return new SIGPlusImageLibraryGD();
+					return new SigPlusNovoImageLibraryGD();
 				}
 				break;
 		}
-		return new SIGPlusImageLibrary();  // all operations will throw an image library unavailable exception
+		return new SigPlusNovoImageLibrary();  // all operations will throw an image library unavailable exception
 	}
 
 	/**
@@ -139,7 +139,7 @@ class SIGPlusImageLibrary {
 
 			$safety_factor = 1.8;  // not all available memory can be consumed in order to ensure safe operations, safety factor is an empirical value
 			if ($safety_factor * $memory_required >= $memory_available) {
-				throw new SIGPlusOutOfMemoryException($memory_required, $memory_available, $imagepath);
+				throw new SigPlusNovoOutOfMemoryException($memory_required, $memory_available, $imagepath);
 			}
 		}
 	}
@@ -166,7 +166,7 @@ class SIGPlusImageLibrary {
 	}
 }
 
-class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
+class SigPlusNovoImageLibraryGD extends SigPlusNovoImageLibrary {
 	/**
 	* Creates an in-memory image from a local or remote image.
 	* @param string $imagepath The absolute path to a local image or the URL to a remote image.
@@ -222,7 +222,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 
 		if (self::isAnimated($imagepath)) {
 			// get GIF animation sequence
-			$gifDecoder = new SIGPlusGifDecoder(fsx::file_get_contents($imagepath));
+			$gifDecoder = new SigPlusNovoGifDecoder(fsx::file_get_contents($imagepath));
 			$delays_between_frames = $gifDecoder->GIFGetDelays();
 			$loop_count = $gifDecoder->GIFGetLoop();
 			$disposal = 0;  // $gifDecoder->GIFGetDisposal()[0]
@@ -255,7 +255,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 			unset($gifDecoder);
 
 			// build an animated frames array from separate frames
-			$gifEncoder = new SIGPlusGifEncoder(
+			$gifEncoder = new SigPlusNovoGifEncoder(
 				$target_frames,
 				$delays_between_frames, $loop_count, $disposal,
 				$transparent_red, $transparent_green, $transparent_blue
@@ -430,7 +430,7 @@ class SIGPlusImageLibraryGD extends SIGPlusImageLibrary {
 	}
 }
 
-class SIGPlusImageLibraryImagick extends SIGPlusImageLibrary {
+class SigPlusNovoImageLibraryImagick extends SigPlusNovoImageLibrary {
 	private static function isAnimated($image) {
 		$frames = 0;
 		foreach ($image as $i) {
@@ -499,7 +499,7 @@ class SIGPlusImageLibraryImagick extends SIGPlusImageLibrary {
 	}
 }
 
-class SIGPlusImageLibraryGmagick extends SIGPlusImageLibrary {
+class SigPlusNovoImageLibraryGmagick extends SigPlusNovoImageLibrary {
 	public function createThumbnail($imagepath, $thumbpath, $thumb_w, $thumb_h, $crop = true, $quality = 85) {
 		$image = new Gmagick($imagepath);
 		if ($crop) {  // resize with automatic centering, crop image if necessary
@@ -536,7 +536,7 @@ class SIGPlusImageLibraryGmagick extends SIGPlusImageLibrary {
 	}
 }
 
-class SIGPlusGifDecoder {
+class SigPlusNovoGifDecoder {
 	private $GIF_TransparentR = -1;
 	private $GIF_TransparentG = -1;
 	private $GIF_TransparentB = -1;
@@ -561,7 +561,7 @@ class SIGPlusGifDecoder {
 	*
 	* @param $GIF_pointer Binary data of an animated GIF image.
 	*/
-	public function SIGPlusGifDecoder($GIF_pointer) {
+	public function SigPlusNovoGifDecoder($GIF_pointer) {
 		$this->GIF_stream = $GIF_pointer;
 		self::GIFGetByte(6);
 		self::GIFGetByte(7);
@@ -748,7 +748,7 @@ class SIGPlusGifDecoder {
 	}
 }
 
-class SIGPlusGifEncoder {
+class SigPlusNovoGifEncoder {
 	private $GIF = 'GIF89a';
 	private $BUF = array();
 	/** The number of times the animation is to be repeated, or 0 to repeat indefinitely. */
@@ -770,7 +770,7 @@ class SIGPlusGifEncoder {
 	* @param $GIF_grn Green component of transparent color, or -1 for no transparent color.
 	* @param $GIF_blu Blue component of transparent color, or -1 for no transparent color.
 	*/
-	public function SIGPlusGifEncoder(array $GIF_src, array $GIF_dly, $GIF_lop, $GIF_dis, $GIF_red, $GIF_grn, $GIF_blu) {
+	public function SigPlusNovoGifEncoder(array $GIF_src, array $GIF_dly, $GIF_lop, $GIF_dis, $GIF_red, $GIF_grn, $GIF_blu) {
 			$this->LOP = ($GIF_lop > -1) ? $GIF_lop : 0;
 			$this->DIS = ($GIF_dis > -1) ? ($GIF_dis < 3 ? $GIF_dis : 3) : 2;
 			$this->COL = ($GIF_red > -1 && $GIF_grn > -1 && $GIF_blu > -1) ? ($GIF_red | ($GIF_grn << 8) | ($GIF_blu << 16)) : -1;
@@ -778,14 +778,14 @@ class SIGPlusGifEncoder {
 				$this->BUF[] = $GIF_src[$i];
 				if (substr($this->BUF[$i], 0, 6) != 'GIF87a' && substr($this->BUF[$i], 0, 6) != 'GIF89a') {
 					// invalid image format (not a GIF image)
-					throw new SIGPlusImageFormatException();
+					throw new SigPlusNovoImageFormatException();
 				}
 				for ($j = (13 + 3 * (2 << (ord($this->BUF[$i]{10}) & 0x07))), $k = true; $k; $j++) {
 					switch ($this->BUF[$i]{$j}) {  // { and } stand for string indexing
 					case '!':
 						if ((substr($this->BUF[$i], ($j + 3), 8)) == 'NETSCAPE') {
 							// already an animated image
-							throw new SIGPlusImageFormatException();
+							throw new SigPlusNovoImageFormatException();
 						}
 						break;
 					case ';':
@@ -889,19 +889,19 @@ class SIGPlusGifEncoder {
 /**
 * Extracts a frame from an MPEG movie into an image file.
 */
-class SIGPlusMPEGPosterExtractor {
+class SigPlusNovoMPEGPosterExtractor {
 	/** The GD image processing library wrapper. */
 	private $imagelibrary;
 
 	public static function instantiate() {
 		if (is_gd_supported() && extension_loaded('ffmpeg')) {
-			return new SIGPlusMPEGPosterExtractor(new SIGPlusImageLibraryGD());
+			return new SigPlusNovoMPEGPosterExtractor(new SigPlusNovoImageLibraryGD());
 		} else {
 			return false;
 		}
 	}
 
-	private function SIGPlusMPEGPosterExtractor(SIGPlusImageLibraryGD $imagelibrary) {
+	private function SigPlusNovoMPEGPosterExtractor(SigPlusNovoImageLibraryGD $imagelibrary) {
 		$this->imagelibrary = $imagelibrary;
 	}
 

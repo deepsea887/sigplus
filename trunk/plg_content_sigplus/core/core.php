@@ -44,7 +44,7 @@ define('SIGPLUS_CAPTION_CLIENT', true);  // apply template to caption text on cl
 /**
 * Interface for logging services.
 */
-interface SIGPlusLoggingService {
+interface SigPlusNovoLoggingService {
 	public function appendStatus($message);
 	public function appendError($message);
 	public function appendCodeBlock($message, $block);
@@ -54,7 +54,7 @@ interface SIGPlusLoggingService {
 /**
 * A service that compiles a dynamic HTML-based log.
 */
-class SIGPlusHTMLLogging implements SIGPlusLoggingService {
+class SigPlusNovoHTMLLogging implements SigPlusNovoLoggingService {
 	/** Error log. */
 	private $log = array();
 
@@ -83,7 +83,7 @@ class SIGPlusHTMLLogging implements SIGPlusLoggingService {
 		$document = JFactory::getDocument();
 
 		//$document->addScript(JURI::base(true).'/media/sigplus/js/log.js');  // language-neutral
-		$script = file_get_contents(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'log.js');
+		$script = file_get_contents(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.SIGPLUS_MEDIA_FOLDER.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'log.js');
 		if ($script !== false) {
 			$script = str_replace(array("'Show'","'Hide'"), array("'".JText::_('JSHOW')."'","'".JText::_('JHIDE')."'"), $script);
 			$document->addScriptDeclaration($script);
@@ -103,7 +103,7 @@ class SIGPlusHTMLLogging implements SIGPlusLoggingService {
 /**
 * A service that does not perform any actual logging.
 */
-class SIGPlusNoLogging implements SIGPlusLoggingService {
+class SigPlusNovoNoLogging implements SigPlusNovoLoggingService {
 	public function appendStatus($message) {
 	}
 
@@ -121,11 +121,11 @@ class SIGPlusNoLogging implements SIGPlusLoggingService {
 /**
 * Logging services.
 */
-class SIGPlusLogging {
+class SigPlusNovoLogging {
 	/** Singleton instance. */
 	private static $instance;
 
-	public static function setService(SIGPlusLoggingService $service) {
+	public static function setService(SigPlusNovoLoggingService $service) {
 		self::$instance = $service;
 	}
 
@@ -145,9 +145,9 @@ class SIGPlusLogging {
 		return self::$instance->fetch();
 	}
 }
-SIGPlusLogging::setService(new SIGPlusNoLogging());  // disable logging
+SigPlusNovoLogging::setService(new SigPlusNovoNoLogging());  // disable logging
 
-class SIGPlusUser {
+class SigPlusNovoUser {
 	/**
 	* The normalized user group title for the currently logged-in user.
 	*/
@@ -188,7 +188,7 @@ class SIGPlusUser {
 /**
 * Database layer.
 */
-class SIGPlusDatabase {
+class SigPlusNovoDatabase {
 	/**
 	* Convert a wildcard pattern to an SQL LIKE pattern.
 	*/
@@ -437,7 +437,7 @@ class SIGPlusDatabase {
 /**
 * Measures execution time and prevents time-outs.
 */
-class SIGPlusTimer {
+class SigPlusNovoTimer {
 	private static $timeout_count = 0;
 
 	private static function getStartedTime() {
@@ -463,7 +463,7 @@ class SIGPlusTimer {
 	* Short-circuit plug-in activation if allotted execution time has already been used up.
 	*/
 	public static function shortcircuit() {
-		return SIGPlusTimer::$timeout_count > 0;
+		return SigPlusNovoTimer::$timeout_count > 0;
 	}
 
 	/**
@@ -474,21 +474,21 @@ class SIGPlusTimer {
 		static $maximum_duration;
 
 		// initialize static variables
-		isset($started_time) || $started_time = SIGPlusTimer::getStartedTime();
-		isset($maximum_duration) || $maximum_duration = SIGPlusTimer::getMaximumDuration();
+		isset($started_time) || $started_time = SigPlusNovoTimer::getStartedTime();
+		isset($maximum_duration) || $maximum_duration = SigPlusNovoTimer::getMaximumDuration();
 
 		if (time() >= $started_time + $maximum_duration) {
-			SIGPlusTimer::$timeout_count++;
-			throw new SIGPlusTimeoutException();
+			SigPlusNovoTimer::$timeout_count++;
+			throw new SigPlusNovoTimeoutException();
 		}
 	}
 }
 
-class SIGPlusLabels {
+class SigPlusNovoLabels {
 	private $multilingual = false;
 	private $caption_source = 'labels.txt';
 
-	public function __construct(SIGPlusConfigurationParameters $config) {
+	public function __construct(SigPlusNovoConfigurationParameters $config) {
 		$this->multilingual = $config->service->multilingual;
 		$this->caption_source = $config->gallery->caption_source;
 	}
@@ -548,7 +548,7 @@ class SIGPlusLabels {
 
 		// verify file type
 		if (!strcmp('{\rtf', substr($contents,0,5))) {  // file has type "rich text format" (RTF)
-			throw new SIGPlusTextFormatException($labelspath);
+			throw new SigPlusNovoTextFormatException($labelspath);
 		}
 
 		// remove UTF-8 BOM and normalize line endings
@@ -562,7 +562,7 @@ class SIGPlusLabels {
 		preg_match_all('/^([^|\n]+)(?:[|]([^|\n]*)(?:[|]([^\n]*))?)?$/mu', $contents, $matches, PREG_SET_ORDER);
 		switch (preg_last_error()) {
 			case PREG_BAD_UTF8_ERROR:
-				throw new SIGPlusTextFormatException($labelspath);
+				throw new SigPlusNovoTextFormatException($labelspath);
 		}
 
 		// parse individual entries
@@ -575,7 +575,7 @@ class SIGPlusLabels {
 
 			if (strpos($imagefile, '*') !== false || strpos($imagefile, '?') !== false) {  // contains wildcard character
 				$pattern = new stdClass;
-				$pattern->match = SIGPlusDatabase::sqlpattern($imagefile);  // replace "*" and "?" with LIKE expression equivalents "%" and "_"
+				$pattern->match = SigPlusNovoDatabase::sqlpattern($imagefile);  // replace "*" and "?" with LIKE expression equivalents "%" and "_"
 				$pattern->priority = ++$priority;
 				$pattern->title = $title;
 				$pattern->summary = $summary;
@@ -632,15 +632,15 @@ class SIGPlusLabels {
 		foreach ($sources as $languagetag => $source) {
 			// fetch language and country database identifier
 			list($language, $country) = explode('-', $languagetag);
-			$langid = (int)SIGPlusDatabase::getLanguageId($language);
-			$countryid = (int)SIGPlusDatabase::getCountryId($country);
+			$langid = (int)SigPlusNovoDatabase::getLanguageId($language);
+			$countryid = (int)SigPlusNovoDatabase::getCountryId($country);
 			if (!$langid || !$countryid) {  // language does not exist
 				continue;
 			}
 
 			// extract captions and patterns from labels source
 			$this->parseLabels($source, $entries, $patterns);
-			SIGPlusLogging::appendStatus(count($entries).' caption(s) and '.count($patterns).' pattern(s) extracted from <code>'.$source.'</code>.');
+			SigPlusNovoLogging::appendStatus(count($entries).' caption(s) and '.count($patterns).' pattern(s) extracted from <code>'.$source.'</code>.');
 
 			// update title and description patterns
 			if (!empty($patterns)) {
@@ -703,11 +703,11 @@ class SIGPlusLabels {
 			}
 		}
 
-		SIGPlusDatabase::executeAll($queries);
+		SigPlusNovoDatabase::executeAll($queries);
 	}
 }
 
-class SIGPlusImageMetadata {
+class SigPlusNovoImageMetadata {
 	private $imagepath;
 	private $metadata;
 
@@ -718,7 +718,7 @@ class SIGPlusImageMetadata {
 		$this->imagepath = $imagepath;
 
 		require_once dirname(__FILE__).DIRECTORY_SEPARATOR.'metadata.php';
-		$this->metadata = SIGPlusMetadataServices::getImageMetadata($imagepath);
+		$this->metadata = SigPlusNovoMetadataServices::getImageMetadata($imagepath);
 	}
 
 	/**
@@ -727,11 +727,11 @@ class SIGPlusImageMetadata {
 	public function inject($imageid) {
 		// insert image metadata
 		if ($this->metadata !== false) {
-			SIGPlusLogging::appendStatus('Metadata available in image <code>'.$this->imagepath.'</code> [id='.$imageid.'].');
+			SigPlusNovoLogging::appendStatus('Metadata available in image <code>'.$this->imagepath.'</code> [id='.$imageid.'].');
 			$entries = array();
 
 			foreach ($this->metadata as $key => $metavalue) {
-				$keyid = SIGPlusMetadataServices::getPropertyNumericKey($key);
+				$keyid = SigPlusNovoMetadataServices::getPropertyNumericKey($key);
 				if ($keyid) {  // key maps to a numeric identifier
 					if (is_array($metavalue)) {
 						$value = implode(';', $metavalue);
@@ -742,7 +742,7 @@ class SIGPlusImageMetadata {
 				}
 			}
 
-			SIGPlusDatabase::insertBatch(
+			SigPlusNovoDatabase::insertBatch(
 				'#__sigplus_data',
 				array('propertyid','textvalue'),
 				$entries,
@@ -756,10 +756,10 @@ class SIGPlusImageMetadata {
 /**
 * Base class for gallery generators.
 */
-abstract class SIGPlusGalleryBase {
+abstract class SigPlusNovoGalleryBase {
 	protected $config;
 
-	public function __construct(SIGPlusConfigurationParameters $config) {
+	public function __construct(SigPlusNovoConfigurationParameters $config) {
 		$this->config = $config;
 	}
 
@@ -769,7 +769,7 @@ abstract class SIGPlusGalleryBase {
 	* Query a folder identifier for a folder with matching parameters.
 	*/
 	private function getFolder($url, $folderparams) {
-		$datetime = SIGPlusDatabase::sqldate($folderparams->time);
+		$datetime = SigPlusNovoDatabase::sqldate($folderparams->time);
 
 		$db = JFactory::getDbo();
 		$query = $db->getQuery(true);
@@ -793,12 +793,12 @@ abstract class SIGPlusGalleryBase {
 	* Insert or update data associated with a folder URL.
 	*/
 	private function updateFolder($url, $folderparams, $replace = false, array $ancestors = array()) {
-		$datetime = SIGPlusDatabase::sqldate($folderparams->time);
+		$datetime = SigPlusNovoDatabase::sqldate($folderparams->time);
 
 		// insert folder data
 		if ($replace) {
 			// delete and insert data
-			$folderid = SIGPlusDatabase::replaceSingle(
+			$folderid = SigPlusNovoDatabase::replaceSingle(
 				'#__sigplus_folder',
 				array('folderurl', 'foldertime', 'entitytag'),
 				array($url, $datetime, $folderparams->entitytag)
@@ -806,7 +806,7 @@ abstract class SIGPlusGalleryBase {
 		} else {
 			if (!($folderid = $this->getFolder($url, $folderparams))) {
 				// insert folder data with replacement on duplicate key
-				$folderid = SIGPlusDatabase::insertSingleUnique(
+				$folderid = SigPlusNovoDatabase::insertSingleUnique(
 					'#__sigplus_folder',
 					array('folderurl', 'foldertime', 'entitytag'),
 					array($url, $datetime, $folderparams->entitytag),
@@ -823,7 +823,7 @@ abstract class SIGPlusGalleryBase {
 		foreach ($ancestors as $depth => $ancestor) {
 			$entries[] = array($ancestor, $depth + 1);
 		}
-		SIGPlusDatabase::insertBatch(
+		SigPlusNovoDatabase::insertBatch(
 			'#__sigplus_hierarchy',
 			array(
 				'ancestorid',
@@ -883,7 +883,7 @@ abstract class SIGPlusGalleryBase {
 		if ($viewid = $this->getView($folderid)) {
 			return $viewid;
 		} else {
-			return SIGPlusDatabase::insertSingleUnique(
+			return SigPlusNovoDatabase::insertSingleUnique(
 				'#__sigplus_view',
 				array('folderid', 'hash', 'preview_width', 'preview_height', 'preview_crop'),
 				array($folderid, $this->getViewHash($folderid), $this->config->gallery->preview_width, $this->config->gallery->preview_height, $this->config->gallery->preview_crop),
@@ -893,7 +893,7 @@ abstract class SIGPlusGalleryBase {
 	}
 
 	protected function replaceView($folderid) {
-		return SIGPlusDatabase::replaceSingle(
+		return SigPlusNovoDatabase::replaceSingle(
 			'#__sigplus_view',
 			array('folderid', 'hash', 'preview_width', 'preview_height', 'preview_crop'),
 			array($folderid, $this->getViewHash($folderid), $this->config->gallery->preview_width, $this->config->gallery->preview_height, $this->config->gallery->preview_crop)
@@ -984,7 +984,7 @@ abstract class SIGPlusGalleryBase {
 
 				if (is_absolute_path($url) && !file_exists($url)) {
 					$this->cleanGeneratedImages($id);
-					SIGPlusLogging::appendStatus('Image <code>'.$url.'</code> is about to be removed from the database.');
+					SigPlusNovoLogging::appendStatus('Image <code>'.$url.'</code> is about to be removed from the database.');
 					$missing[] = $id;
 				}
 			}
@@ -1020,7 +1020,7 @@ abstract class SIGPlusGalleryBase {
 		$rows = $db->loadRowList();
 
 		if (!empty($rows)) {
-			SIGPlusLogging::appendStatus('Cleaning deleted preview and thumbnail images from database.');
+			SigPlusNovoLogging::appendStatus('Cleaning deleted preview and thumbnail images from database.');
 
 			// find image entries that point to files that have been removed from the file system
 			foreach ($rows as $row) {
@@ -1047,7 +1047,7 @@ abstract class SIGPlusGalleryBase {
 			return;  // thumb and preview folder not removed
 		}
 
-		SIGPlusLogging::appendStatus('Manual removal of cache folders detected.');
+		SigPlusNovoLogging::appendStatus('Manual removal of cache folders detected.');
 		$db = JFactory::getDbo();
 
 		// escape special characters, append any character qualifier at end, quote string
@@ -1069,7 +1069,7 @@ abstract class SIGPlusGalleryBase {
 	}
 }
 
-abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
+abstract class SigPlusNovoLocalBase extends SigPlusNovoGalleryBase {
 	/**
 	* Creates a thumbnail image, a preview image, and a watermarked image for an original.
 	* Images are generated only if they do not already exist.
@@ -1077,12 +1077,12 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* @param {string} $imagepath An absolute file system path to an image.
 	*/
 	private function getGeneratedImages($imagepath) {
-		SIGPlusTimer::checkpoint();
+		SigPlusNovoTimer::checkpoint();
 
-		$previewparams = new SIGPlusPreviewParameters($this->config->gallery);  // current image generation parameters
-		$thumbparams = new SIGPlusThumbParameters($this->config->gallery);
+		$previewparams = new SigPlusNovoPreviewParameters($this->config->gallery);  // current image generation parameters
+		$thumbparams = new SigPlusNovoThumbParameters($this->config->gallery);
 
-		$imagelibrary = SIGPlusImageLibrary::instantiate($this->config->service->library_image);
+		$imagelibrary = SigPlusNovoImageLibrary::instantiate($this->config->service->library_image);
 
 		// create watermarked image
 		if ($this->config->gallery->watermark_position !== false && ($watermarkpath = $this->getWatermarkPath(dirname($imagepath))) !== false) {
@@ -1097,9 +1097,9 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 				);
 				$result = $imagelibrary->createWatermarked($imagepath, $watermarkpath, $watermarkedpath, $watermarkparams);
 				if ($result) {
-					SIGPlusLogging::appendStatus('Saved watermarked image to <code>'.$watermarkedpath.'</code>.');
+					SigPlusNovoLogging::appendStatus('Saved watermarked image to <code>'.$watermarkedpath.'</code>.');
 				} else {
-					SIGPlusLogging::appendError('Unable to save watermarked image to <code>'.$watermarkedpath.'</code>.');
+					SigPlusNovoLogging::appendError('Unable to save watermarked image to <code>'.$watermarkedpath.'</code>.');
 				}
 			}
 		}
@@ -1110,9 +1110,9 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 			$previewpath = $this->getPreviewPath($imagepath, $previewparams, SIGPLUS_CREATE);
 			$result = $imagelibrary->createThumbnail($imagepath, $previewpath, $previewparams->width, $previewparams->height, $previewparams->crop, $previewparams->quality);
 			if ($result) {
-				SIGPlusLogging::appendStatus('Saved preview image to <code>'.$previewpath.'</code>');
+				SigPlusNovoLogging::appendStatus('Saved preview image to <code>'.$previewpath.'</code>');
 			} else {
-				SIGPlusLogging::appendError('Unable to save preview image to <code>'.$previewpath.'</code>');
+				SigPlusNovoLogging::appendError('Unable to save preview image to <code>'.$previewpath.'</code>');
 			}
 		}
 
@@ -1122,9 +1122,9 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 			$thumbpath = $this->getThumbnailPath($imagepath, $thumbparams, SIGPLUS_CREATE);
 			$result = $imagelibrary->createThumbnail($imagepath, $thumbpath, $thumbparams->width, $thumbparams->height, $thumbparams->crop, $thumbparams->quality);
 			if ($result) {
-				SIGPlusLogging::appendStatus('Saved thumbnail to <code>'.$thumbpath.'</code>');
+				SigPlusNovoLogging::appendStatus('Saved thumbnail to <code>'.$thumbpath.'</code>');
 			} else {
-				SIGPlusLogging::appendError('Unable to save thumbnail to <code>'.$thumbpath.'</code>');
+				SigPlusNovoLogging::appendError('Unable to save thumbnail to <code>'.$thumbpath.'</code>');
 			}
 		}
 	}
@@ -1137,7 +1137,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		if (!is_dir($directory)) {  // directory does not exist
 			@mkdir($directory, 0755, true);  // try to create it
 			if (!is_dir($directory)) {
-				throw new SIGPlusFolderPermissionException($directory);
+				throw new SigPlusNovoFolderPermissionException($directory);
 			}
 			// create an index.html to prevent getting a web directory listing
 			@file_put_contents($directory.DIRECTORY_SEPARATOR.'index.html', '<html><body></body></html>');
@@ -1189,14 +1189,14 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* @param {string} $generatedfolder The folder where generated images are to be stored.
 	* @return {bool|string} The path to the generated image, or false if it does not exist.
 	*/
-	private function getGeneratedImagePath($generatedfolder, $imagepath, SIGPlusImageParameters $params, $action = SIGPLUS_TEST) {
+	private function getGeneratedImagePath($generatedfolder, $imagepath, SigPlusNovoImageParameters $params, $action = SIGPLUS_TEST) {
 		switch ($this->config->service->cache_image) {
 			case 'cache':  // images are set to be generated in the Joomla cache folder
 				$directory = JPATH_CACHE.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
 				$path = $directory.DIRECTORY_SEPARATOR.$params->getHash($imagepath);  // hash original image file paths to avoid name conflicts
 				break;
 			case 'media':  // images are set to be generated in the Joomla media folder
-				$directory = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
+				$directory = JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.SIGPLUS_MEDIA_FOLDER.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $generatedfolder);
 				$path = $directory.DIRECTORY_SEPARATOR.$params->getHash($imagepath);  // hash original image file paths to avoid name conflicts
 				break;
 			case 'source':  // images are set to be generated inside folders within the directory where the images are
@@ -1227,7 +1227,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* @return The full path to a watermarked image, or false on error.
 	*/
 	private function getWatermarkedPath($imagepath, $action = SIGPLUS_TEST) {
-		$params = new SIGPlusPreviewParameters();
+		$params = new SigPlusNovoPreviewParameters();
 		$params->width = 0;  // special values for watermarked image
 		$params->height = 0;
 		$params->crop = false;
@@ -1240,7 +1240,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* @param {string} $imagepath Absolute path to an image file.
 	* @return The full path to a preview image, or false on error.
 	*/
-	private function getPreviewPath($imagepath, SIGPlusPreviewParameters $params, $action = SIGPLUS_TEST) {
+	private function getPreviewPath($imagepath, SigPlusNovoPreviewParameters $params, $action = SIGPLUS_TEST) {
 		return $this->getGeneratedImagePath($this->config->service->folder_preview, $imagepath, $params, $action);
 	}
 
@@ -1249,7 +1249,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	* @param {string} $imageref Absolute path to an image file.
 	* @return The full path to an image thumbnail, or false on error.
 	*/
-	private function getThumbnailPath($imagepath, SIGPlusThumbParameters $params, $action = SIGPLUS_TEST) {
+	private function getThumbnailPath($imagepath, SigPlusNovoThumbParameters $params, $action = SIGPLUS_TEST) {
 		return $this->getGeneratedImagePath($this->config->service->folder_thumb, $imagepath, $params, $action);
 	}
 
@@ -1260,17 +1260,17 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		$time = $db->loadResult();
 		$filetime = fsx::filemdate($imagepath);
 		if ($time == $filetime) {
-			SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> has <em>not</em> changed.');
+			SigPlusNovoLogging::appendStatus('Image <code>'.$imagepath.'</code> has <em>not</em> changed.');
 			return false;
 		}
 
 		if ($this->config->gallery->watermark_position !== false && $this->config->gallery->watermark_source == basename($imagepath)) {
-			SIGPlusLogging::appendStatus('Skipping image <code>'.$imagepath.'</code>, which acts as a watermark image.');
+			SigPlusNovoLogging::appendStatus('Skipping image <code>'.$imagepath.'</code>, which acts as a watermark image.');
 			return false;
 		}
 
 		// extract image metadata from file
-		$metadata = new SIGPlusImageMetadata($imagepath);
+		$metadata = new SigPlusNovoImageMetadata($imagepath);
 
 		// image size
 		$width = 0;
@@ -1280,19 +1280,19 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 			$width = $imagedims[0];
 			$height = $imagedims[1];
 		}
-		SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> ['.$width.'x'.$height.'] has been added or updated.');
+		SigPlusNovoLogging::appendStatus('Image <code>'.$imagepath.'</code> ['.$width.'x'.$height.'] has been added or updated.');
 
 		// image filename and size
 		$filename = basename($imagepath);
 		$filesize = fsx::filesize($imagepath);
 
 		// insert main image data into database
-		$imageid = SIGPlusDatabase::replaceSingle(  // deletes rows related via foreign key constraints
+		$imageid = SigPlusNovoDatabase::replaceSingle(  // deletes rows related via foreign key constraints
 			'#__sigplus_image',
 			array('folderid','fileurl','filename','filetime','filesize','width','height'),
 			array($folderid, $imagepath, $filename, $filetime, $filesize, $width, $height)
 		);
-		SIGPlusLogging::appendStatus('Image <code>'.$imagepath.'</code> [id='.$imageid.', folder='.$folderid.'] has been recorded in the database.');
+		SigPlusNovoLogging::appendStatus('Image <code>'.$imagepath.'</code> [id='.$imageid.', folder='.$folderid.'] has been recorded in the database.');
 
 		$metadata->inject($imageid);
 
@@ -1320,11 +1320,11 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		$this->getGeneratedImages($imagepath);
 
 		// image thumbnail path and parameters
-		$thumbparams = new SIGPlusThumbParameters($this->config->gallery);
+		$thumbparams = new SigPlusNovoThumbParameters($this->config->gallery);
 		list($thumbpath, $thumbtime, $thumbwidth, $thumbheight) = $this->getImageData($this->getThumbnailPath($imagepath, $thumbparams, SIGPLUS_TEST));
 
 		// image preview path and parameters
-		$previewparams = new SIGPlusPreviewParameters($this->config->gallery);
+		$previewparams = new SigPlusNovoPreviewParameters($this->config->gallery);
 		list($previewpath, $previewtime, $previewwidth, $previewheight) = $this->getImageData($this->getPreviewPath($imagepath, $previewparams, SIGPLUS_TEST));
 
 		// watermarked image
@@ -1341,7 +1341,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 		}
 
 		// insert image view
-		SIGPlusDatabase::insertSingleUnique(
+		SigPlusNovoDatabase::insertSingleUnique(
 			'#__sigplus_imageview',
 			array(
 				'imageid','viewid',
@@ -1393,7 +1393,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 	*/
 	protected function getLabelsLastModified($folder, $lastmod) {
 		// get last modified time of labels file
-		$labels = new SIGPlusLabels($this->config);  // get labels file manager
+		$labels = new SigPlusNovoLabels($this->config);  // get labels file manager
 		$sources = $labels->getLabelsFilePaths($folder);
 
 		// update last modified time if labels file has been changed
@@ -1407,7 +1407,7 @@ abstract class SIGPlusLocalBase extends SIGPlusGalleryBase {
 /**
 * A gallery hosted in the file system.
 */
-class SIGPlusLocalGallery extends SIGPlusLocalBase {
+class SigPlusNovoLocalGallery extends SigPlusNovoLocalBase {
 	/**
 	* True if the file extension indicates a recognized image format.
 	*/
@@ -1460,7 +1460,7 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 	*/
 	public /*private*/ function populateFolder($path, $files, $folders, $ancestors) {
 		// add folder
-		$folderparams = new SIGPlusFolderParameters();
+		$folderparams = new SigPlusNovoFolderParameters();
 		$folderparams->time = fsx::filemtime($path);  // directory timestamp
 		$folderid = $this->insertFolder($path, $folderparams, $ancestors);
 
@@ -1497,7 +1497,7 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 				$this->populateImageView($path, $imageid, $viewid);
 			}
 		} else {
-			SIGPlusLogging::appendStatus('Folder view [id='.$viewid.'] has not changed.');
+			SigPlusNovoLogging::appendStatus('Folder view [id='.$viewid.'] has not changed.');
 		}
 		return $viewid;
 	}
@@ -1533,24 +1533,24 @@ class SIGPlusLocalGallery extends SIGPlusLocalBase {
 			$folderid = $this->insertFolder($imagefolder, $folderparams);
 
 			// populate labels from external file
-			$labels = new SIGPlusLabels($this->config);  // get labels file manager
+			$labels = new SigPlusNovoLabels($this->config);  // get labels file manager
 			$labels->populate($imagefolder, $folderid);
 		} else {
 			$folderid = $folderparams->id;
-			SIGPlusLogging::appendStatus('Folder <code>'.$imagefolder.'</code> has not changed.');
+			SigPlusNovoLogging::appendStatus('Folder <code>'.$imagefolder.'</code> has not changed.');
 		}
 
 		return $this->populateFolderViews($folderid);
 	}
 }
 
-abstract class SIGPlusAtomFeedGallery extends SIGPlusGalleryBase {
-	public function __construct(SIGPlusConfigurationParameters $config) {
+abstract class SigPlusNovoAtomFeedGallery extends SigPlusNovoGalleryBase {
+	public function __construct(SigPlusNovoConfigurationParameters $config) {
 		parent::__construct($config);
 
 		// check for presence of XML parser
 		if (!function_exists('simplexml_load_file')) {
-			throw new SIGPlusLibraryUnavailableException('SimpleXML');
+			throw new SigPlusNovoLibraryUnavailableException('SimpleXML');
 		}
 	}
 
@@ -1567,44 +1567,44 @@ abstract class SIGPlusAtomFeedGallery extends SIGPlusGalleryBase {
 		if ($viewid) {
 			$entitytag = $folderparams->entitytag;
 		} else {  // no coresponding view available, force retrieval by discarding HTTP entity tag
-			SIGPlusLogging::appendStatus('<a href="'.$url.'">Web album</a> view is to be re-populated.');
+			SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Web album</a> view is to be re-populated.');
 			$entitytag = null;
 		}
 
 		// read data from URL only if modified
 		$feeddata = http_get_modified($feedurl, $folderparams->time, $entitytag);
 		if ($feeddata === true) {  // same HTTP ETag
-			SIGPlusLogging::appendStatus('<a href="'.$url.'">Web album</a> with ETag <code>'.$folderparams->entitytag.'</code> has not changed.');
+			SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Web album</a> with ETag <code>'.$folderparams->entitytag.'</code> has not changed.');
 			return false;
 		} elseif ($feeddata === false) {  // retrieval failure
-			throw new SIGPlusRemoteException($url);
+			throw new SigPlusNovoRemoteException($url);
 		}
 
 		// get XML file of list of photos in an album
 		$sxml = simplexml_load_string($feeddata);
 		if ($sxml === false) {
-			throw new SIGPlusXMLFormatException($url);
+			throw new SigPlusNovoXMLFormatException($url);
 		}
 
 		// update folder data (if necessary)
 		if ($entitytag != $folderparams->entitytag) {  // update folder data
 			$folderparams->entitytag = $entitytag;
 			$folderparams->id = $this->replaceFolder($url, $folderparams);  // clears related image data as a side effect
-			SIGPlusLogging::appendStatus('<a href="'.$url.'">Web album</a> feed XML has been retrieved, new ETag is <code>'.$folderparams->entitytag.'</code>.');
+			SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Web album</a> feed XML has been retrieved, new ETag is <code>'.$folderparams->entitytag.'</code>.');
 		} else {
-			SIGPlusLogging::appendStatus('<a href="'.$url.'">Web album</a> feed XML has not changed.');
+			SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Web album</a> feed XML has not changed.');
 		}
 
 		return $sxml;
 	}
 }
 
-class SIGPlusFlickrGallery extends SIGPlusAtomFeedGallery {
+class SigPlusNovoFlickrGallery extends SigPlusNovoAtomFeedGallery {
 	public function populate($url, $folderparams) {
 		// parse album feed URL
 		$urlparts = parse_url($url);
 		if (!preg_match('"^/services/feeds/photos_public.gne"', $urlparts['path'])) {
-			SIGPlusLogging::appendError('Invalid Flickr Web Album feed URL <code>'.$url.'</code>.');
+			SigPlusNovoLogging::appendError('Invalid Flickr Web Album feed URL <code>'.$url.'</code>.');
 			return false;
 		}
 
@@ -1639,7 +1639,7 @@ class SIGPlusFlickrGallery extends SIGPlusAtomFeedGallery {
 	}
 }
 
-class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
+class SigPlusNovoPicasaGallery extends SigPlusNovoAtomFeedGallery {
 	/**
 	* Generates an image gallery whose images come from Picasa Web Albums.
 	* @see http://picasaweb.google.com
@@ -1653,7 +1653,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		$urlpath = $urlparts['path'];
 		$match = array();
 		if (!preg_match('"^/data/feed/(?:api|base)/user/([^/?#]+)/albumid/([^/?#]+)"', $urlpath, $match)) {
-			throw new SIGPlusFeedURLException($url);
+			throw new SigPlusNovoFeedURLException($url);
 		}
 		$userid = $match[1];
 		$albumid = $match[2];
@@ -1759,7 +1759,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 			}
 
 			// insert image data
-			$imageid = SIGPlusDatabase::insertSingleUnique(
+			$imageid = SigPlusNovoDatabase::insertSingleUnique(
 				'#__sigplus_image',
 				array(
 					'folderid',
@@ -1795,7 +1795,7 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 		$viewid = (int) $this->replaceView($folderparams->id);  // clears all entries related to the folder as a side effect
 
 		// insert image data
-		SIGPlusDatabase::insertBatch(
+		SigPlusNovoDatabase::insertBatch(
 			'#__sigplus_imageview',
 			array(
 				'imageid',
@@ -1820,12 +1820,12 @@ class SIGPlusPicasaGallery extends SIGPlusAtomFeedGallery {
 * The image is downloaded to a temporary file for metadata extraction. Properly assembled HTTP
 * headers ensure the image is downloaded only if the remote file has been modified.
 */
-class SIGPlusRemoteImage extends SIGPlusGalleryBase {
+class SigPlusNovoRemoteImage extends SigPlusNovoGalleryBase {
 	public function populate($url, $folderparams) {
 		// update image data only if remote image has been modified
 		$imagedata = http_get_modified($url, $folderparams->time, $etag);
 		if ($imagedata === true) {  // not modified since specified date
-			SIGPlusLogging::appendStatus('<a href="'.$url.'">Remote image</a> not modified since <code>'.$folderparams->time.'</code>.');
+			SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Remote image</a> not modified since <code>'.$folderparams->time.'</code>.');
 
 			if ($viewid = $this->getView($folderparams->id)) {  // preview image is available for remote image
 				return $viewid;
@@ -1834,16 +1834,16 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 			// preview image not available, retrieve image from remote server
 			$imagedata = http_get_modified($url);
 			if ($imagedata === true || $imagedata === false) {  // unexpected response or retrieval failure
-				throw new SIGPlusRemoteException($url);
+				throw new SigPlusNovoRemoteException($url);
 			}
 
-			SIGPlusLogging::appendStatus('<a href="'.$url.'">Remote image</a> retrieved again as gallery parameters had changed.');
+			SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Remote image</a> retrieved again as gallery parameters had changed.');
 		} elseif ($imagedata === false) {  // retrieval failure
-			throw new SIGPlusRemoteException($url);
+			throw new SigPlusNovoRemoteException($url);
 		}
 
 		// update folder entry with last modified date
-		SIGPlusLogging::appendStatus('<a href="'.$url.'">Remote image</a> was last changed on <code>'.$folderparams->time.'</code>.');
+		SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Remote image</a> was last changed on <code>'.$folderparams->time.'</code>.');
 		$folderid = $this->insertFolder($url, $folderparams);
 
 		$metadata = null;
@@ -1854,10 +1854,10 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 		// create temporary image file and extract metadata
 		if ($imagepath = tempnam(JPATH_CACHE, 'sigplus')) {
 			if (file_put_contents($imagepath, $imagedata)) {
-				SIGPlusLogging::appendStatus('Image data has been saved to temporary file <code>'.$imagepath.'</code>.');
+				SigPlusNovoLogging::appendStatus('Image data has been saved to temporary file <code>'.$imagepath.'</code>.');
 
 				// extract image metadata from file
-				$metadata = new SIGPlusImageMetadata($imagepath);
+				$metadata = new SigPlusNovoImageMetadata($imagepath);
 
 				// image file size and dimensions
 				$filesize = fsx::filesize($imagepath);
@@ -1865,16 +1865,16 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 				if ($imagedims !== false) {
 					$width = $imagedims[0];
 					$height = $imagedims[1];
-					SIGPlusLogging::appendStatus('<a href="'.$url.'">Remote image</a> has MIME type '.$imagedims['mime'].' and dimensions '.$width.'x'.$height.'.');
+					SigPlusNovoLogging::appendStatus('<a href="'.$url.'">Remote image</a> has MIME type '.$imagedims['mime'].' and dimensions '.$width.'x'.$height.'.');
 				} else {
-					throw new SIGPlusImageFormatException($url);
+					throw new SigPlusNovoImageFormatException($url);
 				}
 			}
 			unlink($imagepath);  // "tempnam", if succeeds, always creates the file
 		}
 
 		// insert image data into database
-		$imageid = SIGPlusDatabase::replaceSingle(  // deletes rows related via foreign key constraints
+		$imageid = SigPlusNovoDatabase::replaceSingle(  // deletes rows related via foreign key constraints
 			'#__sigplus_image',
 			array('folderid','fileurl','filename','filetime','filesize','width','height'),
 			array($folderid, $url, basename($url), $folderparams->time, $filesize, $width, $height)
@@ -1886,7 +1886,7 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 
 		$viewid = (int) $this->insertView($folderid);
 		// insert image view
-		SIGPlusDatabase::insertSingleUnique(
+		SigPlusNovoDatabase::insertSingleUnique(
 			'#__sigplus_imageview',
 			array(
 				'imageid','viewid',
@@ -1905,7 +1905,7 @@ class SIGPlusRemoteImage extends SIGPlusGalleryBase {
 /**
 * Exposes the sigplus public services.
 */
-class SIGPlusCore {
+class SigPlusNovoCore {
 	/**
 	* Global service configuration.
 	*/
@@ -1915,17 +1915,17 @@ class SIGPlusCore {
 	*/
 	private $paramstack;
 
-	public function __construct(SIGPlusConfigurationParameters $config) {
+	public function __construct(SigPlusNovoConfigurationParameters $config) {
 		// set global service parameters
-		SIGPlusLogging::appendCodeBlock('Service parameters are:', print_r($config->service, true));
+		SigPlusNovoLogging::appendCodeBlock('Service parameters are:', print_r($config->service, true));
 		$this->config = $config->service;
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->jsapi = $this->config->library_jsapi;
 		$instance->debug = $this->config->debug_client;
 
 		// set default parameters for image galleries
-		SIGPlusLogging::appendCodeBlock('Default gallery parameters are:', print_r($config->gallery, true));
-		$this->paramstack = new SIGPlusParameterStack();
+		SigPlusNovoLogging::appendCodeBlock('Default gallery parameters are:', print_r($config->gallery, true));
+		$this->paramstack = new SigPlusNovoParameterStack();
 		$this->paramstack->push($config->gallery);
 	}
 
@@ -1949,16 +1949,16 @@ class SIGPlusCore {
 		}
 	}
 
-	private function getFilterExpression(SIGPlusFilter $filter) {
+	private function getFilterExpression(SigPlusNovoFilter $filter) {
 		$db = JFactory::getDbo();
 		$expr = array();
 		foreach ($filter->items as $item) {
-			if ($item instanceof SIGPlusFilter && !$item->is_empty()) {
+			if ($item instanceof SigPlusNovoFilter && !$item->is_empty()) {
 				// add filter subexpression, e.g. "b or c" in "a and (b or c)"
 				$expr[] = self::getFilterExpression($item);
 			} elseif (is_string($item)) {
 				// add a simple filter, e.g. "b" in "a and b and c"
-				$expr[] = $db->quoteName('filename').' LIKE '.$db->quote(SIGPlusDatabase::sqlpattern($item));
+				$expr[] = $db->quoteName('filename').' LIKE '.$db->quote(SigPlusNovoDatabase::sqlpattern($item));
 			}
 		}
 		return '('.implode(' '.$filter->rel.' ', $expr).')';
@@ -2058,7 +2058,7 @@ class SIGPlusCore {
 		}
 
 		if ($curparams->lightbox !== false) {
-			$instance = SIGPlusEngineServices::instance();
+			$instance = SigPlusNovoEngineServices::instance();
 			$lightbox = $instance->getLightboxEngine($curparams->lightbox);
 			$style .= ' sigplus-lightbox-'.$lightbox->getIdentifier();
 		} else {
@@ -2077,8 +2077,8 @@ class SIGPlusCore {
 			if (strpos($url, JPATH_CACHE.DIRECTORY_SEPARATOR) === 0) {  // file is inside cache folder
 				$path = substr($url, strlen(JPATH_CACHE.DIRECTORY_SEPARATOR));
 				$url = JURI::base(true).'/cache/'.pathurlencode($path);
-			} elseif (strpos($url, JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR) === 0) {  // file is inside media folder
-				$path = substr($url, strlen(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR));
+			} elseif (strpos($url, JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.SIGPLUS_MEDIA_FOLDER.DIRECTORY_SEPARATOR) === 0) {  // file is inside media folder
+				$path = substr($url, strlen(JPATH_ROOT.DIRECTORY_SEPARATOR.'media'.DIRECTORY_SEPARATOR.SIGPLUS_MEDIA_FOLDER.DIRECTORY_SEPARATOR));
 				$url = JURI::base(true).'/media/sigplus/'.pathurlencode($path);
 			} elseif (strpos($url, $this->config->base_folder.DIRECTORY_SEPARATOR) === 0) {  // file is inside base folder
 				$path = substr($url, strlen($this->config->base_folder.DIRECTORY_SEPARATOR));
@@ -2130,8 +2130,8 @@ class SIGPlusCore {
 
 		// test user access level
 		if (!$this->getDownloadAuthorization()) {  // authorization is required
-			SIGPlusLogging::appendStatus('User is not authorized to download image.');
-			throw new SIGPlusImageDownloadAccessException();
+			SigPlusNovoLogging::appendStatus('User is not authorized to download image.');
+			throw new SigPlusNovoImageDownloadAccessException();
 		}
 
 		// translate image source into full source specification
@@ -2171,14 +2171,14 @@ class SIGPlusCore {
 		);
 		$row = $db->loadRow();
 		if (!$row) {
-			SIGPlusLogging::appendStatus('Image to download is not found in gallery database.');
+			SigPlusNovoLogging::appendStatus('Image to download is not found in gallery database.');
 			return false;
 		}
 
 		list($fileurl, $filename) = $row;
 		if (headers_sent($file, $line)) {
-			SIGPlusLogging::appendStatus('Unable to make browser download image, HTTP headers have already been sent in file "'.$file.'" line '.$line.'.');
-			throw new SIGPlusImageDownloadHeadersSentException($fileurl);
+			SigPlusNovoLogging::appendStatus('Unable to make browser download image, HTTP headers have already been sent in file "'.$file.'" line '.$line.'.');
+			throw new SigPlusNovoImageDownloadHeadersSentException($fileurl);
 		}
 
 		// produce HTTP response
@@ -2217,18 +2217,18 @@ class SIGPlusCore {
 
 	/**
 	* Generates image thumbnails with alternate text, title and lightbox pop-up activation on mouse click.
-	* This method is typically called by the class plgContentSIGPlus, which represents the sigplus Joomla plug-in.
+	* This method is typically called by the class plgContentSigPlusNovo, which represents the sigplus Joomla plug-in.
 	* The method may modify the top of the parameter stack; the caller must provide a discardable copy.
 	* @param {string|boolean} $imagesource A string that defines the gallery source. Relative paths are interpreted
 	* w.r.t. the image base folder, which is passed in a configuration object to the class constructor.
 	*/
 	public function getGalleryHTML($imagesource, &$galleryid) {
-		SIGPlusTimer::checkpoint();
+		SigPlusNovoTimer::checkpoint();
 
 		// get active set of parameters from the top of the stack
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
-		$config = new SIGPlusConfigurationParameters();
+		$config = new SigPlusNovoConfigurationParameters();
 		$config->gallery = $curparams;
 		$config->service = $this->config;
 
@@ -2240,7 +2240,7 @@ class SIGPlusCore {
 		if (strpos($imagesource, '{$username}') !== false) {
 			$user = JFactory::getUser();
 			if ($user->guest) {
-				throw new SIGPlusLoginRequiredException();
+				throw new SigPlusNovoLoginRequiredException();
 			} else {
 				$imagesource = str_replace('{$username}', $user->username, $imagesource);
 			}
@@ -2250,9 +2250,9 @@ class SIGPlusCore {
 		if (strpos($imagesource, '{$group}') !== false) {
 			$user = JFactory::getUser();
 			if ($user->guest) {
-				throw new SIGPlusLoginRequiredException();
+				throw new SigPlusNovoLoginRequiredException();
 			} else {
-				$groupname = SIGPlusUser::getCurrentUserGroup();
+				$groupname = SigPlusNovoUser::getCurrentUserGroup();
 				if ($groupname) {
 					$groupname = str_replace(' ', '', $groupname);  // normalize whitespace
 				} else {
@@ -2266,21 +2266,21 @@ class SIGPlusCore {
 		$galleryid = $this->getUniqueGalleryId($curparams->id);
 
 		// show current set of parameters for image galleries
-		SIGPlusLogging::appendCodeBlock('Local gallery parameters for "'.$galleryid.'" are:', print_r($curparams, true));
+		SigPlusNovoLogging::appendCodeBlock('Local gallery parameters for "'.$galleryid.'" are:', print_r($curparams, true));
 
 		// instantiate image generator
 		$generator = null;
 		if (strip_tags($imagesource) != $imagesource) {
-			throw new SIGPlusHTMLCodeException($imagesource);
+			throw new SigPlusNovoHTMLCodeException($imagesource);
 		} else if (is_url_http($imagesource) ) {  // test for Picasa galleries
 			$source = $imagesource;
-			SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from URL: <code>'.$source.'</code>');
+			SigPlusNovoLogging::appendStatus('Generating gallery "'.$galleryid.'" from URL: <code>'.$source.'</code>');
 			if (preg_match('"^https?://picasaweb.google.com/"', $source)) {
-				$generator = new SIGPlusPicasaGallery($config);
+				$generator = new SigPlusNovoPicasaGallery($config);
 			} elseif (preg_match('"^http://api.flickr.com/services/feeds/photos_public.gne"', $source)) {
-				$generator = new SIGPlusFlickrGallery($config);
+				$generator = new SigPlusNovoFlickrGallery($config);
 			} else {
-				$generator = new SIGPlusRemoteImage($config);
+				$generator = new SigPlusNovoRemoteImage($config);
 				$curparams->maxcount = 1;
 			}
 		} else {
@@ -2294,7 +2294,7 @@ class SIGPlusCore {
 			if (strpos($source, '*') !== false || strpos($source, '?') !== false) {  // contains wildcard character
 				// add implicit include filter on file name component of path
 				$filter = $curparams->filter_include;  // save current filter
-				$curparams->filter_include = new SIGPlusFilter('and');
+				$curparams->filter_include = new SigPlusNovoFilter('and');
 				$curparams->filter_include->items[] = basename($source);  // add wildcard name to include filter
 				$curparams->filter_include->items[] = $filter;  // add current filter as sub-filter
 
@@ -2303,16 +2303,16 @@ class SIGPlusCore {
 
 				if (is_dir($source)) {
 					// set up gallery populator
-					SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from filtered folder: <code>'.$source.'</code>');
-					$generator = new SIGPlusLocalGallery($config);
+					SigPlusNovoLogging::appendStatus('Generating gallery "'.$galleryid.'" from filtered folder: <code>'.$source.'</code>');
+					$generator = new SigPlusNovoLocalGallery($config);
 				}
 			} elseif (is_dir($source)) {
-				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from folder: <code>'.$source.'</code>');
-				$generator = new SIGPlusLocalGallery($config);
+				SigPlusNovoLogging::appendStatus('Generating gallery "'.$galleryid.'" from folder: <code>'.$source.'</code>');
+				$generator = new SigPlusNovoLocalGallery($config);
 			} elseif (is_file($source)) {
 				// set implicit filter to filter exact file name
 				$filter = $curparams->filter_include;  // save current filter
-				$curparams->filter_include = new SIGPlusFilter('and');
+				$curparams->filter_include = new SigPlusNovoFilter('and');
 				$curparams->filter_include->items[] = basename($source);
 				$curparams->filter_include->items[] = $filter;  // add current filter as sub-filter
 
@@ -2322,12 +2322,12 @@ class SIGPlusCore {
 				// remove file name component of path
 				$source = dirname($source);
 
-				SIGPlusLogging::appendStatus('Generating gallery "'.$galleryid.'" from file: <code>'.$source.'</code>');
-				$generator = new SIGPlusLocalGallery($config);
+				SigPlusNovoLogging::appendStatus('Generating gallery "'.$galleryid.'" from file: <code>'.$source.'</code>');
+				$generator = new SigPlusNovoLocalGallery($config);
 			}
 		}
 		if (!isset($generator)) {
-			throw new SIGPlusImageSourceException($imagesource);
+			throw new SigPlusNovoImageSourceException($imagesource);
 		}
 		$curparams->validate();  // re-validate parameters to resolve inconsistencies (e.g. rotator with a single image)
 
@@ -2339,7 +2339,7 @@ class SIGPlusCore {
 		$db->setQuery('SELECT '.$db->quoteName('folderid').', '.$db->quoteName('foldertime').', '.$db->quoteName('entitytag').' FROM '.$db->quoteName('#__sigplus_folder').' WHERE '.$db->quoteName('folderurl').' = '.$db->quote($source));
 		$result = $db->loadRow();
 
-		$folderparams = new SIGPlusFolderParameters();
+		$folderparams = new SigPlusNovoFolderParameters();
 		if ($result) {
 			list($folderparams->id, $folderparams->time, $folderparams->entitytag) = $result;
 		}
@@ -2415,8 +2415,8 @@ class SIGPlusCore {
 		// determine current site language
 		$lang = JFactory::getLanguage();
 		list($language, $country) = explode('-', $lang->getTag());  // site current language
-		$langid = (int)SIGPlusDatabase::getLanguageId($language);
-		$countryid = (int)SIGPlusDatabase::getCountryId($country);
+		$langid = (int)SigPlusNovoDatabase::getLanguageId($language);
+		$countryid = (int)SigPlusNovoDatabase::getCountryId($country);
 
 		// build SQL condition for depth
 		if ($curparams->depth >= 0) {
@@ -2561,7 +2561,7 @@ class SIGPlusCore {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
 		if (version_compare(JVERSION, '3.1') >= 0) {
-			$layout_path = JPluginHelper::getLayoutPath('content', 'sigplus', 'default');
+			$layout_path = JPluginHelper::getLayoutPath('content', SIGPLUS_PLUGIN_FOLDER, 'default');
 		} else {
 			$layout_path = dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'tmpl'.DIRECTORY_SEPARATOR.'default.php';
 		}
@@ -2595,7 +2595,7 @@ class SIGPlusCore {
 		}
 
 		if (version_compare(JVERSION, '3.1') >= 0) {
-			$layout_path = JPluginHelper::getLayoutPath('content', 'sigplus', 'item');
+			$layout_path = JPluginHelper::getLayoutPath('content', SIGPLUS_PLUGIN_FOLDER, 'item');
 		} else {
 			$layout_path = dirname(__FILE__).DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'tmpl'.DIRECTORY_SEPARATOR.'item.php';
 		}
@@ -2631,7 +2631,7 @@ class SIGPlusCore {
 	public function addStyles($id = null) {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addStandardStyles();
 		if (isset($id)) {
 			// add custom style declaration based on back-end and inline settings
@@ -2671,7 +2671,7 @@ class SIGPlusCore {
 		if (isset($id)) {
 			$curparams = $this->paramstack->top();  // current gallery parameters
 
-			$instance = SIGPlusEngineServices::instance();
+			$instance = SigPlusNovoEngineServices::instance();
 			$instance->addMooTools();
 			$instance->addScript('/media/sigplus/js/initialization.js');  // unwrap all galleries from protective <noscript> container
 
@@ -2708,7 +2708,7 @@ class SIGPlusCore {
 	*/
 	public function addLightboxLinkScript($linkid, $galleryid) {
 		$curparams = $this->paramstack->top();  // current gallery parameters
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->activateLightbox($linkid, '#'.$galleryid.' a.sigplus-image', $curparams->index);  // selector should be same as above
 		$instance->addOnReadyEvent();
 	}
@@ -2721,7 +2721,7 @@ class SIGPlusCore {
 		$curparams = $this->paramstack->top();  // current gallery parameters
 
 		if ($curparams->lightbox !== false) {
-			$instance = SIGPlusEngineServices::instance();
+			$instance = SigPlusNovoEngineServices::instance();
 
 			$lightbox = $instance->getLightboxEngine($curparams->lightbox);
 			$lightbox->addStyles($selector, $curparams);

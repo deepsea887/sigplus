@@ -34,7 +34,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Triggered when an error occurs while generating a gallery.
 * This is a base class for other exception types.
 */
-class SIGPlusException extends Exception {
+class SigPlusNovoException extends Exception {
 	/**
 	* Creates a new exception instance.
 	* @param {string} $key Error message language key.
@@ -56,7 +56,7 @@ class SIGPlusException extends Exception {
 	}
 }
 
-class SIGPlusInvalidValueException extends SIGPlusException {
+class SigPlusNovoInvalidValueException extends SigPlusNovoException {
 	protected $value;
 
 	public function __construct($key, $value) {
@@ -69,7 +69,7 @@ class SIGPlusInvalidValueException extends SIGPlusException {
 * Triggered in connection with a local file system resource such as an invalid file or folder.
 * This is a base class for other exception types.
 */
-class SIGPlusFileSystemException extends SIGPlusException {
+class SigPlusNovoFileSystemException extends SigPlusNovoException {
 	protected $file;
 
 	public function __construct($key, $file) {
@@ -81,7 +81,7 @@ class SIGPlusFileSystemException extends SIGPlusException {
 /**
 * Triggered when the extension is not able to guess what the base URL prefix for image folders is.
 */
-class SIGPlusBaseURLException extends SIGPlusException {
+class SigPlusNovoBaseURLException extends SigPlusNovoException {
 	public function __construct() {
 		parent::__construct('SIGPLUS_EXCEPTION_BASEURL');
 	}
@@ -90,7 +90,7 @@ class SIGPlusBaseURLException extends SIGPlusException {
 /**
 * Triggered when a URL contains invalid characters.
 */
-class SIGPlusURLEncodingException extends SIGPlusException {
+class SigPlusNovoURLEncodingException extends SigPlusNovoException {
 	protected $url;
 
 	public function __construct($url) {
@@ -102,7 +102,7 @@ class SIGPlusURLEncodingException extends SIGPlusException {
 /**
 * Triggered when a text file is not encoded with UTF-8.
 */
-class SIGPlusTextFormatException extends SIGPlusException {
+class SigPlusNovoTextFormatException extends SigPlusNovoException {
 	protected $textfile;
 
 	public function __construct($textfile) {
@@ -114,7 +114,7 @@ class SIGPlusTextFormatException extends SIGPlusException {
 /**
 * Triggered when an XML file or data does not validate.
 */
-class SIGPlusXMLFormatException extends SIGPlusException {
+class SigPlusNovoXMLFormatException extends SigPlusNovoException {
 	public function __construct() {
 		parent::__construct('SIGPLUS_EXCEPTION_XMLFORMAT');
 	}
@@ -123,7 +123,7 @@ class SIGPlusXMLFormatException extends SIGPlusException {
 /**
 * Triggered when the source specified for a gallery is HTML code rather than plain text.
 */
-class SIGPlusHTMLCodeException extends SIGPlusInvalidValueException {
+class SigPlusNovoHTMLCodeException extends SigPlusNovoInvalidValueException {
 	public function __construct($source) {
 		parent::__construct('SIGPLUS_EXCEPTION_HTML', $source);
 	}
@@ -132,7 +132,7 @@ class SIGPlusHTMLCodeException extends SIGPlusInvalidValueException {
 /**
 * Triggered when the source specified for a gallery is not valid.
 */
-class SIGPlusImageSourceException extends SIGPlusInvalidValueException {
+class SigPlusNovoImageSourceException extends SigPlusNovoInvalidValueException {
 	public function __construct($source) {
 		parent::__construct('SIGPLUS_EXCEPTION_SOURCE', $source);
 	}
@@ -141,7 +141,7 @@ class SIGPlusImageSourceException extends SIGPlusInvalidValueException {
 /**
 * Triggered when the source specified for a gallery is not valid.
 */
-class SIGPlusFeedURLException extends SIGPlusInvalidValueException {
+class SigPlusNovoFeedURLException extends SigPlusNovoInvalidValueException {
 	public function __construct($source) {
 		parent::__construct('SIGPLUS_EXCEPTION_FEED', $source);
 	}
@@ -150,7 +150,7 @@ class SIGPlusFeedURLException extends SIGPlusInvalidValueException {
 /**
 * Triggered when a file or folder does not exist or is inaccessible.
 */
-class SIGPlusAccessException extends SIGPlusFileSystemException {
+class SigPlusNovoAccessException extends SigPlusNovoFileSystemException {
 	public function __construct($file) {
 		parent::__construct('SIGPLUS_EXCEPTION_ACCESS', $file);
 	}
@@ -159,7 +159,7 @@ class SIGPlusAccessException extends SIGPlusFileSystemException {
 /**
 * Thrown when the extension lacks permissions to create a folder.
 */
-class SIGPlusFolderCreateException extends SIGPlusFileSystemException {
+class SigPlusNovoFolderCreateException extends SigPlusNovoFileSystemException {
 	public function __construct($folder) {
 		parent::__construct('SIGPLUS_EXCEPTION_CREATE', $folder);
 	}
@@ -168,7 +168,7 @@ class SIGPlusFolderCreateException extends SIGPlusFileSystemException {
 /**
 * Triggered when a file or folder does not exist or is inaccessible.
 */
-class SIGPlusImageFormatException extends SIGPlusFileSystemException {
+class SigPlusNovoImageFormatException extends SigPlusNovoFileSystemException {
 	public function __construct($file) {
 		parent::__construct('SIGPLUS_EXCEPTION_IMAGE', $file);
 	}
@@ -177,7 +177,7 @@ class SIGPlusImageFormatException extends SIGPlusFileSystemException {
 /**
 * Thrown when the extension cannot access a document at a remote location
 */
-class SIGPlusRemoteException extends SIGPlusInvalidValueException {
+class SigPlusNovoRemoteException extends SigPlusNovoInvalidValueException {
 	public function __construct($url) {
 		if (!extension_loaded('openssl') && in_array(parse_url($url, PHP_URL_SCHEME), array('https', 'ftps'))) {
 			parent::__construct('SIGPLUS_EXCEPTION_REMOTE_SSL', $url);
@@ -190,7 +190,7 @@ class SIGPlusRemoteException extends SIGPlusInvalidValueException {
 /**
 * Triggered when the image base folder is not valid.
 */
-class SIGPlusBaseFolderException extends SIGPlusInvalidValueException {
+class SigPlusNovoBaseFolderException extends SigPlusNovoInvalidValueException {
 	public function __construct($folder) {
 		parent::__construct('SIGPLUS_EXCEPTION_FOLDER_BASE', $folder);
 	}
@@ -199,7 +199,7 @@ class SIGPlusBaseFolderException extends SIGPlusInvalidValueException {
 /**
 * Triggered when a folder specification is not valid.
 */
-class SIGPlusInvalidFolderException extends SIGPlusException {
+class SigPlusNovoInvalidFolderException extends SigPlusNovoException {
 	protected $value;
 	protected $type;
 
@@ -213,7 +213,7 @@ class SIGPlusInvalidFolderException extends SIGPlusException {
 /**
 * Triggered when folders are set to point to the same directory.
 */
-class SIGPlusFolderConflictException extends SIGPlusInvalidValueException {
+class SigPlusNovoFolderConflictException extends SigPlusNovoInvalidValueException {
 	public function __construct($folder) {
 		parent::__construct('SIGPLUS_EXCEPTION_FOLDER_CONFLICT', $folder);
 	}
@@ -222,7 +222,7 @@ class SIGPlusFolderConflictException extends SIGPlusInvalidValueException {
 /**
 * Triggered when a required engine is not available.
 */
-class SIGPlusEngineUnavailableException extends SIGPlusException {
+class SigPlusNovoEngineUnavailableException extends SigPlusNovoException {
 	protected $engine;
 	protected $enginetype;
 
@@ -238,7 +238,7 @@ class SIGPlusEngineUnavailableException extends SIGPlusException {
 /**
 * Triggered when a required library dependency is not available.
 */
-class SIGPlusLibraryUnavailableException extends SIGPlusException {
+class SigPlusNovoLibraryUnavailableException extends SigPlusNovoException {
 	protected $library;
 
 	public function __construct($library) {
@@ -250,7 +250,7 @@ class SIGPlusLibraryUnavailableException extends SIGPlusException {
 /**
 * Triggered when the extension attempts to allocate memory for a resource with prohibitively large memory footprint.
 */
-class SIGPlusOutOfMemoryException extends SIGPlusFileSystemException {
+class SigPlusNovoOutOfMemoryException extends SigPlusNovoFileSystemException {
 	protected $required;
 	protected $available;
 
@@ -261,7 +261,7 @@ class SIGPlusOutOfMemoryException extends SIGPlusFileSystemException {
 	}
 }
 
-class SIGPlusNotSupportedException extends SIGPlusException {
+class SigPlusNovoNotSupportedException extends SigPlusNovoException {
 	public function __construct() {
 		parent::__construct('SIGPLUS_EXCEPTION_NOTSUPPORTED');
 	}
@@ -270,7 +270,7 @@ class SIGPlusNotSupportedException extends SIGPlusException {
 /**
 * Triggered when a guest visitor tries to access content that is available to logged in users only.
 */
-class SIGPlusLoginRequiredException extends SIGPlusException {
+class SigPlusNovoLoginRequiredException extends SigPlusNovoException {
 	public function __construct() {
 		parent::__construct('JERROR_LOGIN_DENIED');
 	}
@@ -279,7 +279,7 @@ class SIGPlusLoginRequiredException extends SIGPlusException {
 /**
 * Triggered when the script is nearing the maximum execution time the script is allowed to run.
 */
-class SIGPlusTimeoutException extends SIGPlusException {
+class SigPlusNovoTimeoutException extends SigPlusNovoException {
 	public function __construct() {
 		parent::__construct('SIGPLUS_EXCEPTION_TIMEOUT');
 	}
@@ -288,7 +288,7 @@ class SIGPlusTimeoutException extends SIGPlusException {
 /**
 * Triggered when an image cannot be downloaded due to access restrictions.
 */
-class SIGPlusImageDownloadAccessException extends SIGPlusException {
+class SigPlusNovoImageDownloadAccessException extends SigPlusNovoException {
 	public function __construct() {
 		parent::__construct('SIGPLUS_EXCEPTION_DOWNLOAD_ACCESS');
 	}
@@ -297,7 +297,7 @@ class SIGPlusImageDownloadAccessException extends SIGPlusException {
 /**
 * Triggered when an image cannot be downloaded due to HTTP-related issues.
 */
-class SIGPlusImageDownloadHeadersSentException extends SIGPlusFileSystemException {
+class SigPlusNovoImageDownloadHeadersSentException extends SigPlusNovoFileSystemException {
 	public function __construct($file) {
 		parent::__construct('SIGPLUS_EXCEPTION_DOWNLOAD_HEADERS', $file);
 	}
