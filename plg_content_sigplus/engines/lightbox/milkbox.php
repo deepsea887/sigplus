@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for MooTools-based Milkbox pop-up window engine.
 * @see http://reghellin.com/milkbox/
 */
-class SIGPlusMilkboxLightboxEngine extends SIGPlusLightboxEngine {
+class SigPlusNovoMilkboxLightboxEngine extends SigPlusNovoLightboxEngine {
 	public function getIdentifier() {
 		return 'milkbox';
 	}
@@ -30,7 +30,7 @@ class SIGPlusMilkboxLightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		static $counter = 0;
 
 		// add main script
@@ -67,7 +67,7 @@ class SIGPlusMilkboxLightboxEngine extends SIGPlusLightboxEngine {
 			'		milkbox.open("'.$galleryid.'",index);'.PHP_EOL.
 			'	});'.PHP_EOL.
 			'});';
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}
 }

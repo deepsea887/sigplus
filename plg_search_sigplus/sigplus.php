@@ -12,13 +12,20 @@
 // no direct access
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+if (!defined('SIGPLUS_PLUGIN_FOLDER')) {
+	define('SIGPLUS_PLUGIN_FOLDER', 'sigplus');
+}
+if (!defined('SIGPLUS_MEDIA_FOLDER')) {
+	define('SIGPLUS_MEDIA_FOLDER', 'sigplus');
+}
+
 jimport('joomla.plugin.plugin');
 jimport('joomla.html.parameter');
 
 /**
 * Triggered when the sigplus content plug-in is unavailable or there is a version mismatch.
 */
-class SIGPlusSearchDependencyException extends Exception {
+class SigPlusNovoSearchDependencyException extends Exception {
 	/**
 	* Creates a new exception instance.
 	* @param {string} $key Error message language key.
@@ -33,7 +40,7 @@ class SIGPlusSearchDependencyException extends Exception {
 /**
  * sigplus image search plug-in.
  */
-class plgSearchSIGPlus extends JPlugin {
+class plgSearchSigPlusNovo extends JPlugin {
 	private $limit = 50;
 	private $core;
 
@@ -67,32 +74,32 @@ class plgSearchSIGPlus extends JPlugin {
 
 		// load language file for internationalized labels and error messages
 		$lang = JFactory::getLanguage();
-		$lang->load('plg_search_sigplus', JPATH_ADMINISTRATOR);
+		$lang->load('plg_search_'.SIGPLUS_PLUGIN_FOLDER, JPATH_ADMINISTRATOR);
 
 		if (!isset($this->core)) {
 			// load sigplus content plug-in
-			if (!JPluginHelper::importPlugin('content', 'sigplus')) {
-				throw new SIGPlusSearchDependencyException();
+			if (!JPluginHelper::importPlugin('content', SIGPLUS_PLUGIN_FOLDER)) {
+				throw new SigPlusNovoSearchDependencyException();
 			}
 
 			// load sigplus content plug-in parameters
-			$plugin = JPluginHelper::getPlugin('content', 'sigplus');
+			$plugin = JPluginHelper::getPlugin('content', SIGPLUS_PLUGIN_FOLDER);
 			$params = json_decode($plugin->params);
 
 			// create configuration parameter objects
-			$configuration = new SIGPlusConfigurationParameters();
-			$configuration->service = new SIGPlusServiceParameters();
+			$configuration = new SigPlusNovoConfigurationParameters();
+			$configuration->service = new SigPlusNovoServiceParameters();
 			$configuration->service->setParameters($params);
-			$configuration->gallery = new SIGPlusGalleryParameters();
+			$configuration->gallery = new SigPlusNovoGalleryParameters();
 			$configuration->gallery->setParameters($params);
 
 			if (SIGPLUS_LOGGING || $configuration->service->debug_server) {
-				SIGPlusLogging::setService(new SIGPlusHTMLLogging());
+				SigPlusNovoLogging::setService(new SigPlusNovoHTMLLogging());
 			} else {
-				SIGPlusLogging::setService(new SIGPlusNoLogging());
+				SigPlusNovoLogging::setService(new SigPlusNovoNoLogging());
 			}
 
-			$this->core = new SIGPlusCore($configuration);
+			$this->core = new SigPlusNovoCore($configuration);
 		}
 
 		$db = JFactory::getDbo();
@@ -245,11 +252,11 @@ class plgSearchSIGPlus extends JPlugin {
 		$results = array();
 		if ($rows) {
 			if ($show_thumbnails || $show_lightbox) {
-				$instance = SIGPlusEngineServices::instance();
+				$instance = SigPlusNovoEngineServices::instance();
 
 				if ($show_thumbnails) {
 					// import script services to add thumbnail images to image description text
-					$instance->addScript('/media/sigplus/js/search.js');
+					$instance->addScript('/media/'.SIGPLUS_MEDIA_FOLDER.'/js/search.js');
 				}
 
 				if ($show_lightbox) {
@@ -304,4 +311,8 @@ class plgSearchSIGPlus extends JPlugin {
 		}
 		return $areas;
 	}
+}
+
+class plgSearchSIGPlus extends plgSearchSigPlusNovo {
+
 }

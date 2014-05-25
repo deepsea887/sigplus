@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for MooTools-based hoverplus lightweight pop-up window on mouse-over engine.
 * @see http://hunyadi.info.hu/projects/hoverplus/
 */
-class SIGPlusHoverPlusLightboxEngine extends SIGPlusLightboxEngine {
+class SigPlusNovoHoverPlusLightboxEngine extends SigPlusNovoLightboxEngine {
 	private $theme = 'light';
 
 	public function getIdentifier() {
@@ -37,12 +37,12 @@ class SIGPlusHoverPlusLightboxEngine extends SIGPlusLightboxEngine {
 	/**
 	* Adds style sheet references to the HTML head element.
 	*/
-	public function addStyles($selector, SIGPlusGalleryParameters $params) {
+	public function addStyles($selector, SigPlusNovoGalleryParameters $params) {
 		// add main stylesheet
 		parent::addStyles($selector, $params);
 
 		// add theme stylesheet
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addStylesheet('/media/sigplus/engines/'.$this->getIdentifier().'/css/'.$this->getIdentifier().'.'.$this->theme.'.css', array('title'=>$this->getIdentifier().'-'.$this->theme));
 	}
 
@@ -51,7 +51,7 @@ class SIGPlusHoverPlusLightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		// add main script
 		parent::addScripts($selector, $params);
 
@@ -61,7 +61,7 @@ class SIGPlusHoverPlusLightboxEngine extends SIGPlusLightboxEngine {
 
 		// add document loaded event script with parameters
 		$script = 'hoverplus.bind(document.getElements('.json_encode($selector).'), '.json_encode($jsparams).');';
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}
 }

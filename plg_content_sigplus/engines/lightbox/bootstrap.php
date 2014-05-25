@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for jQuery-based Bootstrap lightweight pop-up window engine, integrated into Joomla 3.0.
 * @see http://twitter.github.com/bootstrap/javascript.html#transitions
 */
-class SIGPlusBootstrapLightboxEngine extends SIGPlusLightboxEngine {
+class SigPlusNovoBootstrapLightboxEngine extends SigPlusNovoLightboxEngine {
 	public function getIdentifier() {
 		return 'bootstrap';
 	}
@@ -30,7 +30,7 @@ class SIGPlusBootstrapLightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addStyles($selector, SIGPlusGalleryParameters $params) {
+	public function addStyles($selector, SigPlusNovoGalleryParameters $params) {
 		// do not call parent::addStyles($selector, $params), Bootstrap is integrated into Joomla 3.0.
 	}
 
@@ -39,7 +39,7 @@ class SIGPlusBootstrapLightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		static $html;
 
 		// do not call parent::addScripts($selector, $params), Bootstrap is integrated into Joomla 3.0.
@@ -56,7 +56,7 @@ class SIGPlusBootstrapLightboxEngine extends SIGPlusLightboxEngine {
 		JHtml::_('bootstrap.framework');
 
 		// get reference to sigplus engine services
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 
 		// append Bootstrap dialog box HTML
 		if (!isset($html)) {

@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for jQuery-based Fancybox pop-up window engine.
 * @see http://fancybox.net
 */
-class SIGPlusFancyboxLightboxEngine extends SIGPlusLightboxEngine {
+class SigPlusNovoFancyboxLightboxEngine extends SigPlusNovoLightboxEngine {
 	public function getIdentifier() {
 		return 'fancybox';
 	}
@@ -30,7 +30,7 @@ class SIGPlusFancyboxLightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		// add main script
 		parent::addScripts($selector, $params);
 
@@ -42,7 +42,7 @@ class SIGPlusFancyboxLightboxEngine extends SIGPlusLightboxEngine {
 
 		// add document loaded event script with parameters
 		$script = 'jQuery('.json_encode($selector).').fancybox('.json_encode($jsparams).');';
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}
 }

@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for jQuery-based Slimbox2 pop-up window engine.
 * @see http://fancybox.net
 */
-class SIGPlusSlimbox2LightboxEngine extends SIGPlusLightboxEngine {
+class SigPlusNovoSlimbox2LightboxEngine extends SigPlusNovoLightboxEngine {
 	public function getIdentifier() {
 		return 'slimbox2';
 	}
@@ -30,7 +30,7 @@ class SIGPlusSlimbox2LightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		// add main script
 		parent::addScripts($selector, $params);
 
@@ -48,7 +48,7 @@ class SIGPlusSlimbox2LightboxEngine extends SIGPlusLightboxEngine {
 			'		});'.PHP_EOL.
 			'	}'.PHP_EOL.
 			'})(jQuery);';
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addOnReadyScript($script);
 	}
 }

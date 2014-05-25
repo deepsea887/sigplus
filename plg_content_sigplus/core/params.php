@@ -50,7 +50,7 @@ define('SIGPLUS_SORT_LABELS_OR_RANDOM', SIGPLUS_SORT_LABELS | SIGPLUS_SORT_RANDO
 define('SIGPLUS_SORT_ASCENDING', 0);
 define('SIGPLUS_SORT_DESCENDING', 1);
 
-class SIGPlusColors {
+class SigPlusNovoColors {
 	/** Maps color names to color codes. */
 	private static $colors;
 
@@ -216,7 +216,7 @@ class SIGPlusColors {
 	}
 }
 
-class SIGPlusFilter {
+class SigPlusNovoFilter {
 	/** Relationship between items. */
 	public $rel;
 	/** An array of items to combine. */
@@ -232,13 +232,13 @@ class SIGPlusFilter {
 	}
 }
 
-class SIGPlusFolderParameters {
+class SigPlusNovoFolderParameters {
 	public $id;
 	public $time;
 	public $entitytag;
 }
 
-class SIGPlusImageParameters {
+class SigPlusNovoImageParameters {
 	/** Width of preview/thumbnail image (px). */
 	public $width = 100;
 	/** Height of preview/thumbnail image (px). */
@@ -297,8 +297,8 @@ class SIGPlusImageParameters {
 	}
 }
 
-class SIGPlusPreviewParameters extends SIGPlusImageParameters {
-	public function __construct(SIGPlusGalleryParameters $params = null) {
+class SigPlusNovoPreviewParameters extends SigPlusNovoImageParameters {
+	public function __construct(SigPlusNovoGalleryParameters $params = null) {
 		if ($params) {
 			$this->width = $params->preview_width;
 			$this->height = $params->preview_height;
@@ -308,8 +308,8 @@ class SIGPlusPreviewParameters extends SIGPlusImageParameters {
 	}
 }
 
-class SIGPlusThumbParameters extends SIGPlusImageParameters {
-	public function __construct(SIGPlusGalleryParameters $params = null) {
+class SigPlusNovoThumbParameters extends SigPlusNovoImageParameters {
+	public function __construct(SigPlusNovoGalleryParameters $params = null) {
 		if ($params) {
 			$this->width = $params->thumb_width;
 			$this->height = $params->thumb_height;
@@ -322,7 +322,7 @@ class SIGPlusThumbParameters extends SIGPlusImageParameters {
 /**
 * Base class for configuration objects.
 */
-class SIGPlusConfigurationBase {
+class SigPlusNovoConfigurationBase {
 	/**
 	* Set parameters from a JRegistry or a JSON object (typically synthesized from a JSON string).
 	* @param $params A value of a type such as boolean or stdClass.
@@ -524,7 +524,7 @@ class SIGPlusConfigurationBase {
 			if (preg_match('/^#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/', $value)) {  // a hexadecimal color code
 				return '#'.ltrim($value, '#');
 			} else {  //  a color name
-				return SIGPlusColors::translate($value);
+				return SigPlusNovoColors::translate($value);
 			}
 		} elseif (is_int($value)) {
 			return sprintf('#%06x', $value);  // convert integer into hexadecimal digits
@@ -584,19 +584,19 @@ class SIGPlusConfigurationBase {
 	}
 
 	protected static function as_filter($expression) {
-		if ($expression instanceof SIGPlusFilter) {
+		if ($expression instanceof SigPlusNovoFilter) {
 			return $expression;
 		} elseif (is_string($expression)) {
-			$filter = new SIGPlusFilter('or');
+			$filter = new SigPlusNovoFilter('or');
 			$disjunction = explode(';', $expression);  // a;b;c --> a or b or c
 			foreach ($disjunction as $subexpression) {
-				$subfilter = new SIGPlusFilter('and');
+				$subfilter = new SigPlusNovoFilter('and');
 				$subfilter->items = explode(',', $subexpression);  // a,b,c --> a and b and c
 				$filter->items[] = $subfilter;
 			}
 			return $filter;
 		} else {
-			return new SIGPlusFilter('and');  // empty filter
+			return new SigPlusNovoFilter('and');  // empty filter
 		}
 	}
 
@@ -608,7 +608,7 @@ class SIGPlusConfigurationBase {
 /**
 * System-wide image gallery generation configuration parameters.
 */
-class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
+class SigPlusNovoServiceParameters extends SigPlusNovoConfigurationBase {
 	/** Whether to support multilingual labeling. */
 	public $multilingual = false;
 	/**
@@ -710,7 +710,7 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 		// verify validity of path
 		$path = realpath($path);
 		if ($path === false) {
-			throw new SIGPlusBaseFolderException($this->base_folder);
+			throw new SigPlusNovoBaseFolderException($this->base_folder);
 		}
 		$this->base_folder = $path;
 
@@ -724,7 +724,7 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 
 		// verify presence of base URL
 		if ($this->base_url === false) {
-			throw new SIGPlusBaseURLException();
+			throw new SigPlusNovoBaseURLException();
 		}
 
 		// trim excess trailing slash
@@ -732,18 +732,18 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 
 		// thumbnail folder (either inside image folder or cache folder)
 		if (!is_filename($this->folder_thumb)) {
-			throw new SIGPlusInvalidFolderException($this->folder_thumb, 'SIGPLUS_IMAGETYPE_THUMB');
+			throw new SigPlusNovoInvalidFolderException($this->folder_thumb, 'SIGPLUS_IMAGETYPE_THUMB');
 		}
 
 		// preview image folder (either inside image folder or cache folder)
 		if (!is_filename($this->folder_preview)) {
-			throw new SIGPlusInvalidFolderException($this->folder_preview, 'SIGPLUS_IMAGETYPE_PREVIEW');
+			throw new SigPlusNovoInvalidFolderException($this->folder_preview, 'SIGPLUS_IMAGETYPE_PREVIEW');
 		}
 
 		// full size image folder
 		if ($this->folder_fullsize) {
 			if (!is_filename($this->folder_fullsize)) {
-				throw new SIGPlusInvalidFolderException($this->folder_fullsize, 'SIGPLUS_IMAGETYPE_FULLSIZE');
+				throw new SigPlusNovoInvalidFolderException($this->folder_fullsize, 'SIGPLUS_IMAGETYPE_FULLSIZE');
 			}
 		} else {  // no folder available for high-resolution images
 			$this->folder_fullsize = false;
@@ -751,7 +751,7 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 
 		// watermarked image folder (either inside image folder or cache folder)
 		if (!is_filename($this->folder_watermarked)) {
-			throw new SIGPlusInvalidFolderException($this->folder_watermarked, 'SIGPLUS_IMAGETYPE_WATERMARKED');
+			throw new SigPlusNovoInvalidFolderException($this->folder_watermarked, 'SIGPLUS_IMAGETYPE_WATERMARKED');
 		}
 
 		// check that generated images folders are all different
@@ -767,7 +767,7 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 		);
 		foreach ($foldercounts as $folder => $count) {
 			if ($count > 1) {
-				throw new SIGPlusFolderConflictException($folder);
+				throw new SigPlusNovoFolderConflictException($folder);
 			}
 		}
 	}
@@ -784,7 +784,7 @@ class SIGPlusServiceParameters extends SIGPlusConfigurationBase {
 * (3) Local values are usually specified directly in the article body, with activation tag
 *     attribute values, and typically set using a parameter string of name-value pairs.
 */
-class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
+class SigPlusNovoGalleryParameters extends SigPlusNovoConfigurationBase {
 	/**
 	* Title of Joomla module that acts as a base template for parameter values.
 	*
@@ -1111,7 +1111,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	*/
 	public function validate() {
 		// apply parameter overrides for handheld devices
-		if (!empty($this->mobile_params) && SIGPlusUserAgent::handheld()) {  // settings for mobile devices
+		if (!empty($this->mobile_params) && SigPlusNovoUserAgent::handheld()) {  // settings for mobile devices
 			foreach ($this->mobile_params as $key => $value) {
 				$this->$key = $value;  // override values set for desktop computers
 			}
@@ -1357,7 +1357,7 @@ class SIGPlusGalleryParameters extends SIGPlusConfigurationBase {
 	}
 }
 
-class SIGPlusConfigurationParameters {
+class SigPlusNovoConfigurationParameters {
 	public $gallery;
 	public $service;
 }
@@ -1365,7 +1365,7 @@ class SIGPlusConfigurationParameters {
 /**
 * A parameter stack.
 */
-class SIGPlusParameterStack {
+class SigPlusNovoParameterStack {
 	private $stack;
 
 	public function top() {

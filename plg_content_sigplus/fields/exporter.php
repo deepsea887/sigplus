@@ -42,7 +42,7 @@ class JFormFieldExporter extends JFormField {
 	public function getInput() {
 		$html = '';
 
-		$scriptpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'fields';
+		$scriptpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.'fields';
 		if (file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.min.js') || file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.js')) {
 			// get identifiers
 			$class = ( isset($this->element['class']) ? (string)$this->element['class'] : 'inputbox' );

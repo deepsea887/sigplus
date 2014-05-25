@@ -33,7 +33,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 /**
 * User agent detection and support.
 */
-class SIGPlusUserAgent {
+class SigPlusNovoUserAgent {
 	/**
 	* True if the user agent is a mobile device.
 	*/

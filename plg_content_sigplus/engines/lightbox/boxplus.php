@@ -16,7 +16,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 * Support class for MooTools-based boxplus lightweight pop-up window engine.
 * @see http://hunyadi.info.hu/projects/boxplus/
 */
-class SIGPlusBoxPlusLightboxEngine extends SIGPlusLightboxEngine {
+class SigPlusNovoBoxPlusLightboxEngine extends SigPlusNovoLightboxEngine {
 	private $theme = 'lightsquare';
 
 	public function getIdentifier() {
@@ -39,10 +39,10 @@ class SIGPlusBoxPlusLightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addStyles($selector, SIGPlusGalleryParameters $params) {
+	public function addStyles($selector, SigPlusNovoGalleryParameters $params) {
 		// add main stylesheet
 		parent::addStyles($selector, $params);
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$instance->addConditionalStylesheet('/media/sigplus/engines/'.$this->getIdentifier().'/css/'.$this->getIdentifier().'.ie8.css', 9);
 		$instance->addConditionalStylesheet('/media/sigplus/engines/'.$this->getIdentifier().'/css/'.$this->getIdentifier().'.ie7.css', 8);
 
@@ -56,12 +56,12 @@ class SIGPlusBoxPlusLightboxEngine extends SIGPlusLightboxEngine {
 	* @param {string} $selector A CSS selector.
 	* @param $params Gallery parameters.
 	*/
-	public function addScripts($selector, SIGPlusGalleryParameters $params) {
+	public function addScripts($selector, SigPlusNovoGalleryParameters $params) {
 		// add main script
 		parent::addScripts($selector, $params);
 
 		// add localization
-		$instance = SIGPlusEngineServices::instance();
+		$instance = SigPlusNovoEngineServices::instance();
 		$language = JFactory::getLanguage();
 		list($lang, $country) = explode('-', $language->getTag());
 		$instance->addScript('/media/sigplus/engines/'.$this->getIdentifier().'/js/'.$this->getIdentifier().'.lang.js?lang='.$lang.'-'.$country.'.js');

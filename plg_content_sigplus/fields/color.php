@@ -44,7 +44,7 @@ class JFormFieldColor extends JFormField {
 		$ctrlid = str_replace(array('][','[',']'), array('_','_',''), $this->name);
 		$html = '<input type="text" class="'. $class .'" name="'. $this->name .'" id="'. $ctrlid .'" value="'. $this->value .'" />';
 		
-		$scriptpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.'sigplus'.DIRECTORY_SEPARATOR.'fields';
+		$scriptpath = JPATH_ROOT.DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'content'.DIRECTORY_SEPARATOR.SIGPLUS_PLUGIN_FOLDER.DIRECTORY_SEPARATOR.'fields';
 		if (file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'colorplus.min.js') || file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'colorplus.js')) {
 			$buttonid = $ctrlid . '-button';
 
