@@ -162,7 +162,7 @@ The following table helps you convert configuration settings from sigplus 1.4.x 
 || Crop when resizing || `thumb_crop` ||  ||  ||
 || _yes_ || `yes/1` ||  ||  ||
 || _no_ || `no/0` ||  ||  ||
-|| Lightbox transition effect || `lightbox_transition` ||  ||  ||
+|| Lightbox transition effect || `lightbox_transition` ||  || `lightbox:easing` ||
 || _linear_ || `linear` ||  ||  ||
 || _quadratic_ || `quadratic` ||  ||  ||
 || _cubicular_ || `cubicular` ||  ||  ||

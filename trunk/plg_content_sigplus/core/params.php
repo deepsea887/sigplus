@@ -247,6 +247,12 @@ class SigPlusNovoImageParameters {
 	public $crop = true;
 	/** JPEG quality measure. */
 	public $quality = 85;
+	/** Horizontal offset. Used with watermark images. */
+	public $x = 0;
+	/** Vertical offset. Used with watermark images. */
+	public $y = 0;
+	/** Image position. Used with watermark images. */
+	public $position = false;
 
 	/**
 	* The name prefix for generated images.
@@ -292,7 +298,13 @@ class SigPlusNovoImageParameters {
 			default:
 				$quality = '';
 		}
-		$hashbase = 'sigplus_'.$this->getNamingPrefix().$quality.'_'.$imagehashbase;
+		if ($this->position !== false) {
+			$position = '#'.$this->x.$this->position.$this->y;
+		} else {
+			$position = '';
+		}
+
+		$hashbase = 'sigplus_'.$this->getNamingPrefix().$quality.$position.'_'.$imagehashbase;
 		return md5($hashbase).$extension;
 	}
 }
@@ -315,6 +327,20 @@ class SigPlusNovoThumbParameters extends SigPlusNovoImageParameters {
 			$this->height = $params->thumb_height;
 			$this->crop = $params->thumb_crop;
 			$this->quality = $params->quality;
+		}
+	}
+}
+
+class SigPlusNovoWatermarkParameters extends SigPlusNovoImageParameters {
+	public function __construct(SigPlusNovoGalleryParameters $params = null) {
+		$this->width = 0;
+		$this->height = 0;
+		$this->crop = false;
+		if ($params) {
+			$this->x = $params->watermark_x;   // special value for watermarked image
+			$this->y = $params->watermark_y;  // special value for watermarked image
+			$this->quality = $params->quality;
+			$this->position = $params->watermark_position;
 		}
 	}
 }

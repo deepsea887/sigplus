@@ -288,7 +288,7 @@
 				<field name="settings_exporter" type="exporter" label="SIGPLUS_SETTINGS_MIGRATE" description="SIGPLUS_SETTINGS_MIGRATE_DESCRIPTION" />
 			</fieldset>
 			<fieldset name="expert" label="SIGPLUS_FIELDSET_EXPERT">
-				<field name="base_url" type="text" default="" label="SIGPLUS_BASE_URL" description="SIGPLUS_BASE_URL_DESCRIPTION" />
+				<field name="base_url" type="url" default="" label="SIGPLUS_BASE_URL" description="SIGPLUS_BASE_URL_DESCRIPTION" />
 				<field type="spacer" label="SIGPLUS_CATEGORY_LIBRARY" />
 				<field name="library_jsapi" type="list" default="local" label="SIGPLUS_LIBRARY_JSAPI" description="SIGPLUS_LIBRARY_JSAPI_DESCRIPTION">
 					<option value="cdn-google">SIGPLUS_LIBRARY_JSAPI_GOOGLE</option>

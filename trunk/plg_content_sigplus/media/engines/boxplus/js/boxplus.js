@@ -42,8 +42,8 @@
 	});
 
 	/**
-	* Converts a query string into an object.
-	* @param {string} querystring
+	* Converts a query string (or fragment string) into an object.
+	* @param {string} querystring A string that includes the leading "?" (or "!") character.
 	* @return {!Object}
 	*/
 	function fromQueryString(querystring) {
@@ -856,6 +856,9 @@
 			self.setVisible('thumbs', false);
 			self.setVisible('viewer prev', false);
 			self.setVisible('viewer next', false);
+
+			// add cloned copy of element and its descendants, which will discard their unique HTML identifiers;
+			// elements inside the pop-up window will not be accessible with their original HTML id
 			self.viewercontent.adopt(elem.clone()).removeClass(BOXPLUS_UNAVAILABLE).removeClass(BOXPLUS_HIDDEN);
 
 			self._imagedims = {
@@ -869,7 +872,17 @@
 		* @param {HTMLAnchorElement} anchor An HTML anchor element.
 		*/
 		setDimensions: function (anchor) {
-			var dims = fromQueryString(anchor.search);
+			// extract parameters from URL query string
+			var dims = fromQueryString(anchor.search);  // includes leading "?"
+
+			// extract parameters from URL fragment
+			var fragment = anchor.hash;
+			var pos = fragment.indexOf("!");  // "!" indicates beginning of name=value pairs
+			if (pos >= 0) {
+				Object.append(dims, fromQueryString(fragment.substr(pos)));  // substring includes leading "!"
+			}
+
+			// use defaults if no explicit width or height value is specified
 			dims = {
 				width: dims.width ? dims.width.toInt() : this['options']['width'],
 				height: dims.height ? dims.height.toInt() : this['options']['height']
@@ -1790,8 +1803,11 @@
 				_show();
 			}
 
-			function _showContent(elem) {
+			function _showContent(elem, anchor) {
 				dialog.setContent(elem);
+				if (anchor) {
+					dialog.setDimensions(anchor);
+				}
 				_show();
 			}
 
@@ -1809,15 +1825,21 @@
 				var href = anchor.get('href');  // <a> href (as it occurs in source)
 				var url = anchor.href;  // <a> href (resolved)
 				var path = anchor.pathname;
-
 				if (/^#/.test(href)) {  // content in the same document
-					var elem = $(href.substr(1));
+					// extract location without name=value parameters
+					var location = anchor.hash;  // fragment identifier
+					var pos = location.indexOf("!");  // "!" indicates beginning of name=value pairs
+					if (pos >= 0) {
+						location = href.substr(0, pos);
+					}
+
+					var elem = $(location.substr(1));
 					switch (elem.get('tag')) {
 						case 'img':
 							_showImage(anchor, elem);
 							break;
 						default:
-							_showContent(elem);
+							_showContent(elem, anchor);
 					}
 				} else if (/\.(txt|html?)$/i.test(path) && anchor['host'] == window['location']['host']) {  // use AJAX only for requests to the same domain
 					new Request.HTML({
