@@ -59,6 +59,7 @@
 					<option value="hoverplus">SIGPLUS_HOVERPLUS</option>
 					<option value="milkbox">SIGPLUS_MILKBOX</option>
 					<option value="slimbox2">SIGPLUS_SLIMBOX2</option>
+					<option value="bootstrap">SIGPLUS_BOOTSTRAP</option>
 				</field>
 				<field name="lightbox_autocenter" type="radio" default="1" label="SIGPLUS_LIGHTBOX_AUTOCENTER" description="SIGPLUS_LIGHTBOX_AUTOCENTER_DESCRIPTION">
 					<option value="1">JYES</option>

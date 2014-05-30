@@ -849,6 +849,7 @@ abstract class SigPlusNovoGalleryBase {
 		return md5(
 			$folderid.' '.
 			$this->config->gallery->preview_width . ($this->config->gallery->preview_crop ? 'x' : 's') . $this->config->gallery->preview_height . ' ' .
+			$this->config->gallery->thumb_width . ($this->config->gallery->thumb_crop ? 'x' : 's') . $this->config->gallery->thumb_height . ' ' .
 			( $this->config->gallery->watermark_position !== false
 			? $this->config->gallery->watermark_x . $this->config->gallery->watermark_position . $this->config->gallery->watermark_y . '@' . $this->config->gallery->watermark_source
 			: ''
@@ -1081,14 +1082,15 @@ abstract class SigPlusNovoLocalBase extends SigPlusNovoGalleryBase {
 
 		$previewparams = new SigPlusNovoPreviewParameters($this->config->gallery);  // current image generation parameters
 		$thumbparams = new SigPlusNovoThumbParameters($this->config->gallery);
+		$waterparams = new SigPlusNovoWatermarkParameters($this->config->gallery);
 
 		$imagelibrary = SigPlusNovoImageLibrary::instantiate($this->config->service->library_image);
 
 		// create watermarked image
 		if ($this->config->gallery->watermark_position !== false && ($watermarkpath = $this->getWatermarkPath(dirname($imagepath))) !== false) {
-			$watermarkedpath = $this->getWatermarkedPath($imagepath, SIGPLUS_TEST);
+			$watermarkedpath = $this->getWatermarkedPath($imagepath, $waterparams, SIGPLUS_TEST);
 			if ($watermarkedpath === false || !(fsx::filemtime($watermarkedpath) >= fsx::filemtime($imagepath))) {  // watermarked image does not yet exist
-				$watermarkedpath = $this->getWatermarkedPath($imagepath, SIGPLUS_CREATE);
+				$watermarkedpath = $this->getWatermarkedPath($imagepath, $waterparams, SIGPLUS_CREATE);
 				$watermarkparams = array(
 					'position' => $this->config->gallery->watermark_position,
 					'x' => $this->config->gallery->watermark_x,
@@ -1226,12 +1228,7 @@ abstract class SigPlusNovoLocalBase extends SigPlusNovoGalleryBase {
 	* @param {string} $imagepath Absolute path to an image file.
 	* @return The full path to a watermarked image, or false on error.
 	*/
-	private function getWatermarkedPath($imagepath, $action = SIGPLUS_TEST) {
-		$params = new SigPlusNovoPreviewParameters();
-		$params->width = 0;  // special values for watermarked image
-		$params->height = 0;
-		$params->crop = false;
-		$params->quality = 0;
+	private function getWatermarkedPath($imagepath, SigPlusNovoWatermarkParameters $params, $action = SIGPLUS_TEST) {
 		return $this->getGeneratedImagePath($this->config->service->folder_watermarked, $imagepath, $params, $action);
 	}
 
@@ -1328,7 +1325,8 @@ abstract class SigPlusNovoLocalBase extends SigPlusNovoGalleryBase {
 		list($previewpath, $previewtime, $previewwidth, $previewheight) = $this->getImageData($this->getPreviewPath($imagepath, $previewparams, SIGPLUS_TEST));
 
 		// watermarked image
-		list($watermarkedpath, $watermarkedtime) = $this->getImageData($this->getWatermarkedPath($imagepath, SIGPLUS_TEST));
+		$waterparams = new SigPlusNovoWatermarkParameters($this->config->gallery);
+		list($watermarkedpath, $watermarkedtime) = $this->getImageData($this->getWatermarkedPath($imagepath, $waterparams, SIGPLUS_TEST));
 
 		// handle special value NULL when thumbnail or preview image could not be generated
 		if (!isset($thumbwidth) || !isset($thumbheight)) {
