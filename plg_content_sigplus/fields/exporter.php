@@ -60,9 +60,9 @@ class JFormFieldExporter extends JFormField {
 			JHTML::_('behavior.framework', false);  // include MooTools Core
 			$document = JFactory::getDocument();
 			if (file_exists($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.min.js') && filemtime($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.min.js') >= filemtime($scriptpath.DIRECTORY_SEPARATOR.'js'.DIRECTORY_SEPARATOR.'exporter.js')) {
-				$document->addScript(JURI::root(true).'/plugins/content/sigplus/fields/js/exporter.min.js');
+				$document->addScript(JURI::root(true).'/plugins/content/'.SIGPLUS_PLUGIN_FOLDER.'/fields/js/exporter.min.js');
 			} else {
-				$document->addScript(JURI::root(true).'/plugins/content/sigplus/fields/js/exporter.js');
+				$document->addScript(JURI::root(true).'/plugins/content/'.SIGPLUS_PLUGIN_FOLDER.'/fields/js/exporter.js');
 			}
 			$document->addScriptDeclaration('window.addEvent("domready", function () { new SettingsExporter(document.id("'.$ctrlid.'"), document.id("'.$exportctrlid.'"), document.id("'.$importctrlid.'")); });');
 		}

@@ -869,25 +869,39 @@
 
 		/**
 		* Set dimensions data based on explicitly set values.
-		* @param {HTMLAnchorElement} anchor An HTML anchor element.
+		* @param {HTMLAnchorElement=} anchor An HTML anchor element.
+		* @param {number=} defw Default width.
+		* @param {number=} defh Default height.
 		*/
-		setDimensions: function (anchor) {
-			// extract parameters from URL query string
-			var dims = fromQueryString(anchor.search);  // includes leading "?"
-
-			// extract parameters from URL fragment
-			var fragment = anchor.hash;
-			var pos = fragment.indexOf("!");  // "!" indicates beginning of name=value pairs
-			if (pos >= 0) {
-				Object.append(dims, fromQueryString(fragment.substr(pos)));  // substring includes leading "!"
-			}
+		setDimensions: function (anchor, defw, defh) {
+			var self = this;
 
 			// use defaults if no explicit width or height value is specified
-			dims = {
-				width: dims.width ? dims.width.toInt() : this['options']['width'],
-				height: dims.height ? dims.height.toInt() : this['options']['height']
+			defw = defw ? defw : self['options']['width'];
+			defh = defh ? defh : self['options']['height'];
+			var dims = {
+				width: defw,
+				height: defh
 			};
-			this._imagedims = dims;
+
+			if (anchor) {
+				// extract parameters from URL query string
+				Object.append(dims, fromQueryString(anchor.search));  // includes leading "?"
+
+				// extract parameters from URL fragment
+				var fragment = anchor.hash;
+				var pos = fragment.indexOf("!");  // "!" indicates beginning of name=value pairs
+				if (pos >= 0) {
+					Object.append(dims, fromQueryString(fragment.substr(pos)));  // substring includes leading "!"
+				}
+			}
+
+			// coerce into number
+			dims = {
+				width: /^\d+$/.test(dims.width) ? dims.width.toInt() : dims.width,
+				height: /^\d+$/.test(dims.height) ? dims.height.toInt() : dims.height
+			};
+			self._imagedims = dims;
 		},
 
 		setVideo: function (href, dims) {
@@ -1248,22 +1262,27 @@
 
 			// calculate size for large images that need shrinking
 			var winsize = window.getSize();
-			var dlgsize;
 			if (contentonly) {
-				dlgsize = _dialogresize(w, 'auto');
-				self.viewercontentclone.empty();
-				var children = self.viewercontent.getChildren();
-				if (children.length) {
-					self.viewercontentclone.adopt(children);  // temporarily give children to other clone parent
-				}
-				h = self.viewerclone.getSize().y;
-				dlgsize = _dialogresize(w, h);
-				dlgsize = _dialogresize(Math.min(winsize.x, dlgsize.x) - (dlgsize.x-w), Math.min(winsize.y, dlgsize.y) - (dlgsize.y-h));
-				if (children.length) {
-					self.viewercontent.adopt(children);  // take children back from clone parent
+				w = w > 0 ? w : winsize.x;
+			}
+			var dlgsize = _dialogresize(w, h);
+			if (contentonly) {
+				if (h > 0) {  // use height explicitly specified
+					dlgsize = _dialogresize(Math.min(winsize.x, dlgsize.x) - (dlgsize.x-w), Math.min(winsize.y, dlgsize.y) - (dlgsize.y-h));
+				} else {  // determine height automatically
+					self.viewercontentclone.empty();
+					var children = self.viewercontent.getChildren();
+					if (children.length) {
+						self.viewercontentclone.adopt(children);  // temporarily give children to other clone parent
+					}
+					h = self.viewerclone.getSize().y;
+					dlgsize = _dialogresize(w, h);
+					dlgsize = _dialogresize(Math.min(winsize.x, dlgsize.x) - (dlgsize.x-w), Math.min(winsize.y, dlgsize.y) - (dlgsize.y-h));
+					if (children.length) {
+						self.viewercontent.adopt(children);  // take children back from clone parent
+					}
 				}
 			} else {
-				dlgsize = _dialogresize(w, h);
 				var needShrunk = self['options']['autofit']  // autofit is enabled
 					&& ((winsize.x < dlgsize.x) || (winsize.y < dlgsize.y));  // does not fit browser window dimensions
 				if (needShrunk && self.isShrunk()) {  // needs shrinking and is in shrunk mode
@@ -1805,9 +1824,7 @@
 
 			function _showContent(elem, anchor) {
 				dialog.setContent(elem);
-				if (anchor) {
-					dialog.setDimensions(anchor);
-				}
+				dialog.setDimensions(anchor, 'auto', 'auto');
 				_show();
 			}
 
