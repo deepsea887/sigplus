@@ -400,6 +400,10 @@ class SigPlusNovoImageLibraryGD extends SigPlusNovoImageLibrary {
 	}
 
 	public function createWatermarked($imagepath, $watermarkpath, $watermarkedimagepath, $params) {
+		if (self::isAnimated($imagepath)) {
+			return false;  // animated images not supported for watermarking
+		}
+
 		// check memory requirement for operation
 		$this->checkMemory($imagepath);
 
