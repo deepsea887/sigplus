@@ -72,7 +72,7 @@ If you would like to show several galleries with different settings on your site
 If you choose this approach there is no need to change any of the parameters in the administration back-end.
 
 
-== Change the gallery alignment, number of rows and columns ==
+== How to change gallery alignment, number of rows and columns ==
 
 === Configuration in the administration back-end ===
 
@@ -94,7 +94,7 @@ The example shows a gallery with two rows and two columns on the right side of t
 {gallery rows=2 cols=2 alignment=right}myfolder{/gallery}</pre>
 
 
-== Show only a specified number of previews and let the text wrap around the gallery ==
+== How to show only a specified number of previews and let the text wrap around the gallery ==
 
 === Configuration in the administration back-end ===
 

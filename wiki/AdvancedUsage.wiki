@@ -355,3 +355,24 @@ The above example shows a gallery with one row and two columns on the right side
          preview_border_style=groove preview_border_width=3 preview_border_color="#006400"
          lightbox_thumbs=none lightbox_slideshow=2000 lightbox_autostart=1
          download="Registered" metadata="Registered" caption_source=filename}myfolder{/gallery}</pre>
+
+== How to combine custom layout with the lightbox effect ==
+		 
+Sometimes, you might want to display a gallery inside a lightbox pop-up window but not directly on the web page. Occasionally, you might also want to display a couple of showcase preview images directly on the web page but make the full gallery navigable only when a visitor clicks the preview image and the pop-up window appears. A clever combination of hidden galleries and the lightbox pop-up activation tag allows you to utilize the power of sigplus yet have full control over the layout.
+
+The principle is illustrated below. The key idea is to put as many activation tag instances in the article body as there are galleries you want to be shown. First, each gallery is assigned a unique identifier with the attribute `id`, and has the special layout attribute `hidden`, which hides all visuals normally associated with galleries like preview images and controls. Next, build a totally custom layout and create links that refer back to the hidden galleries with the activation tag `lightbox` having the attribute `link`. Each `lightbox` activation tag transforms into an HTML anchor and can wrap any HTML inline content including image and text.
+		 
+<pre>
+<div>
+{gallery layout=hidden id=gallery1 source=folder1 /}
+{gallery layout=hidden id=gallery2 source=folder2 /}
+{gallery layout=hidden id=gallery3 source=folder3 /}
+</div>
+<p>
+Custom layout with two showcase images
+{lightbox link=gallery1}<img src="image1.jpg" alt="" />{/lightbox}
+and
+{lightbox link=gallery2}<img src="image2.jpg" alt="" />{/lightbox}
+and a {lightbox link=gallery3}link{/lightbox}.
+</p>
+</pre>
