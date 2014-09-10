@@ -2042,7 +2042,9 @@ class SigPlusNovoCore {
 			$style .= ' '.$curparams->classname;
 		}
 
-		if ($curparams->layout == 'fixed') {  // imitate fixed layout in <noscript> mode
+		if ($curparams->layout == 'hidden') {
+			$style .= ' sigplus-hidden';
+		} elseif ($curparams->layout == 'fixed') {  // imitate fixed layout in <noscript> mode
 			$style .= ' sigplus-noscript';  // "sigplus-noscript" is automatically removed when javascript is detected
 		}
 		switch ($curparams->alignment) {

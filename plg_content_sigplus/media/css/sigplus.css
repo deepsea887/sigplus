@@ -123,6 +123,11 @@ text-align:center !important;
 line-height:0;
 }
 
+/* hidden layout */
+.sigplus-hidden {
+display:none !important;
+}
+
 /* horizontally scrollable gallery in <noscript> mode */
 .sigplus-gallery.sigplus-noscript > ul {
 overflow:auto !important;
